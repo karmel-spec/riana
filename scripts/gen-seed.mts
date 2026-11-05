@@ -38,7 +38,8 @@ out += insert("lab_results", f.labResults.map((x) => pick(x, "id", "patient", "t
 out += insert("final_wishes", f.finalWishes.map((x) => pick(x, "id", "person", "topic", "wish", "confirmed")));
 out += insert("loans", f.loans.map((x) => ({ ...pick(x, "id", "direction", "counterparty", "principal", "rate_pct", "status", "note_signed"), property_id: x.property_id ?? null, balance_note: x.balance_note ?? null })));
 out += insert("insurance_policies", f.insurancePolicies.map((x) => pick(x, "id", "kind", "carrier", "insured", "policy_last4", "premium", "renews_on", "agent_person_id", "notes", "source")));
-out += insert("tax_records", f.taxRecords.map((x) => pick(x, "id", "tax_year", "kind", "preparer", "status", "filed_on", "notes", "source")));
+out += insert("tax_records", f.taxRecords.map((x) => pick(x, "id", "tax_year", "kind", "preparer", "status", "filed_on", "notes", "amended", "amended_form", "ssn_last4_rich", "ssn_last4_diana", "refund_bank_last4", "source")));
+out += insert("tax_source_items", f.taxSourceItems.map((x) => pick(x, "id", "tax_year", "label", "provider", "where_to_find", "portal_url", "vault_item", "received", "received_on", "notes")));
 out += insert("riana_updates", f.rianaUpdates.map((x) => ({ ...pick(x, "id", "kind", "summary", "received_at", "review_status"), payload: "{}" })));
 out += insert("providers", f.providers.map((x) => pick(x, "id", "patient", "name", "specialty", "practice", "phone", "portal_name", "is_va", "notes")));
 out += insert("medications", f.medications.map((x) => pick(x, "id", "patient", "name", "dose", "schedule", "purpose", "prescriber_id", "started_on", "stopped_on", "active", "notes", "source")));

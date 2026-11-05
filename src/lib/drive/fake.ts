@@ -70,8 +70,28 @@ export function fakeDriveClient(opts: { unreadable?: string[] } = {}): DriveClie
       }));
       return [...sub, ...files];
     },
-    async stream() {
-      return new Response("fake", { status: 200 });
+    async stream(fileId) {
+      const name = FAKE_FILES[Number(fileId.split("-").pop())]?.name ?? "Sample file";
+      return new Response(tinyPdf(`SAMPLE DOCUMENT (fake) - ${name.replace(/[()\\]/g, "")}`), { status: 200, headers: { "content-type": "application/pdf", "accept-ranges": "bytes" } });
     },
   };
+}
+
+/** A minimal, valid one-page PDF showing one line of text. Used only by the fake Drive. */
+export function tinyPdf(text: string): string {
+  const safe = text.replace(/[^\x20-\x7e]/g, "?").slice(0, 80);
+  const content = `BT /F1 18 Tf 40 740 Td (${safe}) Tj ET`;
+  const objs = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
+    `<< /Length ${content.length} >>\nstream\n${content}\nendstream`,
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+  ];
+  let out = "%PDF-1.4\n"; const offsets: number[] = [];
+  objs.forEach((o, i) => { offsets.push(out.length); out += `${i + 1} 0 obj\n${o}\nendobj\n`; });
+  const xref = out.length;
+  out += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n` + offsets.map((o) => `${String(o).padStart(10, "0")} 00000 n \n`).join("");
+  out += `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  return out;
 }

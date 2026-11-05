@@ -245,3 +245,21 @@ select test.ok(test.rows('select * from public.imported_files') = 0, 'grandchild
 select test.ok(test.rows('select * from public.drive_folders') = 0 and test.rows('select * from public.drive_sync_runs') = 0, 'grandchild cannot see folders or runs');
 reset role;
 \echo 'Drive import tests passed.'
+
+-- Taxes (admin-only, masked) ----------------------------------------------------
+select test.act(:RICH, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.tax_records') = 0, 'a parent cannot see tax records');
+select test.ok(test.rows('select * from public.tax_source_items') = 0, 'a parent cannot see the tax checklist');
+reset role; select test.act(:K, 'aal1'); set role authenticated;
+select test.ok(test.rows('select * from public.tax_records') = 0, 'super admin WITHOUT 2FA cannot see tax records');
+reset role; select test.act(:K, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.tax_records') >= 7, 'super admin with 2FA sees the returns');
+select test.ok((select amended from public.tax_records where tax_year = 2024 and kind = 'federal') and (select amended_form from public.tax_records where tax_year = 2024 and kind = 'federal') = '1040-X', '2024 is flagged amended 1040-X');
+select test.ok(test.fails($$insert into public.tax_records (tax_year, kind, status, ssn_last4_rich) values (2018, 'federal', 'Filed', '123456789')$$), 'a full SSN in the last-4 column is rejected');
+select test.ok(test.fails($$insert into public.tax_records (tax_year, kind, status, notes) values (2018, 'federal', 'Filed', 'SSN 123-45-6789')$$), 'a full SSN in notes is rejected');
+select test.ok(test.fails($$insert into public.tax_records (tax_year, kind, status, notes) values (2018, 'federal', 'Filed', 'acct 1234567890')$$), 'a full account number in notes is rejected');
+select test.ok(not test.fails($$insert into public.tax_records (tax_year, kind, status, ssn_last4_rich, notes) values (2018, 'federal', 'Filed', '4321', 'refund to ····1234')$$), 'last-4 values are accepted');
+select public.log_view('admin', 'imported_files:download:2024 return', null);
+select test.ok(exists (select 1 from public.audit_log where actor = :K::uuid and action = 'view' and entity like 'imported_files:download:%'), 'a return download is in the audit log');
+reset role;
+\echo 'Taxes tests passed.'

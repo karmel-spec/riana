@@ -21,7 +21,7 @@ export const NAV: NavItem[] = [
   { href: "/health/rich", label: "Health · Rich", section: "health_rich", icon: I.Heart, built: true },
   { href: "/properties", label: "Properties", section: "properties", icon: I.House, built: true },
   { href: "/money", label: "Accounts, Bills & Loans", section: "accounts", icon: I.Bank, built: true },
-  { href: "/insurance", label: "Insurance & Taxes", section: "insurance", icon: I.Shield, built: true },
+  { href: "/insurance", label: "Insurance", section: "insurance", icon: I.Shield, built: true },
   { href: "/legal", label: "Legal & Estate", section: "legal", icon: I.Scroll, built: true },
   { href: "/wishes", label: "Final Wishes", section: "final_wishes", icon: I.Dove, built: true },
   { href: "/digital", label: "Digital Accounts", section: "digital_accounts", icon: I.Key, built: true },
@@ -32,6 +32,7 @@ export const NAV: NavItem[] = [
 export const ADMIN_NAV: NavItem[] = [
   { href: "/admin/riana", label: "Updates from Riana", section: "admin", icon: I.Sparkle, built: true },
   { href: "/admin/import", label: "Drive Import", section: "admin", icon: I.Book, built: true },
+  { href: "/taxes", label: "Taxes", section: "admin", icon: I.Receipt, built: true },
   { href: "/admin/audit", label: "Audit Log", section: "admin", icon: I.Shield, built: true },
   { href: "/admin/people", label: "People & Access", section: "admin", icon: I.Lock, built: true },
 ];
