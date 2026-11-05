@@ -1,5 +1,19 @@
 # Connecting the real database and sign-in
 
+> **Status (5 Nov 2026):** steps 1, 3 and 4 are done. The project `greene-binder`
+> exists in the Brigham Larson Pianos organization (ref `aqroduvxsbdwysriuizu`,
+> region us-west-1), all four migrations are applied and recorded, and Karmel's
+> super-admin invitation is in. **Still to do by hand:** step 2 (Authentication
+> settings), Heather's invitation in step 4, step 5 (Netlify variables), and
+> the "before any real data" items. The values for step 5 are:
+>
+> - `NEXT_PUBLIC_SUPABASE_URL` = `https://aqroduvxsbdwysriuizu.supabase.co`
+> - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` = `sb_publishable_qxrRkzArY32Kf7uns1q28A_yToJJWhV`
+>
+> The security advisor reports `public.is_invited` as a SECURITY DEFINER function
+> callable by `anon`. That is intentional: it returns only true/false so the
+> login page can refuse uninvited addresses, and never lists emails.
+
 Everything below happens once, in your Supabase account and in Netlify. Allow about 30 minutes. Nothing here puts family data anywhere; it only creates the empty, locked-down database and turns on sign-in.
 
 ## 1. Create the project
