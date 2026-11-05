@@ -61,6 +61,14 @@ The publishable key is safe to expose; it can only do what the row-level-securit
 
 Once you are signed in as a super admin, mint a key for Riana or any other agent and hand it over. See `docs/RIANA_INBOUND.md`.
 
+## 5b. Getting in TODAY without email (recommended)
+
+Magic-link emails from a new Supabase project are rate-limited and often land in spam. Passwords avoid that entirely:
+
+1. In Supabase, **Authentication → Users → Add user → Create new user**. Enter your email, a password of 10+ characters, and tick **Auto Confirm User**. Do the same for Heather. (Your emails must already be in `invitations` from step 4, or the account will exist but have no role.)
+2. On the site, choose the **Password** tab, sign in, and finish 2-step verification.
+3. So you can set everyone else's password from inside the app: **Project Settings → API → service_role key** (secret) → add it in Netlify as `SUPABASE_SERVICE_ROLE_KEY` (plain name, **not** `NEXT_PUBLIC_`), redeploy. From then on, **People & Access** lets you add a *starter password* when you invite someone, or **Set password** for anyone, and each person can change their own under *Change password*.
+
 ## 6. First sign-in
 
 1. Open the site. Enter your email. Click the link in the email.
