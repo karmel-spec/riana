@@ -5,7 +5,7 @@ import { SENSITIVE } from "./permissions";
 import * as fx from "./demo/fixtures";
 import type {
   Account, AuditEntry, Bill, CalendarEvent, ContactGroup, FinalWish, HealthCondition, LabResult, LegalDocument, Loan,
-  InsurancePolicy, Medication, NotificationCampaign, NotificationList, Person, Property, Provider, RianaUpdate, Section, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
+  InsurancePolicy, Medication, NotificationCampaign, NotificationList, Person, Property, Provider, RianaKey, RianaUpdate, Section, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
 } from "./types";
 
 // -----------------------------------------------------------------------------
@@ -139,6 +139,18 @@ export async function getRianaPending(v: Viewer): Promise<RianaUpdate[]> {
     .eq("review_status", "pending").order("received_at", { ascending: false });
   if (error) fail("Riana updates", error);
   return data as RianaUpdate[];
+}
+
+export async function getRianaKeys(v: Viewer): Promise<RianaKey[]> {
+  if (v.role !== "super_admin") return [];
+  if (v.demo) return [
+    { id: "demo-k-1", label: "Grok assistant (sample)", created_at: new Date().toISOString(), last_used_at: null, use_count: 0, revoked_at: null, read_sections: ["urgent_questions", "calendar", "final_wishes"] },
+  ];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("riana_inbound_keys")
+    .select("id, label, created_at, last_used_at, use_count, revoked_at, read_sections").order("created_at", { ascending: false });
+  if (error) fail("Riana keys", error);
+  return data as RianaKey[];
 }
 
 export async function getAudit(v: Viewer, limit = 100): Promise<AuditEntry[]> {

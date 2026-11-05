@@ -2,13 +2,15 @@ import { requireSuperAdmin } from "@/lib/session";
 import * as data from "@/lib/data";
 import { Empty, PageHeader } from "@/components/ui";
 import { fmtDate, fmtTime } from "@/lib/format";
+import { NAV } from "@/lib/nav";
 import { ReviewButtons } from "./review-buttons";
 
 export const metadata = { title: "Updates from Riana" };
 
 export default async function RianaPage() {
   const v = await requireSuperAdmin();
-  const pending = await data.getRianaPending(v);
+  const [pending, keys] = await Promise.all([data.getRianaPending(v), data.getRianaKeys(v)]);
+  const sectionLabel = (s: string) => NAV.find((n) => n.section === s)?.label ?? s;
   return (
     <>
       <PageHeader eyebrow="Riana integration" title="Updates from Riana"
@@ -28,11 +30,33 @@ export default async function RianaPage() {
         </ul>
       )}
       <section className="card mt-8">
-        <h2 className="text-[1.2rem] font-semibold">How Riana will connect</h2>
+        <h2 className="text-[1.2rem] font-semibold">Agent keys</h2>
+        <p className="mt-1 text-ink-soft">Each assistant gets its own key. Every key can send updates here. What a key may <em>read</em> through the export is chosen per key, and nothing lets an agent read logins, documents, or family history. Mint, revoke, and change read access from the SQL editor; see <code>docs/RIANA_INBOUND.md</code>.</p>
+        {keys.length === 0 ? <p className="mt-3 text-ink-soft">No keys yet.</p> : (
+          <ul className="mt-3 divide-y divide-line">
+            {keys.map((k) => (
+              <li key={k.id} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-2">
+                <div>
+                  <span className="font-semibold">{k.label}</span>
+                  {k.revoked_at && <span className="pill ml-2 bg-ember-tint text-ember">revoked {fmtDate(k.revoked_at)}</span>}
+                  <div className="text-[0.9rem] text-ink-soft">
+                    Reads: {k.read_sections.length === 0 ? "nothing" : k.read_sections.map(sectionLabel).join(", ")}
+                  </div>
+                </div>
+                <div className="text-[0.9rem] text-ink-soft">
+                  {k.use_count} {k.use_count === 1 ? "call" : "calls"}{k.last_used_at ? `, last ${fmtDate(k.last_used_at)} ${fmtTime(k.last_used_at)}` : ", never used"} · added {fmtDate(k.created_at)}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <section className="card mt-8">
+        <h2 className="text-[1.2rem] font-semibold">How Riana connects</h2>
         <ol className="mt-2 list-decimal space-y-1 pl-5 text-ink-soft">
           <li><strong>Phase 1 — Drive sync.</strong> The app reads the Greene Family Binder Google Doc and the Legal Docs folder (read-only) and proposes changes here.</li>
           <li><strong>Phase 2 — Inbound endpoint (ready).</strong> Riana, a Grok or Claude assistant, or you pasting their output, posts structured updates to <code>/api/riana/inbound</code> with a key. Each one is logged and waits here for approval. Keys are minted and revoked by a super admin; see <code>docs/RIANA_INBOUND.md</code>.</li>
-          <li><strong>Phase 3 — Outbound.</strong> A read-only, permission-scoped export Riana can read so her Monday update uses the latest data.</li>
+          <li><strong>Phase 3 — Outbound export (ready).</strong> <code>GET /api/riana/export</code> returns the latest data for the sections a key has been granted, so Riana&rsquo;s Monday update uses what is actually in the binder. Every export is in the audit log.</li>
         </ol>
       </section>
     </>

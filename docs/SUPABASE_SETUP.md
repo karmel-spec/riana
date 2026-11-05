@@ -59,7 +59,7 @@ The publishable key is safe to expose; it can only do what the row-level-securit
 
 ## 5b. (Optional) Let an assistant send updates
 
-Once you are signed in as a super admin, mint a key for Riana or any other agent and hand it over. See `docs/RIANA_INBOUND.md`.
+Once you are signed in as a super admin, mint a key for Riana or any other agent, choose which sections it may read, and hand it over. See `docs/RIANA_INBOUND.md`.
 
 ## 6. First sign-in
 

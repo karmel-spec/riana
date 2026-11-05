@@ -156,6 +156,17 @@ export type RianaUpdate = {
   external_ref?: string | null;
 };
 
+/** An agent key for the Riana endpoints (hash never leaves the database). */
+export type RianaKey = {
+  id: string;
+  label: string;
+  created_at: string;
+  last_used_at: string | null;
+  use_count: number;
+  revoked_at: string | null;
+  read_sections: Section[];
+};
+
 export type AuditEntry = {
   id: number;
   at: string;

@@ -1,6 +1,11 @@
-# Sending updates into the binder (Riana inbound endpoint)
+# Riana and other assistants: sending updates in, reading data out
 
-This is how Riana, a Grok or Claude assistant, or a person pasting an assistant's output gets an update into the family binder. Nothing sent here changes a binder record. Every update lands in **Admin → Updates from Riana** and waits for a super admin to approve or reject it. Approved updates are labeled "via Riana" and can be reverted.
+Two endpoints, one key per assistant:
+
+- **Inbound** (`POST /api/riana/inbound`): the assistant sends an update. Nothing it sends changes a binder record; every update lands in **Admin → Updates from Riana** and waits for a super admin to approve or reject it. Approved updates are labeled "via Riana" and can be reverted.
+- **Export** (`GET /api/riana/export`): the assistant reads the latest data for the sections a super admin has granted to its key, so a Monday update reflects what is actually in the binder. Every export is in the audit log.
+
+Keys, usage, and read grants are listed on the Updates from Riana screen.
 
 ## 1. Mint a key (super admin, once per agent)
 
@@ -62,13 +67,78 @@ curl -sS -X POST "https://greene-binder.netlify.app/api/riana/inbound" \
   -d '{"kind":"urgent_question","summary":"Mom asked where the 2019 trust binder is","payload":{"asked_of":"diana"}}'
 ```
 
+## 2b. Read data out (export)
+
+By default a key can only send. To let it read, a super admin grants sections to that key:
+
+```sql
+select id, label, read_sections from public.riana_inbound_keys;
+select public.riana_key_set_read_sections('<id>', '{urgent_questions,calendar,final_wishes,health_diana}');
+-- take it away again:
+select public.riana_key_set_read_sections('<id>', '{}');
+```
+
+Sections that can be granted: `urgent_questions`, `calendar`, `contacts`, `health_diana`, `health_rich`, `properties`, `accounts`, `bills`, `insurance`, `taxes`, `legal`, `final_wishes`, `household`, `next_steps`. Logins (`digital_accounts`), family history (documents, journals, media), the notify lists, and admin data can **never** be exported; the database refuses the grant.
+
+Health, money, and legal sections normally require a 2-step-verified person. Granting one of them to a key is a deliberate decision to let that assistant see it without that. Keep the grant to what the assistant's job needs.
+
+```
+GET https://<your site>/api/riana/export?sections=urgent_questions,calendar
+Authorization: Bearer <key>
+```
+
+Omit `sections` for everything the key may read. The reply:
+
+```json
+{
+  "generated_at": "2026-11-05T06:00:00Z",
+  "key_label": "Grok assistant",
+  "sections": {
+    "urgent_questions": [ { "question": "...", "asked_of": "both", "status": "open", "due_on": "2026-11-09", ... } ],
+    "calendar": [ { "title": "Cardiology follow-up", "about": "rich", "starts_at": "...", ... } ]
+  },
+  "not_permitted": ["legal"],
+  "never_exported": ["digital_accounts", "family_history", "documents", "notify", "admin"]
+}
+```
+
+What each section contains:
+
+| Section | Contents |
+|---|---|
+| `urgent_questions` | Open, asked, partly answered and answered questions (closed ones are left out). |
+| `calendar` | Events from 7 days ago to 120 days ahead. Appointments that belong to a health, tax or insurance section appear only if that section is also granted. |
+| `contacts` | People with relationship, contact details, closeness, groups, and notify-first flag. |
+| `health_diana`, `health_rich` | Providers, medications, conditions and allergies, lab results from the last 24 months, visit notes from the last 12 months, and VA claims for Rich. |
+| `properties` | Properties with succession plan and manager, plus loans owed by the estate. |
+| `accounts` | Accounts (institution, kind, purpose, last 4 digits only) plus loans owed to the estate. |
+| `bills` | Bills with amount, due date, autopay, status, and which account pays them (last 4 only). |
+| `insurance` | Policies with carrier, renewal, premium, agent (last 4 of the policy number only). |
+| `taxes` | Tax records by year and status. |
+| `legal` | Current legal documents and their status, open issues, and where the original is. |
+| `final_wishes` | Each wish and whether it is confirmed. |
+| `household` | Pets, vehicles, heirlooms, services. |
+| `next_steps` | The checklist with owner, due date, and done flag. |
+
+Replies: `200` export, `400` unknown section, `401` bad or revoked key, `503` no database yet.
+
+```bash
+curl -sS "https://greene-binder.netlify.app/api/riana/export?sections=urgent_questions,calendar" \
+  -H "Authorization: Bearer $RIANA_KEY"
+```
+
 ## 3. Review it
 
 The update appears at the top of **Admin → Updates from Riana** with its kind and summary. Approve or reject. The receipt, the decision, and who made it are all in **Admin → Audit Log**, where the sender shows as "Riana".
 
 ## Giving the endpoint to a Grok or Claude agent
 
-Describe it to the agent as one tool: *"post_binder_update(kind, summary, payload, external_ref) → POST to the URL above with the bearer key."* For Grok, that can be a custom MCP server registered in its connector settings; for Claude, a tool definition or MCP server likewise. The agent only ever needs this one key. It gets no read access to the binder and cannot approve anything.
+Describe it to the agent as two tools:
+
+- *post_binder_update(kind, summary, payload, external_ref)*: POST to the inbound URL with the bearer key.
+- *read_binder(sections)*: GET the export URL with the same key.
+
+For Grok, that can be a custom MCP server registered in its connector settings; for Claude, a tool definition or MCP server likewise. The agent only ever needs this one key. It reads only what its key is granted and cannot approve anything.
 
 ## How it is protected
 
@@ -76,15 +146,21 @@ Describe it to the agent as one tool: *"post_binder_update(kind, summary, payloa
 - The anonymous database role cannot read or insert into the inbox directly; only the function can, and only with a valid, unrevoked key.
 - Keys are stored as SHA-256 hashes and are never shown through the API, not even to super admins.
 - Bodies are validated twice (in the route and in the database) and capped in size.
-- Covered by `npm run test:db`: wrong key, revoked key, bad kind, empty summary, non-object payload, idempotent retry, anonymous read and insert both refused, audit attribution to Riana, family still unable to see the inbox.
+- Export returns only granted sections, lists the rest as not permitted, never includes logins, documents, or family history, and writes one audit entry per call naming the sections and the key.
+- Covered by `npm run test:db`: wrong key, revoked key, bad kind, empty summary, non-object payload, idempotent retry, anonymous read and insert both refused, audit attribution to Riana, family still unable to see the inbox; for export: ungranted sections withheld, forbidden sections cannot be granted, only super admins can grant, calendar hides appointments from ungranted sections, read access can be revoked, every call audited.
 
 ## Trying it locally with fake data
 
-With `GREENE_DEMO=1` and no Supabase URL, any bearer key of 32+ characters is accepted and the update goes into the in-memory demo inbox, so you can see it on the Updates from Riana screen immediately:
+With `GREENE_DEMO=1` and no Supabase URL, any bearer key of 32+ characters is accepted. An update goes into the in-memory demo inbox, so you can see it on the Updates from Riana screen immediately, and the export returns every exportable section of the fake data:
 
 ```bash
 curl -sS -X POST http://localhost:3000/api/riana/inbound \
   -H "Authorization: Bearer demo-demo-demo-demo-demo-demo-demo-demo" \
   -H "Content-Type: application/json" \
   -d '{"kind":"note","summary":"Hello from the demo"}'
+```
+
+```bash
+curl -sS "http://localhost:3000/api/riana/export?sections=urgent_questions,final_wishes" \
+  -H "Authorization: Bearer demo-demo-demo-demo-demo-demo-demo-demo"
 ```
