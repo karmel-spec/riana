@@ -81,6 +81,8 @@ export async function GET(req: NextRequest) {
   if (error) {
     if (error.code === "28000") return json(401, { error: "Invalid or revoked key." });
     if (error.code === "22023") return json(400, { error: error.message });
+    // PGRST202: PostgREST cannot find the function, i.e. the Riana migrations are not applied yet.
+    if (error.code === "PGRST202") return json(503, { error: "The database is missing the Riana migrations. Run scripts/apply-migrations.sh against the project." });
     console.error("[riana/export]", error.code, error.message);
     return json(500, { error: "Could not build the export." });
   }

@@ -56,7 +56,7 @@ Replies:
 | `400` | Bad JSON or a field failed validation. The body says which. |
 | `401` | Missing, malformed, wrong, or revoked key. |
 | `413` | Body over 32 KB. |
-| `503` | The site is not connected to a database yet. |
+| `503` | The site is not connected to a database yet, or the Riana migrations have not been applied to it (the message says which). |
 
 Example from a terminal:
 
@@ -120,7 +120,7 @@ What each section contains:
 | `household` | Pets, vehicles, heirlooms, services. |
 | `next_steps` | The checklist with owner, due date, and done flag. |
 
-Replies: `200` export, `400` unknown section, `401` bad or revoked key, `503` no database yet.
+Replies: `200` export, `400` unknown section, `401` bad or revoked key, `503` no database yet or the Riana migrations not applied yet (the message says which).
 
 ```bash
 curl -sS "https://greene-binder.netlify.app/api/riana/export?sections=urgent_questions,calendar" \
