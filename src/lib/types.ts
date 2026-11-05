@@ -335,9 +335,13 @@ export type TaxSourceItem = {
 export type DigitalAccount = {
   id: string;
   service: string;
+  website: string | null;
   owner: Subject;
+  category: string | null;
   purpose: string | null;
+  vault_name: string;
   vault_item: string | null;
+  status: "found" | "to_find";
   after_death: string | null;
   notes: string | null;
   source: Source;

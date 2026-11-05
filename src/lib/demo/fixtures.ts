@@ -294,15 +294,30 @@ export const taxSourceItems: TaxSourceItem[] = [
 // --- Digital accounts & household (FAKE) --------------------------------------
 import type { DigitalAccount, HouseholdItem } from "../types";
 
+const DA = (n: number, service: string, owner: DigitalAccount["owner"], category: string, status: DigitalAccount["status"], extra: Partial<DigitalAccount> = {}): DigitalAccount => ({
+  id: uid("dig", n), service, website: null, owner, category, purpose: null, vault_name: "Greene Family", vault_item: status === "found" ? `${owner === "both" ? "Greene" : owner === "rich" ? "Rich" : "Diana"} – ${service}` : null, status, after_death: null, notes: null, source: "app", ...extra,
+});
 export const digitalAccounts: DigitalAccount[] = [
-  { id: uid("dig", 1), service: "Gmail (Rich)", owner: "rich", purpose: "Main email; Riana reads it", vault_item: "Rich – Gmail", after_death: "Keep open 12 months for bills, then close.", notes: null, source: "app" },
-  { id: uid("dig", 2), service: "Gmail (Diana)", owner: "diana", purpose: "Main email; Riana reads it", vault_item: "Diana – Gmail", after_death: "Keep open 12 months, then close.", notes: null, source: "app" },
-  { id: uid("dig", 3), service: "Apple ID", owner: "both", purpose: "iPad, photos, iCloud", vault_item: "Greene – Apple ID", after_death: "Download photos first (Legacy Contact set to Karmel).", notes: "Legacy Contact set up in Settings.", source: "app" },
-  { id: uid("dig", 4), service: "Facebook", owner: "diana", purpose: "Family and church friends", vault_item: "Diana – Facebook", after_death: "Memorialize.", notes: null, source: "app" },
-  { id: uid("dig", 5), service: "Sample Credit Union online banking", owner: "both", purpose: "Bills and transfers", vault_item: "Greene – Credit Union", after_death: "Executor contacts the bank; do not log in after death.", notes: "Account ····1234 and ····5678.", source: "app" },
-  { id: uid("dig", 6), service: "My HealtheVet (VA)", owner: "rich", purpose: "VA appointments, prescriptions, claim status", vault_item: "Rich – VA login", after_death: "Close.", notes: null, source: "app" },
-  { id: uid("dig", 7), service: "Google Photos (shared family album)", owner: "both", purpose: "Scanned photos and documents", vault_item: "Greene – Google", after_death: "Transfer ownership to Karmel.", notes: null, source: "riana" },
-  { id: uid("dig", 8), service: "Streaming (sample)", owner: "both", purpose: "TV", vault_item: "Greene – Streaming", after_death: "Cancel.", notes: "Billed to card ····7890.", source: "app" },
+  DA(1, "Gmail (Rich)", "rich", "Email", "found", { website: "https://mail.google.com", purpose: "Main email; Riana reads it", after_death: "Keep open 12 months for bills, then close." }),
+  DA(2, "Gmail (Diana)", "diana", "Email", "found", { website: "https://mail.google.com", purpose: "Main email; Riana reads it", after_death: "Keep open 12 months, then close." }),
+  DA(3, "Apple ID", "both", "Devices", "found", { website: "https://appleid.apple.com", purpose: "iPad, photos, iCloud", after_death: "Download photos first (Legacy Contact set to Karmel).", notes: "Legacy Contact set up in Settings." }),
+  DA(4, "Facebook", "diana", "Social", "found", { website: "https://facebook.com", after_death: "Memorialize." }),
+  DA(5, "Sample Credit Union online banking", "both", "Banking", "found", { website: "https://example.com/cu", purpose: "Bills and transfers", after_death: "Executor contacts the bank; do not log in after death.", notes: "Account ····1234 and ····5678." }),
+  DA(6, "My HealtheVet (VA)", "rich", "Health", "found", { website: "https://www.myhealth.va.gov", purpose: "VA appointments, prescriptions, claim status", after_death: "Close." }),
+  DA(7, "Google Photos (shared family album)", "both", "Photos", "found", { website: "https://photos.google.com", after_death: "Transfer ownership to Karmel.", source: "riana" }),
+  DA(8, "Streaming (sample)", "both", "Entertainment", "to_find", { purpose: "TV", after_death: "Cancel.", notes: "Billed to card ····7890." }),
+  DA(9, "Sample Brokerage", "rich", "Investments", "to_find", { purpose: "Rich's IRA" }),
+  DA(10, "Sample Card Co.", "diana", "Banking", "to_find"),
+  DA(11, "Medicare.gov", "both", "Health", "to_find", { website: "https://www.medicare.gov" }),
+  DA(12, "SSA.gov (my Social Security)", "rich", "Government", "found", { website: "https://www.ssa.gov" }),
+  DA(13, "SSA.gov (my Social Security)", "diana", "Government", "to_find", { website: "https://www.ssa.gov" }),
+  DA(14, "Sample Electric Co.", "both", "Utilities", "found", { purpose: "Autopay" }),
+  DA(15, "Water & sewer (sample)", "both", "Utilities", "to_find"),
+  DA(16, "Phone & internet (sample)", "both", "Utilities", "found"),
+  DA(17, "Welcome Home portal (sample)", "both", "Rentals", "found", { purpose: "Rental A statements and 1099" }),
+  DA(18, "MVP portal (sample)", "both", "Rentals", "to_find", { purpose: "Rental B statements and 1099" }),
+  DA(19, "Amazon", "diana", "Shopping", "to_find"),
+  DA(20, "Church membership tools (sample)", "both", "Church", "found"),
 ];
 
 export const householdItems: HouseholdItem[] = [

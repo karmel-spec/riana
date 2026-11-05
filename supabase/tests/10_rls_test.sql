@@ -294,3 +294,14 @@ select test.act(:DAV, 'aal2'); set role authenticated;
 select test.ok(test.rows('select * from public.loans') = 0 and test.rows('select * from public.loan_payments') = 0 and test.rows('select * from public.loan_balances') = 0, 'family cannot see loans, payments or balances');
 reset role;
 \echo 'Loans ledger tests passed.'
+
+-- Accounts directory ----------------------------------------------------------
+select test.ok((select count(*) from public.secret_like_columns()) = 0, 'no table in the public schema has a credential-looking column');
+select test.act(:K, 'aal2'); set role authenticated;
+select test.ok(test.fails($$insert into public.digital_accounts (service, status) values ('x', 'maybe')$$), 'status must be found or to_find');
+select test.ok(test.fails($$insert into public.digital_accounts (service, website) values ('x', 'https://example.com?token=abc')$$), 'a token in the website field is rejected');
+select test.ok(test.fails($$insert into public.digital_accounts (service, notes) values ('x', 'security answer: fluffy')$$), 'a security answer in notes is rejected');
+select test.ok(not test.fails($$insert into public.digital_accounts (service, vault_item, status) values ('Sample Service', 'Greene – Sample Service', 'found')$$), 'a vault item name is accepted');
+select test.ok((select count(*) filter (where status = 'found') from public.digital_accounts) > 0 and (select count(*) filter (where status = 'to_find') from public.digital_accounts) > 0, 'progress has both found and to-find rows');
+reset role;
+\echo 'Accounts directory tests passed.'
