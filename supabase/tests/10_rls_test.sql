@@ -220,3 +220,28 @@ select test.act(:DAV, 'aal2'); set role authenticated;
 select test.ok(test.rows('select * from public.riana_updates') = 0, 'family still cannot see the inbox');
 reset role;
 \echo 'Riana inbound tests passed.'
+
+-- Drive import ----------------------------------------------------------------
+select test.act(:K, 'aal2'); set role authenticated;
+insert into public.drive_folders (key, drive_folder_id, name, sensitivity) values ('taxes', 'folder-taxes', 'Taxes', 'admin_only'), ('legal', 'folder-legal', 'Legal Docs', 'normal');
+select test.ok(public.drive_upsert_file('f1', 'legal', 'Will 2021.pdf', 'application/pdf', 100, 'aaa', '2026-01-01', 'https://drive.example/f1', 'legal', 'pdf', 'normal', 'legal-any', 'Legal') = 'created', 'first sync creates');
+select test.ok(public.drive_upsert_file('f1', 'legal', 'Will 2021.pdf', 'application/pdf', 100, 'aaa', '2026-01-01', 'https://drive.example/f1', 'legal', 'pdf', 'normal', 'legal-any', 'Legal') = 'unchanged', 'second sync is a no-op');
+select test.ok(public.drive_upsert_file('f1', 'legal', 'Will 2021 v2.pdf', 'application/pdf', 120, 'bbb', '2026-02-01', 'https://drive.example/f1', 'legal', 'pdf', 'normal', 'legal-any', 'Legal') = 'updated', 'a changed file updates in place');
+select test.ok((select count(*) from public.imported_files) = 1, 'no duplicate row was created');
+select test.ok(public.drive_upsert_file('f2', 'legal', 'Will 2021 v2.pdf', 'application/pdf', 120, 'bbb', '2026-02-01', 'https://drive.example/f2', 'legal', 'pdf', 'normal', 'legal-any', 'Legal') = 'duplicate', 'same content elsewhere is flagged duplicate');
+select test.ok(public.drive_upsert_file('t1', 'taxes', '2024 Greene Federal Tax Return.pdf', 'application/pdf', 900, 'ccc', '2026-03-01', 'https://drive.example/t1', 'taxes', 'pdf', 'admin_only', 'tax-return', 'Taxes') = 'created', 'tax return pointer created');
+select test.ok((select section from public.imported_files where drive_file_id = 'f1') = 'admin', 'pending files sit in admin');
+update public.imported_files set review_status = 'approved' where drive_file_id in ('f1', 't1');
+select test.ok((select section from public.imported_files where drive_file_id = 'f1') = 'legal', 'approved normal file moves to its section');
+select test.ok((select section from public.imported_files where drive_file_id = 't1') = 'admin', 'approved admin-only file stays in admin');
+reset role;
+select test.act(:ATT, 'aal2'); set role authenticated;   -- attorney has Legal (read)
+select test.ok(test.rows('select * from public.imported_files') = 1 and (select name from public.imported_files) = 'Will 2021 v2.pdf', 'attorney sees only the approved legal file');
+select test.ok(test.fails($$update public.imported_files set review_status = 'approved' where drive_file_id = 'f2'$$) or test.touches($$update public.imported_files set review_status = 'approved' where drive_file_id = 'f2'$$) <= 0, 'non-admin cannot approve');
+select test.ok(test.fails($$select public.drive_upsert_file('x', 'legal', 'x', 'x', 1, 'x', now(), 'x', 'legal', 'pdf', 'normal', 'r', 'n')$$), 'non-admin cannot run the sync');
+reset role;
+select test.act(:GK, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.imported_files') = 0, 'grandchild sees no imported files (no Legal, and taxes is admin-only)');
+select test.ok(test.rows('select * from public.drive_folders') = 0 and test.rows('select * from public.drive_sync_runs') = 0, 'grandchild cannot see folders or runs');
+reset role;
+\echo 'Drive import tests passed.'
