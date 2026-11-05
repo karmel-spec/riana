@@ -4,8 +4,8 @@ import { canRead, type Viewer } from "./session";
 import { SENSITIVE } from "./permissions";
 import * as fx from "./demo/fixtures";
 import type {
-  AuditEntry, Bill, CalendarEvent, ContactGroup, FinalWish, LabResult, LegalDocument, Loan,
-  NotificationCampaign, NotificationList, Person, RianaUpdate, Section, UrgentQuestion,
+  Account, AuditEntry, Bill, CalendarEvent, ContactGroup, FinalWish, HealthCondition, LabResult, LegalDocument, Loan,
+  Medication, NotificationCampaign, NotificationList, Person, Provider, RianaUpdate, Section, UrgentQuestion, VaClaim, VisitNote,
 } from "./types";
 
 // -----------------------------------------------------------------------------
@@ -13,14 +13,19 @@ import type {
 // while the server runs. Real mode never touches it.
 // -----------------------------------------------------------------------------
 type Store = {
+  providers: Provider[]; medications: Medication[]; conditions: HealthCondition[]; visits: VisitNote[]; vaClaims: VaClaim[]; accounts: Account[];
   questions: UrgentQuestion[]; events: CalendarEvent[]; legal: LegalDocument[];
   groups: ContactGroup[]; people: Person[]; lists: NotificationList[];
   campaigns: NotificationCampaign[]; bills: Bill[]; labs: LabResult[];
   wishes: FinalWish[]; loans: Loan[]; riana: RianaUpdate[]; audit: AuditEntry[];
 };
-const g = globalThis as unknown as { __greeneDemo?: Store };
+// Bump when Store gains a key, so a dev server that kept the old object rebuilds it.
+const STORE_VERSION = 2;
+const g = globalThis as unknown as { __greeneDemo?: Store; __greeneDemoV?: number };
 export function demoStore(): Store {
+  if (g.__greeneDemoV !== STORE_VERSION) { g.__greeneDemo = undefined; g.__greeneDemoV = STORE_VERSION; }
   g.__greeneDemo ??= structuredClone({
+    providers: fx.providers, medications: fx.medications, conditions: fx.healthConditions, visits: fx.visitNotes, vaClaims: fx.vaClaims, accounts: fx.accounts,
     questions: fx.urgentQuestions, events: fx.calendarEvents, legal: fx.legalDocuments,
     groups: fx.contactGroups, people: fx.people, lists: fx.notificationLists,
     campaigns: fx.notificationCampaigns, bills: fx.bills, labs: fx.labResults,
@@ -194,4 +199,48 @@ export async function getCampaigns(v: Viewer, listId: string): Promise<Notificat
     };
     return { ...rest, requested_by_name: requester?.display_name ?? null, approved_by_name: approver?.display_name ?? null };
   }) as NotificationCampaign[];
+}
+
+// --- Health ---------------------------------------------------------------------
+export type Patient = "rich" | "diana";
+
+async function patientRows<T>(v: Viewer, patient: Patient, table: string, demoRows: T[], order: string, ascending = true): Promise<T[]> {
+  if (!canRead(v, `health_${patient}`)) return [];
+  if (v.demo) return demoRows;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from(table).select("*").eq("patient", patient).order(order, { ascending });
+  if (error) fail(table.replace("_", " "), error);
+  return data as T[];
+}
+
+export const getProviders = (v: Viewer, p: Patient) =>
+  patientRows<Provider>(v, p, "providers", demoStore().providers.filter((x) => x.patient === p), "name");
+export const getMedications = (v: Viewer, p: Patient) =>
+  patientRows<Medication>(v, p, "medications", demoStore().medications.filter((x) => x.patient === p).sort((a, b) => Number(b.active) - Number(a.active) || a.name.localeCompare(b.name)), "name");
+export const getConditions = (v: Viewer, p: Patient) =>
+  patientRows<HealthCondition>(v, p, "health_conditions", demoStore().conditions.filter((x) => x.patient === p), "kind");
+export const getVisitNotes = (v: Viewer, p: Patient) =>
+  patientRows<VisitNote>(v, p, "visit_notes", [...demoStore().visits.filter((x) => x.patient === p)].sort((a, b) => b.visit_on.localeCompare(a.visit_on)), "visit_on", false);
+
+export async function getAllLabs(v: Viewer, p: Patient): Promise<LabResult[]> {
+  return patientRows<LabResult>(v, p, "lab_results", [...demoStore().labs.filter((x) => x.patient === p)].sort((a, b) => a.taken_on.localeCompare(b.taken_on)), "taken_on");
+}
+
+export async function getVaClaims(v: Viewer): Promise<VaClaim[]> {
+  if (!canRead(v, "health_rich")) return [];
+  if (v.demo) return demoStore().vaClaims;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("va_claims").select("*").order("created_at");
+  if (error) fail("VA claims", error);
+  return data as VaClaim[];
+}
+
+// --- Money ----------------------------------------------------------------------
+export async function getAccounts(v: Viewer): Promise<Account[]> {
+  if (!canRead(v, "accounts")) return [];
+  if (v.demo) return demoStore().accounts;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("accounts").select("*").order("institution");
+  if (error) fail("accounts", error);
+  return data as Account[];
 }

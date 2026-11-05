@@ -14,6 +14,7 @@ export function uid(kind: string, n: number): string {
   const prefix: Record<string, string> = {
     q: "a1", e: "a2", l: "a3", g: "a4", p: "a5", nl: "a6", nc: "a7",
     b: "a8", lab: "a9", w: "aa", r: "ab", loan: "ac",
+    prov: "ad", med: "ae", cond: "af", vn: "b0", va: "b1", acct: "b2",
   };
   const hex = n.toString(16).padStart(12, "0");
   return `000000${prefix[kind] ?? "ff"}-0000-4000-8000-${hex}`;
@@ -178,4 +179,54 @@ export const auditEntries: AuditEntry[] = [
   { id: 3, at: day(-3, 14, 35), actor_name: "Karmel", action: "update", section: "contacts", entity: "people", via: "app", summary: "Confirmed 6 contacts" },
   { id: 2, at: day(-3, 9, 12), actor_name: "Karmel", action: "download", section: "legal", entity: "documents", via: "app", summary: "Downloaded 2021 will draft" },
   { id: 1, at: day(-4, 11, 0), actor_name: "Heather", action: "permission_change", section: "legal", entity: "user_section_access", via: "app", summary: "Gave the estate attorney access to Legal until Jan 31" },
+];
+
+// --- Health (FAKE) -------------------------------------------------------------
+import type { Account, HealthCondition, Medication, Provider, VaClaim, VisitNote } from "../types";
+
+export const providers: Provider[] = [
+  { id: uid("prov", 1), patient: "diana", name: "Dr. Sample Primary", specialty: "Primary care", practice: "Sample Family Medicine", phone: "(555) 010-0703", portal_name: "MyChart (sample)", is_va: false, notes: null },
+  { id: uid("prov", 2), patient: "diana", name: "Dr. Example Heart", specialty: "Cardiology", practice: "Sample Heart Clinic", phone: "(555) 010-0801", portal_name: null, is_va: false, notes: "Follow-up every 6 months." },
+  { id: uid("prov", 3), patient: "rich", name: "VA Primary Care Team (sample)", specialty: "Primary care", practice: "VA clinic", phone: "(555) 010-0901", portal_name: "My HealtheVet (sample)", is_va: true, notes: null },
+  { id: uid("prov", 4), patient: "rich", name: "Dr. Placeholder Ortho", specialty: "Orthopedics", practice: "Sample Orthopedic Group", phone: "(555) 010-0902", portal_name: null, is_va: false, notes: "Knee." },
+];
+
+export const medications: Medication[] = [
+  { id: uid("med", 1), patient: "diana", name: "Metformin (sample)", dose: "500 mg", schedule: "Twice daily with meals", purpose: "Blood sugar", prescriber_id: uid("prov", 1), started_on: "2024-02-01", stopped_on: null, active: true, notes: null, source: "app" },
+  { id: uid("med", 2), patient: "diana", name: "Lisinopril (sample)", dose: "10 mg", schedule: "Every morning", purpose: "Blood pressure", prescriber_id: uid("prov", 2), started_on: "2022-06-15", stopped_on: null, active: true, notes: null, source: "app" },
+  { id: uid("med", 3), patient: "diana", name: "Vitamin D (sample)", dose: "2000 IU", schedule: "Daily", purpose: "Supplement", prescriber_id: null, started_on: null, stopped_on: null, active: true, notes: "Over the counter.", source: "app" },
+  { id: uid("med", 4), patient: "rich", name: "Atorvastatin (sample)", dose: "20 mg", schedule: "Every evening", purpose: "Cholesterol", prescriber_id: uid("prov", 3), started_on: "2021-09-01", stopped_on: null, active: true, notes: null, source: "app" },
+  { id: uid("med", 5), patient: "rich", name: "Meloxicam (sample)", dose: "7.5 mg", schedule: "Daily as needed", purpose: "Knee pain", prescriber_id: uid("prov", 4), started_on: "2025-03-10", stopped_on: null, active: true, notes: "Dose lowered Nov 2026.", source: "app" },
+  { id: uid("med", 6), patient: "rich", name: "Old blood pressure pill (sample)", dose: "5 mg", schedule: "Daily", purpose: "Blood pressure", prescriber_id: uid("prov", 3), started_on: "2019-01-01", stopped_on: "2023-04-01", active: false, notes: "Replaced.", source: "app" },
+];
+
+export const healthConditions: HealthCondition[] = [
+  { id: uid("cond", 1), patient: "diana", kind: "condition", name: "Type 2 diabetes (sample)", detail: "Managed with medication and diet.", since: "2024-01-01" },
+  { id: uid("cond", 2), patient: "diana", kind: "condition", name: "High blood pressure (sample)", detail: null, since: "2022-01-01" },
+  { id: uid("cond", 3), patient: "diana", kind: "allergy", name: "Penicillin (sample)", detail: "Rash.", since: null },
+  { id: uid("cond", 4), patient: "diana", kind: "coverage", name: "Medicare Part A & B + supplement (sample)", detail: "Cards in the blue folder.", since: null },
+  { id: uid("cond", 5), patient: "rich", kind: "condition", name: "Knee osteoarthritis (sample)", detail: "Service-connected.", since: "2015-01-01" },
+  { id: uid("cond", 6), patient: "rich", kind: "allergy", name: "No known allergies", detail: null, since: null },
+  { id: uid("cond", 7), patient: "rich", kind: "coverage", name: "VA health care + Medicare (sample)", detail: "VA is primary for service-connected care.", since: null },
+];
+
+export const visitNotes: VisitNote[] = [
+  { id: uid("vn", 1), patient: "diana", visit_on: day(-35), provider_id: uid("prov", 1), summary: "[Sample] Routine check. Blood pressure good. Ordered A1C.", follow_up: "Repeat labs in 3 months.", author_name: "Karmel", source: "app", created_at: day(-35, 15) },
+  { id: uid("vn", 2), patient: "diana", visit_on: day(-180), provider_id: uid("prov", 2), summary: "[Sample] Echo normal. Keep current medication.", follow_up: "See again in 6 months.", author_name: "Heather", source: "app", created_at: day(-180, 15) },
+  { id: uid("vn", 3), patient: "rich", visit_on: day(-20), provider_id: uid("prov", 4), summary: "[Sample] Knee still sore after walking. Discussed injection option.", follow_up: "Decide on injection at next visit.", author_name: "Heather", source: "app", created_at: day(-20, 15) },
+  { id: uid("vn", 4), patient: "rich", visit_on: day(-60), provider_id: uid("prov", 3), summary: "[Sample] Annual VA visit. Labs fine. Updated claim paperwork.", follow_up: null, author_name: "Riana", source: "riana", created_at: day(-60, 15) },
+];
+
+export const vaClaims: VaClaim[] = [
+  { id: uid("va", 1), kind: "rating_decision", title: "Current combined rating", status: "70% (sample)", filed_on: null, decided_on: "2023-05-01", rating_pct: 70, next_step: null, notes: "Letter in the VA folder.", source: "app" },
+  { id: uid("va", 2), kind: "claim", title: "Increase for knee condition (sample)", status: "Under review", filed_on: day(-90), decided_on: null, rating_pct: null, next_step: "C&P exam scheduled.", notes: null, source: "app" },
+  { id: uid("va", 3), kind: "cp_exam", title: "C&P exam — knee", status: "Scheduled", filed_on: null, decided_on: null, rating_pct: null, next_step: `Attend exam on ${new Date(`${day(13)}T12:00:00`).toLocaleDateString("en-US", { month: "long", day: "numeric" })}. Bring claim packet.`, notes: null, source: "riana" },
+];
+
+export const accounts: Account[] = [
+  { id: uid("acct", 1), institution: "Sample Credit Union", kind: "checking", purpose: "Everyday bills and autopay", last4: "1234", held_by: "both", beneficiary_notes: "[Sample] POD to the children equally.", notes: null, source: "app" },
+  { id: uid("acct", 2), institution: "Sample Credit Union", kind: "savings", purpose: "Emergency fund", last4: "5678", held_by: "both", beneficiary_notes: null, notes: null, source: "app" },
+  { id: uid("acct", 3), institution: "Sample Brokerage", kind: "retirement", purpose: "Rich's IRA", last4: "9012", held_by: "rich", beneficiary_notes: "[Sample] Diana primary; children contingent.", notes: null, source: "app" },
+  { id: uid("acct", 4), institution: "Sample Bank", kind: "checking", purpose: "Rental income and expenses (StarLar)", last4: "3456", held_by: "both", beneficiary_notes: null, notes: "Property manager deposits here.", source: "app" },
+  { id: uid("acct", 5), institution: "Sample Card Co.", kind: "credit_card", purpose: "Travel and groceries", last4: "7890", held_by: "diana", beneficiary_notes: null, notes: "Autopay from checking 1234.", source: "app" },
 ];

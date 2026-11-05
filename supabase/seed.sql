@@ -153,4 +153,45 @@ insert into public.riana_updates (id, kind, summary, received_at, review_status,
   ('000000ab-0000-4000-8000-000000000001', 'lab_result', 'New A1C result for Diana: 6.1 %', '2026-11-05T07:42:00-07:00', 'pending', '{}'),
   ('000000ab-0000-4000-8000-000000000002', 'bill', 'Payment failed: Sample Electric Co., $142.18', '2026-11-04T09:05:00-07:00', 'pending', '{}');
 
+insert into public.providers (id, patient, name, specialty, practice, phone, portal_name, is_va, notes) values
+  ('000000ad-0000-4000-8000-000000000001', 'diana', 'Dr. Sample Primary', 'Primary care', 'Sample Family Medicine', '(555) 010-0703', 'MyChart (sample)', false, null),
+  ('000000ad-0000-4000-8000-000000000002', 'diana', 'Dr. Example Heart', 'Cardiology', 'Sample Heart Clinic', '(555) 010-0801', null, false, 'Follow-up every 6 months.'),
+  ('000000ad-0000-4000-8000-000000000003', 'rich', 'VA Primary Care Team (sample)', 'Primary care', 'VA clinic', '(555) 010-0901', 'My HealtheVet (sample)', true, null),
+  ('000000ad-0000-4000-8000-000000000004', 'rich', 'Dr. Placeholder Ortho', 'Orthopedics', 'Sample Orthopedic Group', '(555) 010-0902', null, false, 'Knee.');
+
+insert into public.medications (id, patient, name, dose, schedule, purpose, prescriber_id, started_on, stopped_on, active, notes, source) values
+  ('000000ae-0000-4000-8000-000000000001', 'diana', 'Metformin (sample)', '500 mg', 'Twice daily with meals', 'Blood sugar', '000000ad-0000-4000-8000-000000000001', '2024-02-01', null, true, null, 'app'),
+  ('000000ae-0000-4000-8000-000000000002', 'diana', 'Lisinopril (sample)', '10 mg', 'Every morning', 'Blood pressure', '000000ad-0000-4000-8000-000000000002', '2022-06-15', null, true, null, 'app'),
+  ('000000ae-0000-4000-8000-000000000003', 'diana', 'Vitamin D (sample)', '2000 IU', 'Daily', 'Supplement', null, null, null, true, 'Over the counter.', 'app'),
+  ('000000ae-0000-4000-8000-000000000004', 'rich', 'Atorvastatin (sample)', '20 mg', 'Every evening', 'Cholesterol', '000000ad-0000-4000-8000-000000000003', '2021-09-01', null, true, null, 'app'),
+  ('000000ae-0000-4000-8000-000000000005', 'rich', 'Meloxicam (sample)', '7.5 mg', 'Daily as needed', 'Knee pain', '000000ad-0000-4000-8000-000000000004', '2025-03-10', null, true, 'Dose lowered Nov 2026.', 'app'),
+  ('000000ae-0000-4000-8000-000000000006', 'rich', 'Old blood pressure pill (sample)', '5 mg', 'Daily', 'Blood pressure', '000000ad-0000-4000-8000-000000000003', '2019-01-01', '2023-04-01', false, 'Replaced.', 'app');
+
+insert into public.health_conditions (id, patient, kind, name, detail, since) values
+  ('000000af-0000-4000-8000-000000000001', 'diana', 'condition', 'Type 2 diabetes (sample)', 'Managed with medication and diet.', '2024-01-01'),
+  ('000000af-0000-4000-8000-000000000002', 'diana', 'condition', 'High blood pressure (sample)', null, '2022-01-01'),
+  ('000000af-0000-4000-8000-000000000003', 'diana', 'allergy', 'Penicillin (sample)', 'Rash.', null),
+  ('000000af-0000-4000-8000-000000000004', 'diana', 'coverage', 'Medicare Part A & B + supplement (sample)', 'Cards in the blue folder.', null),
+  ('000000af-0000-4000-8000-000000000005', 'rich', 'condition', 'Knee osteoarthritis (sample)', 'Service-connected.', '2015-01-01'),
+  ('000000af-0000-4000-8000-000000000006', 'rich', 'allergy', 'No known allergies', null, null),
+  ('000000af-0000-4000-8000-000000000007', 'rich', 'coverage', 'VA health care + Medicare (sample)', 'VA is primary for service-connected care.', null);
+
+insert into public.visit_notes (id, patient, visit_on, provider_id, summary, follow_up, author_name, source) values
+  ('000000b0-0000-4000-8000-000000000001', 'diana', '2026-10-01', '000000ad-0000-4000-8000-000000000001', '[Sample] Routine check. Blood pressure good. Ordered A1C.', 'Repeat labs in 3 months.', 'Karmel', 'app'),
+  ('000000b0-0000-4000-8000-000000000002', 'diana', '2026-05-09', '000000ad-0000-4000-8000-000000000002', '[Sample] Echo normal. Keep current medication.', 'See again in 6 months.', 'Heather', 'app'),
+  ('000000b0-0000-4000-8000-000000000003', 'rich', '2026-10-16', '000000ad-0000-4000-8000-000000000004', '[Sample] Knee still sore after walking. Discussed injection option.', 'Decide on injection at next visit.', 'Heather', 'app'),
+  ('000000b0-0000-4000-8000-000000000004', 'rich', '2026-09-06', '000000ad-0000-4000-8000-000000000003', '[Sample] Annual VA visit. Labs fine. Updated claim paperwork.', null, 'Riana', 'riana');
+
+insert into public.va_claims (id, kind, title, status, filed_on, decided_on, rating_pct, next_step, notes, source) values
+  ('000000b1-0000-4000-8000-000000000001', 'rating_decision', 'Current combined rating', '70% (sample)', null, '2023-05-01', 70, null, 'Letter in the VA folder.', 'app'),
+  ('000000b1-0000-4000-8000-000000000002', 'claim', 'Increase for knee condition (sample)', 'Under review', '2026-08-07', null, null, 'C&P exam scheduled.', null, 'app'),
+  ('000000b1-0000-4000-8000-000000000003', 'cp_exam', 'C&P exam — knee', 'Scheduled', null, null, null, 'Attend exam on November 18. Bring claim packet.', null, 'riana');
+
+insert into public.accounts (id, institution, kind, purpose, last4, held_by, beneficiary_notes, notes, source) values
+  ('000000b2-0000-4000-8000-000000000001', 'Sample Credit Union', 'checking', 'Everyday bills and autopay', '1234', 'both', '[Sample] POD to the children equally.', null, 'app'),
+  ('000000b2-0000-4000-8000-000000000002', 'Sample Credit Union', 'savings', 'Emergency fund', '5678', 'both', null, null, 'app'),
+  ('000000b2-0000-4000-8000-000000000003', 'Sample Brokerage', 'retirement', 'Rich''s IRA', '9012', 'rich', '[Sample] Diana primary; children contingent.', null, 'app'),
+  ('000000b2-0000-4000-8000-000000000004', 'Sample Bank', 'checking', 'Rental income and expenses (StarLar)', '3456', 'both', null, 'Property manager deposits here.', 'app'),
+  ('000000b2-0000-4000-8000-000000000005', 'Sample Card Co.', 'credit_card', 'Travel and groceries', '7890', 'diana', null, 'Autopay from checking 1234.', 'app');
+
 commit;

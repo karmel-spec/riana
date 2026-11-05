@@ -119,6 +119,7 @@ export type Bill = {
   next_due_on: string | null;
   autopay: boolean;
   status: "upcoming" | "paid" | "failed" | "overdue";
+  last_paid_on?: string | null;
   notes: string | null;
   source: Source;
 };
@@ -171,4 +172,77 @@ export type Loan = {
   rate_pct: number | null;
   status: "proposed" | "active" | "paid_off" | "forgiven";
   note_signed: boolean;
+};
+
+export type Provider = {
+  id: string;
+  patient: "rich" | "diana";
+  name: string;
+  specialty: string | null;
+  practice: string | null;
+  phone: string | null;
+  portal_name: string | null;
+  is_va: boolean;
+  notes: string | null;
+};
+
+export type Medication = {
+  id: string;
+  patient: "rich" | "diana";
+  name: string;
+  dose: string | null;
+  schedule: string | null;
+  purpose: string | null;
+  prescriber_id: string | null;
+  started_on: string | null;
+  stopped_on: string | null;
+  active: boolean;
+  notes: string | null;
+  source: Source;
+};
+
+export type HealthCondition = {
+  id: string;
+  patient: "rich" | "diana";
+  kind: "condition" | "allergy" | "coverage";
+  name: string;
+  detail: string | null;
+  since: string | null;
+};
+
+export type VisitNote = {
+  id: string;
+  patient: "rich" | "diana";
+  visit_on: string;
+  provider_id: string | null;
+  summary: string;
+  follow_up: string | null;
+  author_name: string | null;
+  source: Source;
+  created_at: string;
+};
+
+export type VaClaim = {
+  id: string;
+  kind: "claim" | "appeal" | "cp_exam" | "rating_decision";
+  title: string;
+  status: string;
+  filed_on: string | null;
+  decided_on: string | null;
+  rating_pct: number | null;
+  next_step: string | null;
+  notes: string | null;
+  source: Source;
+};
+
+export type Account = {
+  id: string;
+  institution: string;
+  kind: "checking" | "savings" | "brokerage" | "retirement" | "credit_card" | "loan" | "other";
+  purpose: string | null;
+  last4: string | null;
+  held_by: Subject;
+  beneficiary_notes: string | null;
+  notes: string | null;
+  source: Source;
 };

@@ -28,7 +28,7 @@ export function MfaClient({ factors, next }: { factors: Factor[]; next: string }
   const finish = () => { setMode("done"); router.replace(next); router.refresh(); };
   const fail = (msg: string) => { setError(msg); setMode("choose"); };
 
-  async function useDevice(factorId: string) {
+  async function verifyWithDevice(factorId: string) {
     setError(""); setMode("working");
     const { error } = await supabase.auth.mfa.webauthn.authenticate({ factorId });
     if (error) return fail(friendly(error.message));
@@ -104,7 +104,7 @@ export function MfaClient({ factors, next }: { factors: Factor[]; next: string }
           <h2 className="text-[1.2rem] font-semibold">Use this device</h2>
           <p className="mb-3 text-[0.95rem] text-ink-soft">Face ID, Touch ID, a fingerprint, or your device passcode. Easiest on an iPad or phone.</p>
           {webauthn.length > 0
-            ? webauthn.map((f) => <button key={f.id} type="button" onClick={() => useDevice(f.id)} className="btn-primary mb-2 w-full">Verify with {f.name || "this device"}</button>)
+            ? webauthn.map((f) => <button key={f.id} type="button" onClick={() => verifyWithDevice(f.id)} className="btn-primary mb-2 w-full">Verify with {f.name || "this device"}</button>)
             : null}
           <button type="button" onClick={registerDevice} className={`${webauthn.length ? "btn-secondary" : "btn-primary"} w-full`}>
             {webauthn.length ? "Add another device" : "Set up this device"}
