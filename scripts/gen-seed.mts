@@ -46,5 +46,7 @@ out += insert("health_conditions", f.healthConditions.map((x) => pick(x, "id", "
 out += insert("visit_notes", f.visitNotes.map((x) => pick(x, "id", "patient", "visit_on", "provider_id", "summary", "follow_up", "author_name", "source")));
 out += insert("va_claims", f.vaClaims.map((x) => pick(x, "id", "kind", "title", "status", "filed_on", "decided_on", "rating_pct", "next_step", "notes", "source")));
 out += insert("accounts", f.accounts.map((x) => pick(x, "id", "institution", "kind", "purpose", "last4", "held_by", "beneficiary_notes", "notes", "source")));
+out += insert("digital_accounts", f.digitalAccounts.map((x) => pick(x, "id", "service", "owner", "purpose", "vault_item", "after_death", "notes", "source")));
+out += insert("household_items", f.householdItems.map((x) => pick(x, "id", "kind", "name", "details", "source")));
 out += "commit;\n";
 process.stdout.write(out);

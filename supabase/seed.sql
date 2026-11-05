@@ -220,4 +220,25 @@ insert into public.accounts (id, institution, kind, purpose, last4, held_by, ben
   ('000000b2-0000-4000-8000-000000000004', 'Sample Bank', 'checking', 'Rental income and expenses (StarLar)', '3456', 'both', null, 'Property manager deposits here.', 'app'),
   ('000000b2-0000-4000-8000-000000000005', 'Sample Card Co.', 'credit_card', 'Travel and groceries', '7890', 'diana', null, 'Autopay from checking 1234.', 'app');
 
+insert into public.digital_accounts (id, service, owner, purpose, vault_item, after_death, notes, source) values
+  ('000000b6-0000-4000-8000-000000000001', 'Gmail (Rich)', 'rich', 'Main email; Riana reads it', 'Rich – Gmail', 'Keep open 12 months for bills, then close.', null, 'app'),
+  ('000000b6-0000-4000-8000-000000000002', 'Gmail (Diana)', 'diana', 'Main email; Riana reads it', 'Diana – Gmail', 'Keep open 12 months, then close.', null, 'app'),
+  ('000000b6-0000-4000-8000-000000000003', 'Apple ID', 'both', 'iPad, photos, iCloud', 'Greene – Apple ID', 'Download photos first (Legacy Contact set to Karmel).', 'Legacy Contact set up in Settings.', 'app'),
+  ('000000b6-0000-4000-8000-000000000004', 'Facebook', 'diana', 'Family and church friends', 'Diana – Facebook', 'Memorialize.', null, 'app'),
+  ('000000b6-0000-4000-8000-000000000005', 'Sample Credit Union online banking', 'both', 'Bills and transfers', 'Greene – Credit Union', 'Executor contacts the bank; do not log in after death.', 'Account ····1234 and ····5678.', 'app'),
+  ('000000b6-0000-4000-8000-000000000006', 'My HealtheVet (VA)', 'rich', 'VA appointments, prescriptions, claim status', 'Rich – VA login', 'Close.', null, 'app'),
+  ('000000b6-0000-4000-8000-000000000007', 'Google Photos (shared family album)', 'both', 'Scanned photos and documents', 'Greene – Google', 'Transfer ownership to Karmel.', null, 'riana'),
+  ('000000b6-0000-4000-8000-000000000008', 'Streaming (sample)', 'both', 'TV', 'Greene – Streaming', 'Cancel.', 'Billed to card ····7890.', 'app');
+
+insert into public.household_items (id, kind, name, details, source) values
+  ('000000b7-0000-4000-8000-000000000001', 'pet', 'Buddy (sample dog)', '[Sample] 9-year-old terrier mix. Vet: Sample Animal Clinic (555) 010-1001. Food: one scoop morning and night. Goes to David if Mom and Dad can''t care for him.', 'app'),
+  ('000000b7-0000-4000-8000-000000000002', 'vehicle', 'Classic car (sample)', '[Sample] 1966 convertible. Title in the home safe. Goes to Michael — see Urgent Questions. Insured by Sample Classic Insurers.', 'app'),
+  ('000000b7-0000-4000-8000-000000000003', 'vehicle', 'Everyday car (sample)', '[Sample] 2019 sedan. Title in the home safe. Spare key on the hook by the garage door.', 'app'),
+  ('000000b7-0000-4000-8000-000000000004', 'heirloom', 'Grandma''s quilt (sample)', '[Sample] In the cedar chest. Diana would like it to go to Tina.', 'app'),
+  ('000000b7-0000-4000-8000-000000000005', 'heirloom', 'Rich''s service medals (sample)', '[Sample] Shadow box in the den. Rich wants them to stay with the family; no one named yet.', 'app'),
+  ('000000b7-0000-4000-8000-000000000006', 'service', 'Yard & pool service (sample)', '[Sample] Every other Tuesday. Paid by autopay. Phone (555) 010-1002.', 'app'),
+  ('000000b7-0000-4000-8000-000000000007', 'service', 'Housekeeper (sample)', '[Sample] Fridays. Has a key. Phone (555) 010-1003.', 'app'),
+  ('000000b7-0000-4000-8000-000000000008', 'other', 'Home safe', '[Sample] In the master closet. Combination is in 1Password under "Greene – Home safe". Holds titles, the POA originals and passports.', 'app'),
+  ('000000b7-0000-4000-8000-000000000009', 'other', 'Spare keys', '[Sample] Next-door neighbor has a house key. Garage code is in 1Password.', 'app');
+
 commit;

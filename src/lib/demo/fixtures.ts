@@ -15,7 +15,7 @@ export function uid(kind: string, n: number): string {
     q: "a1", e: "a2", l: "a3", g: "a4", p: "a5", nl: "a6", nc: "a7",
     b: "a8", lab: "a9", w: "aa", r: "ab", loan: "ac",
     prov: "ad", med: "ae", cond: "af", vn: "b0", va: "b1", acct: "b2",
-    prop: "b3", ins: "b4", tax: "b5",
+    prop: "b3", ins: "b4", tax: "b5", dig: "b6", hh: "b7",
   };
   const hex = n.toString(16).padStart(12, "0");
   return `000000${prefix[kind] ?? "ff"}-0000-4000-8000-${hex}`;
@@ -262,4 +262,30 @@ export const taxRecords: TaxRecord[] = [
   { id: uid("tax", 4), tax_year: 2026, kind: "exemption", preparer: null, status: "Active", filed_on: null, notes: "Disabled-veteran exemption on the Lake Havasu home. Renew with the county assessor if asked.", source: "app" },
   { id: uid("tax", 5), tax_year: 2024, kind: "federal", preparer: "Sample CPA, PLLC", status: "Filed", filed_on: "2025-04-02", notes: null, source: "app" },
   { id: uid("tax", 6), tax_year: 2026, kind: "federal", preparer: "Sample CPA, PLLC", status: "Not started", filed_on: null, notes: "Gather 1099s in January.", source: "app" },
+];
+
+// --- Digital accounts & household (FAKE) --------------------------------------
+import type { DigitalAccount, HouseholdItem } from "../types";
+
+export const digitalAccounts: DigitalAccount[] = [
+  { id: uid("dig", 1), service: "Gmail (Rich)", owner: "rich", purpose: "Main email; Riana reads it", vault_item: "Rich – Gmail", after_death: "Keep open 12 months for bills, then close.", notes: null, source: "app" },
+  { id: uid("dig", 2), service: "Gmail (Diana)", owner: "diana", purpose: "Main email; Riana reads it", vault_item: "Diana – Gmail", after_death: "Keep open 12 months, then close.", notes: null, source: "app" },
+  { id: uid("dig", 3), service: "Apple ID", owner: "both", purpose: "iPad, photos, iCloud", vault_item: "Greene – Apple ID", after_death: "Download photos first (Legacy Contact set to Karmel).", notes: "Legacy Contact set up in Settings.", source: "app" },
+  { id: uid("dig", 4), service: "Facebook", owner: "diana", purpose: "Family and church friends", vault_item: "Diana – Facebook", after_death: "Memorialize.", notes: null, source: "app" },
+  { id: uid("dig", 5), service: "Sample Credit Union online banking", owner: "both", purpose: "Bills and transfers", vault_item: "Greene – Credit Union", after_death: "Executor contacts the bank; do not log in after death.", notes: "Account ····1234 and ····5678.", source: "app" },
+  { id: uid("dig", 6), service: "My HealtheVet (VA)", owner: "rich", purpose: "VA appointments, prescriptions, claim status", vault_item: "Rich – VA login", after_death: "Close.", notes: null, source: "app" },
+  { id: uid("dig", 7), service: "Google Photos (shared family album)", owner: "both", purpose: "Scanned photos and documents", vault_item: "Greene – Google", after_death: "Transfer ownership to Karmel.", notes: null, source: "riana" },
+  { id: uid("dig", 8), service: "Streaming (sample)", owner: "both", purpose: "TV", vault_item: "Greene – Streaming", after_death: "Cancel.", notes: "Billed to card ····7890.", source: "app" },
+];
+
+export const householdItems: HouseholdItem[] = [
+  { id: uid("hh", 1), kind: "pet", name: "Buddy (sample dog)", details: "[Sample] 9-year-old terrier mix. Vet: Sample Animal Clinic (555) 010-1001. Food: one scoop morning and night. Goes to David if Mom and Dad can't care for him.", source: "app" },
+  { id: uid("hh", 2), kind: "vehicle", name: "Classic car (sample)", details: "[Sample] 1966 convertible. Title in the home safe. Goes to Michael — see Urgent Questions. Insured by Sample Classic Insurers.", source: "app" },
+  { id: uid("hh", 3), kind: "vehicle", name: "Everyday car (sample)", details: "[Sample] 2019 sedan. Title in the home safe. Spare key on the hook by the garage door.", source: "app" },
+  { id: uid("hh", 4), kind: "heirloom", name: "Grandma's quilt (sample)", details: "[Sample] In the cedar chest. Diana would like it to go to Tina.", source: "app" },
+  { id: uid("hh", 5), kind: "heirloom", name: "Rich's service medals (sample)", details: "[Sample] Shadow box in the den. Rich wants them to stay with the family; no one named yet.", source: "app" },
+  { id: uid("hh", 6), kind: "service", name: "Yard & pool service (sample)", details: "[Sample] Every other Tuesday. Paid by autopay. Phone (555) 010-1002.", source: "app" },
+  { id: uid("hh", 7), kind: "service", name: "Housekeeper (sample)", details: "[Sample] Fridays. Has a key. Phone (555) 010-1003.", source: "app" },
+  { id: uid("hh", 8), kind: "other", name: "Home safe", details: "[Sample] In the master closet. Combination is in 1Password under \"Greene – Home safe\". Holds titles, the POA originals and passports.", source: "app" },
+  { id: uid("hh", 9), kind: "other", name: "Spare keys", details: "[Sample] Next-door neighbor has a house key. Garage code is in 1Password.", source: "app" },
 ];
