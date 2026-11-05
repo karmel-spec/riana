@@ -5,7 +5,7 @@ import { SENSITIVE } from "./permissions";
 import * as fx from "./demo/fixtures";
 import type {
   Account, AuditEntry, Bill, CalendarEvent, ContactGroup, FinalWish, HealthCondition, LabResult, LegalDocument, Loan,
-  DigitalAccount, EstatePlanVersion, LoanPayment, EstateProvision, HouseholdItem, InsurancePolicy, Medication, PlanConflict, TaxSourceItem, NotificationCampaign, NotificationList, Person, Property, Provider, RianaUpdate, Section, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
+  DigitalAccount, EstatePlanVersion, LoanPayment, Vehicle, VehicleImprovement, EstateProvision, HouseholdItem, InsurancePolicy, Medication, PlanConflict, TaxSourceItem, NotificationCampaign, NotificationList, Person, Property, Provider, RianaUpdate, Section, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
 } from "./types";
 
 // -----------------------------------------------------------------------------
@@ -13,6 +13,7 @@ import type {
 // while the server runs. Real mode never touches it.
 // -----------------------------------------------------------------------------
 type Store = {
+  vehicles: Vehicle[]; improvements: VehicleImprovement[];
   loanPayments: LoanPayment[];
   planVersions: EstatePlanVersion[]; provisions: EstateProvision[]; conflicts: PlanConflict[];
   taxSources: TaxSourceItem[];
@@ -25,11 +26,12 @@ type Store = {
   wishes: FinalWish[]; loans: Loan[]; riana: RianaUpdate[]; audit: AuditEntry[];
 };
 // Bump when Store gains a key, so a dev server that kept the old object rebuilds it.
-const STORE_VERSION = 7;
+const STORE_VERSION = 8;
 const g = globalThis as unknown as { __greeneDemo?: Store; __greeneDemoV?: number };
 export function demoStore(): Store {
   if (g.__greeneDemoV !== STORE_VERSION) { g.__greeneDemo = undefined; g.__greeneDemoV = STORE_VERSION; }
   g.__greeneDemo ??= structuredClone({
+    vehicles: fx.vehicles, improvements: fx.vehicleImprovements,
     loanPayments: fx.loanPayments,
     planVersions: fx.estatePlanVersions, provisions: fx.estateProvisions, conflicts: fx.planConflicts,
     taxSources: fx.taxSourceItems,
@@ -349,4 +351,23 @@ export async function getLoanPayments(v: Viewer): Promise<LoanPayment[]> {
   const { data, error } = await supabase.from("loan_payments").select("*").order("paid_on");
   if (error) fail("loan payments", error);
   return data as LoanPayment[];
+}
+
+// --- Vehicles ----------------------------------------------------------------------------
+export async function getVehicles(v: Viewer): Promise<Vehicle[]> {
+  if (!canRead(v, "properties")) return [];
+  if (v.demo) return [...demoStore().vehicles].sort((a, b) => (a.year ?? 0) - (b.year ?? 0));
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("vehicles").select("*").order("year");
+  if (error) fail("vehicles", error);
+  return data as Vehicle[];
+}
+
+export async function getVehicleImprovements(v: Viewer): Promise<VehicleImprovement[]> {
+  if (!canRead(v, "properties")) return [];
+  if (v.demo) return [...demoStore().improvements].sort((a, b) => (a.done_on ?? a.done_on_approx ?? "").localeCompare(b.done_on ?? b.done_on_approx ?? ""));
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("vehicle_improvements").select("*").order("done_on");
+  if (error) fail("vehicle improvements", error);
+  return data as VehicleImprovement[];
 }

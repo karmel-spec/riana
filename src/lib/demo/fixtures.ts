@@ -15,7 +15,7 @@ export function uid(kind: string, n: number): string {
     q: "a1", e: "a2", l: "a3", g: "a4", p: "a5", nl: "a6", nc: "a7",
     b: "a8", lab: "a9", w: "aa", r: "ab", loan: "ac",
     prov: "ad", med: "ae", cond: "af", vn: "b0", va: "b1", acct: "b2",
-    lp: "bc", prop: "b3", ins: "b4", tax: "b5", dig: "b6", hh: "b7", tsi: "b8", epv: "b9", epr: "ba", pc: "bb",
+    lp: "bc", veh: "bd", vi: "be", prop: "b3", ins: "b4", tax: "b5", dig: "b6", hh: "b7", tsi: "b8", epv: "b9", epr: "ba", pc: "bb",
   };
   const hex = n.toString(16).padStart(12, "0");
   return `000000${prefix[kind] ?? "ff"}-0000-4000-8000-${hex}`;
@@ -365,4 +365,24 @@ export const planConflicts: PlanConflict[] = [
   PC(4, "The $50k loans to children aren't addressed", "Ryan & Tracy ($50k, signed) and David ($50k, proposed): advances against inheritance, repaid, or forgiven?", "Heather", "open", uid("epr", 10)),
   PC(5, "2021 TOD deeds conflict with the trust plan", "Recorded transfer-on-death deeds (nos. 4857438 and 4857439) would pass the rentals outside the trust. They must be revoked or the plan must change.", "Karmel", "with_attorney", uid("epr", 2)),
   PC(6, "Note 1 terms don't match its payment", "$250k at 4.75% over 20 years computes to $1,615.56/mo, not $1,655 (about $40/mo apart; $1,655 pays off in ~19 years). Confirm the note's actual rate, term or payment.", "Karmel", "open", uid("epr", 7)),
+];
+
+// --- Vehicles (Update Brief #2 §3a; values are the brief's estimates, improvements are FAKE) ---
+import type { Vehicle, VehicleImprovement } from "../types";
+
+export const vehicles: Vehicle[] = [
+  { id: uid("veh", 1), year: 1934, make: "Ford", model: "Victoria", nickname: "Vickie", engine: "350 Chevy V8", vin_last4: null, estimated_value: 50000, valuation_on: "2026-10-01", valuation_source: "Family estimate (sample)", title_location: "[Sample] Home safe", owner: "rich", insurance_policy_id: uid("ins", 2), estate_provision_id: uid("epr", 3), specs_file_id: null, notes: "Specs and the improvements list come from the 'Vickie Specs' and '34 Vickie Improvements' documents once imported.", source: "app" },
+  { id: uid("veh", 2), year: 1956, make: "Chevrolet", model: "[Sample] Bel Air", nickname: "the '56", engine: "[Sample] 265 V8", vin_last4: null, estimated_value: 100000, valuation_on: "2026-10-01", valuation_source: "Family estimate (sample)", title_location: "[Sample] Home safe", owner: "rich", insurance_policy_id: uid("ins", 2), estate_provision_id: uid("epr", 3), specs_file_id: null, notes: null, source: "app" },
+  { id: uid("veh", 3), year: 2019, make: "[Sample] Sedan", model: null, nickname: "the everyday car", engine: null, vin_last4: null, estimated_value: 14000, valuation_on: "2026-06-01", valuation_source: "[Sample] Online estimate", title_location: "[Sample] Home safe", owner: "both", insurance_policy_id: uid("ins", 1), estate_provision_id: null, specs_file_id: null, notes: "Spare key on the hook by the garage door.", source: "app" },
+];
+
+const VI = (n: number, done_on: string | null, approx: string | null, description: string, cost: number | null, vendor: string | null = null): VehicleImprovement =>
+  ({ id: uid("vi", n), vehicle_id: uid("veh", 1), done_on, done_on_approx: approx, description, cost, vendor, imported_file_id: null, source: "import" });
+export const vehicleImprovements: VehicleImprovement[] = [
+  VI(1, "2016-05-01", null, "[Sample] Engine rebuild and new intake", 6800, "Sample Speed Shop"),
+  VI(2, "2017-08-01", null, "[Sample] Disc brake conversion", 2400, "Sample Speed Shop"),
+  VI(3, null, "2019", "[Sample] Paint and body", 9500, "Sample Body Works"),
+  VI(4, "2021-03-15", null, "[Sample] Upholstery and headliner", 3100, null),
+  VI(5, "2023-10-10", null, "[Sample] Wiring harness and gauges", 1900, null),
+  VI(6, null, "summer 2025", "[Sample] New tires and alignment", 1200, "Sample Tire Co."),
 ];

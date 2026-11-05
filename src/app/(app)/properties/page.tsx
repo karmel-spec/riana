@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireSection, canWrite, canRead } from "@/lib/session";
 import * as data from "@/lib/data";
 import { Empty, PageHeader, SourceTag } from "@/components/ui";
@@ -24,7 +25,7 @@ export default async function PropertiesPage() {
     <>
       <PageHeader eyebrow={parent ? undefined : "Section 6"} title={parent ? "Your home and rentals" : "Properties"}
         intro={parent ? "The house and the Tumwater rentals, and who looks after them." : "The Lake Havasu home and the StarLar rentals: ownership, mortgages, HOA, property manager, and what happens to each one later."}
-        actions={canEdit ? <PropertyEditor managers={managers.map((p) => ({ id: p.id, name: p.full_name }))} /> : undefined} />
+        actions={<><Link href="/properties/vehicles" className="btn-secondary">Vehicles</Link>{canEdit && <PropertyEditor managers={managers.map((p) => ({ id: p.id, name: p.full_name }))} />}</>} />
 
       {properties.length === 0 ? <Empty>No properties recorded yet.</Empty> : (
         <ul className="flex flex-col gap-5">
