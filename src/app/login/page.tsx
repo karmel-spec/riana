@@ -22,7 +22,10 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             <LoginForm />
           )}
           {error === "no-access" && (
-            <p className="mt-4 rounded-xl bg-ember-tint px-4 py-3 text-ember">That email signed in, but it isn’t on the family list yet. Ask Karmel or Heather to add you.</p>
+            <div className="mt-4 rounded-xl bg-ember-tint px-4 py-3 text-ember">
+              <p>That email signed in, but it isn’t on the family list yet. Ask Karmel or Heather to add you.</p>
+              <form action="/logout" method="post" className="mt-2"><button className="min-h-0 underline">Sign out</button></form>
+            </div>
           )}
           {error === "link" && (
             <p className="mt-4 rounded-xl bg-ember-tint px-4 py-3 text-ember">That link has expired or was already used. Request a new one.</p>

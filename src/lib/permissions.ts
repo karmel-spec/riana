@@ -1,7 +1,10 @@
 // The role matrix, mirrored from supabase/migrations/…_foundation.sql.
 // The DATABASE is the source of truth and enforces it; this copy is only
 // used to (a) shape navigation and (b) filter fake data in demo mode.
-import type { AccessLevel, AppRole, Section } from "./types";
+import { SECTIONS, type AccessLevel, type AppRole, type Section } from "./types";
+
+/** Sections an admin may grant to one person. Admin itself comes only from the role. */
+export const GRANTABLE: Section[] = SECTIONS.filter((s) => s !== "admin");
 
 export const SENSITIVE: ReadonlySet<Section> = new Set<Section>([
   "health_diana", "health_rich", "properties", "accounts", "bills",

@@ -65,7 +65,7 @@ export const canWrite = (v: Viewer, s: Section) => v.access[s] === "write";
 export async function requireSection(s: Section): Promise<Viewer> {
   const v = await getViewer();
   if (!canRead(v, s)) {
-    if (v.locked.includes(s)) redirect(`/mfa?next=${encodeURIComponent("/")}`);
+    if (v.locked.includes(s)) redirect("/mfa");
     redirect("/");
   }
   return v;

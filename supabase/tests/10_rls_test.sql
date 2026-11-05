@@ -150,3 +150,24 @@ set role anon;
 select test.ok(test.fails('select * from public.my_access()'), 'anon cannot call my_access');
 reset role;
 \echo 'API tests passed.'
+
+-- Onboarding ----------------------------------------------------------------
+select test.act(:K, 'aal2'); set role authenticated;
+insert into public.invitations (email, display_name, app_role, invited_by) values ('newkid@test.invalid', 'New Kid', 'family', :K);
+insert into public.invitations (email, display_name, app_role, is_subject) values ('mom2@test.invalid', 'Mom', 'parent', 'diana');
+reset role;
+select test.ok(public.is_invited('NewKid@test.invalid'), 'is_invited matches case-insensitively');
+select test.ok(not public.is_invited('stranger@test.invalid'), 'strangers are not invited');
+insert into auth.users (id, email) values ('99999999-9999-4999-8999-999999999999', 'newkid@test.invalid');
+insert into auth.users (id, email) values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'stranger@test.invalid');
+insert into auth.users (id, email) values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'mom2@test.invalid');
+select test.ok((select app_role from public.profiles where id = '99999999-9999-4999-8999-999999999999') = 'family', 'first sign-in creates the profile from the invitation');
+select test.ok(not exists (select 1 from public.profiles where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'), 'a stranger who signs in gets no profile');
+select test.ok((select accepted_at is not null from public.invitations where email = 'newkid@test.invalid'), 'invitation is marked accepted');
+select test.ok(exists (select 1 from public.user_section_access where user_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' and section = 'health_diana' and level = 'write'), 'a new parent gets their own health section');
+select test.act('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.final_wishes') = 0 and test.rows('select * from public.my_profile()') = 0, 'stranger sees nothing');
+reset role; select test.act(:DAV, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.invitations') = 0, 'family cannot see invitations');
+reset role;
+\echo 'Onboarding tests passed.'

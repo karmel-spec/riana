@@ -32,7 +32,7 @@ export const NAV: NavItem[] = [
 export const ADMIN_NAV: NavItem[] = [
   { href: "/admin/riana", label: "Updates from Riana", section: "admin", icon: I.Sparkle, built: true },
   { href: "/admin/audit", label: "Audit Log", section: "admin", icon: I.Shield, built: true },
-  { href: "/admin/people", label: "People & Access", section: "admin", icon: I.Lock },
+  { href: "/admin/people", label: "People & Access", section: "admin", icon: I.Lock, built: true },
 ];
 
 export function visibleNav(v: Viewer, items: NavItem[]) {
