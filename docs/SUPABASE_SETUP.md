@@ -86,5 +86,5 @@ The publishable key is safe to expose; it can only do what the row-level-securit
 ## Before any real data goes in
 
 - Switch to the **Pro** plan for daily backups and point-in-time recovery.
-- Turn on **Project Settings → Database → Enforce SSL**.
+- Turn on **Database → Settings → SSL Configuration → Enforce SSL on incoming connections**. It restarts the database for a few seconds, so do it before anyone is signed in.
 - Keep the database password and the connection string only in 1Password.
