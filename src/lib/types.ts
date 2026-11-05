@@ -299,3 +299,22 @@ export type TaxRecord = {
   notes: string | null;
   source: Source;
 };
+
+export type DigitalAccount = {
+  id: string;
+  service: string;
+  owner: Subject;
+  purpose: string | null;
+  vault_item: string | null;
+  after_death: string | null;
+  notes: string | null;
+  source: Source;
+};
+
+export type HouseholdItem = {
+  id: string;
+  kind: "pet" | "vehicle" | "heirloom" | "service" | "other";
+  name: string;
+  details: string | null;
+  source: Source;
+};

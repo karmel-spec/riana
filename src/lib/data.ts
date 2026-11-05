@@ -5,7 +5,7 @@ import { SENSITIVE } from "./permissions";
 import * as fx from "./demo/fixtures";
 import type {
   Account, AuditEntry, Bill, CalendarEvent, ContactGroup, FinalWish, HealthCondition, LabResult, LegalDocument, Loan,
-  InsurancePolicy, Medication, NotificationCampaign, NotificationList, Person, Property, Provider, RianaKey, RianaUpdate, Section, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
+  DigitalAccount, HouseholdItem, InsurancePolicy, Medication, NotificationCampaign, NotificationList, Person, Property, Provider, RianaKey, RianaUpdate, Section, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
 } from "./types";
 
 // -----------------------------------------------------------------------------
@@ -13,6 +13,7 @@ import type {
 // while the server runs. Real mode never touches it.
 // -----------------------------------------------------------------------------
 type Store = {
+  digital: DigitalAccount[]; household: HouseholdItem[];
   properties: Property[]; policies: InsurancePolicy[]; taxes: TaxRecord[];
   providers: Provider[]; medications: Medication[]; conditions: HealthCondition[]; visits: VisitNote[]; vaClaims: VaClaim[]; accounts: Account[];
   questions: UrgentQuestion[]; events: CalendarEvent[]; legal: LegalDocument[];
@@ -21,11 +22,12 @@ type Store = {
   wishes: FinalWish[]; loans: Loan[]; riana: RianaUpdate[]; audit: AuditEntry[];
 };
 // Bump when Store gains a key, so a dev server that kept the old object rebuilds it.
-const STORE_VERSION = 3;
+const STORE_VERSION = 4;
 const g = globalThis as unknown as { __greeneDemo?: Store; __greeneDemoV?: number };
 export function demoStore(): Store {
   if (g.__greeneDemoV !== STORE_VERSION) { g.__greeneDemo = undefined; g.__greeneDemoV = STORE_VERSION; }
   g.__greeneDemo ??= structuredClone({
+    digital: fx.digitalAccounts, household: fx.householdItems,
     properties: fx.properties, policies: fx.insurancePolicies, taxes: fx.taxRecords,
     providers: fx.providers, medications: fx.medications, conditions: fx.healthConditions, visits: fx.visitNotes, vaClaims: fx.vaClaims, accounts: fx.accounts,
     questions: fx.urgentQuestions, events: fx.calendarEvents, legal: fx.legalDocuments,
@@ -285,4 +287,23 @@ export async function getTaxRecords(v: Viewer): Promise<TaxRecord[]> {
   const { data, error } = await supabase.from("tax_records").select("*").order("tax_year", { ascending: false }).order("kind");
   if (error) fail("tax records", error);
   return data as TaxRecord[];
+}
+
+// --- Digital accounts & household --------------------------------------------------
+export async function getDigitalAccounts(v: Viewer): Promise<DigitalAccount[]> {
+  if (!canRead(v, "digital_accounts")) return [];
+  if (v.demo) return [...demoStore().digital].sort((a, b) => a.service.localeCompare(b.service));
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("digital_accounts").select("*").order("service");
+  if (error) fail("digital accounts", error);
+  return data as DigitalAccount[];
+}
+
+export async function getHouseholdItems(v: Viewer): Promise<HouseholdItem[]> {
+  if (!canRead(v, "household")) return [];
+  if (v.demo) return demoStore().household;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("household_items").select("*").order("kind").order("name");
+  if (error) fail("household", error);
+  return data as HouseholdItem[];
 }
