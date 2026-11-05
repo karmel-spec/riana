@@ -1,6 +1,6 @@
 import { requireSection, canRead, canWrite } from "@/lib/session";
 import * as data from "@/lib/data";
-import { Empty, PageHeader, SectionCard, SourceTag, Stat } from "@/components/ui";
+import { Empty, PageHeader, SectionCard, Stat } from "@/components/ui";
 import { fmtDate, fmtMoney, relative, subjectName } from "@/lib/format";
 import { BillTable, MoneyForms } from "./money-client";
 
