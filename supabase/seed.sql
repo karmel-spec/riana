@@ -121,14 +121,19 @@ insert into public.notification_recipients (campaign_id, person_id, status, cont
   ('000000a7-0000-4000-8000-000000000001', '000000a5-0000-4000-8000-000000000007', 'attending', 'Karmel', 'Bringing dinner Friday.'),
   ('000000a7-0000-4000-8000-000000000001', '000000a5-0000-4000-8000-00000000000a', 'sent', 'Karmel', null);
 
-insert into public.bills (id, payee, category, amount, frequency, next_due_on, autopay, status, notes, source) values
-  ('000000a8-0000-4000-8000-000000000001', 'Sample Electric Co.', 'Utilities', 142.18, 'monthly', '2026-11-03', true, 'failed', 'Card on file expired (sample).', 'riana'),
-  ('000000a8-0000-4000-8000-000000000002', 'Mortgage · Rental A', 'Mortgage', 1210, 'monthly', '2026-11-01', true, 'paid', null, 'app'),
-  ('000000a8-0000-4000-8000-000000000003', 'HOA · Rental B', 'HOA', 95, 'monthly', '2026-11-15', false, 'upcoming', null, 'app'),
-  ('000000a8-0000-4000-8000-000000000004', 'Water & sewer (sample)', 'Utilities', 68.4, 'monthly', '2026-11-17', true, 'upcoming', null, 'app'),
-  ('000000a8-0000-4000-8000-000000000005', 'Medicare supplement (sample)', 'Insurance', 231, 'monthly', '2026-11-19', true, 'upcoming', null, 'app'),
-  ('000000a8-0000-4000-8000-000000000006', 'Property tax · WA (sample)', 'Taxes', 1850, 'semiannual', '2026-11-30', false, 'upcoming', null, 'app'),
-  ('000000a8-0000-4000-8000-000000000007', 'Phone & internet (sample)', 'Utilities', 119.99, 'monthly', '2026-11-23', true, 'upcoming', null, 'app');
+insert into public.properties (id, name, kind, address, held_by, succession_plan, manager_person_id, hoa_name, notes, source) values
+  ('000000b3-0000-4000-8000-000000000001', 'Home · Lake Havasu City', 'residence', '[Sample] 123 Example Dr, Lake Havasu City, AZ', 'Rich & Diana', '[Sample] Passes under the will (six-way split).', null, null, 'Paid off. Disabled-veteran property tax exemption applied.', 'app'),
+  ('000000b3-0000-4000-8000-000000000002', 'Rental A · Tumwater', 'rental', '[Sample] 100 Example Cir SW, Tumwater, WA', 'StarLar (Rich & Diana)', '[Sample] 50/50 to two children via TOD deed, outside the will.', '000000a5-0000-4000-8000-00000000000f', 'Sample HOA', 'Duplex. Both units rented.', 'app'),
+  ('000000b3-0000-4000-8000-000000000003', 'Rental B · Tumwater', 'rental', '[Sample] 200 Example St SE, Tumwater, WA', 'StarLar (Rich & Diana)', '[Sample] 50/50 to two children via TOD deed, outside the will.', '000000a5-0000-4000-8000-00000000000f', null, 'Easement amendment drafted 2021, unsigned.', 'import');
+
+insert into public.bills (id, payee, category, amount, frequency, next_due_on, autopay, status, notes, source, property_id) values
+  ('000000a8-0000-4000-8000-000000000001', 'Sample Electric Co.', 'Utilities', 142.18, 'monthly', '2026-11-03', true, 'failed', 'Card on file expired (sample).', 'riana', null),
+  ('000000a8-0000-4000-8000-000000000002', 'Mortgage · Rental A', 'Mortgage', 1210, 'monthly', '2026-11-01', true, 'paid', null, 'app', '000000b3-0000-4000-8000-000000000002'),
+  ('000000a8-0000-4000-8000-000000000003', 'HOA · Rental A', 'HOA', 95, 'monthly', '2026-11-15', false, 'upcoming', null, 'app', '000000b3-0000-4000-8000-000000000002'),
+  ('000000a8-0000-4000-8000-000000000004', 'Water & sewer (sample)', 'Utilities', 68.4, 'monthly', '2026-11-17', true, 'upcoming', null, 'app', null),
+  ('000000a8-0000-4000-8000-000000000005', 'Medicare supplement (sample)', 'Insurance', 231, 'monthly', '2026-11-19', true, 'upcoming', null, 'app', null),
+  ('000000a8-0000-4000-8000-000000000006', 'Property tax · WA (sample)', 'Taxes', 1850, 'semiannual', '2026-11-30', false, 'upcoming', null, 'app', '000000b3-0000-4000-8000-000000000003'),
+  ('000000a8-0000-4000-8000-000000000007', 'Phone & internet (sample)', 'Utilities', 119.99, 'monthly', '2026-11-23', true, 'upcoming', null, 'app', null);
 
 insert into public.lab_results (id, patient, test_name, value, unit, ref_low, ref_high, taken_on, source) values
   ('000000a9-0000-4000-8000-000000000001', 'diana', 'A1C', 5.2, '%', 4, 5.6, '2024-05-05', 'app'),
@@ -145,9 +150,30 @@ insert into public.final_wishes (id, person, topic, wish, confirmed) values
   ('000000aa-0000-4000-8000-000000000004', 'rich', 'military_honors', '[Sample] Military honors at the graveside, if possible.', true),
   ('000000aa-0000-4000-8000-000000000005', 'both', 'obituary', '[Sample] Keep it short; include the grandchildren''s names.', false);
 
-insert into public.loans (id, direction, counterparty, principal, rate_pct, status, note_signed) values
-  ('000000ac-0000-4000-8000-000000000001', 'owed_to_estate', 'Loan A (sample child)', 50000, 5, 'active', true),
-  ('000000ac-0000-4000-8000-000000000002', 'owed_to_estate', 'Loan B (sample child)', 50000, 5, 'proposed', false);
+insert into public.loans (id, direction, counterparty, principal, rate_pct, status, note_signed, property_id, balance_note) values
+  ('000000ac-0000-4000-8000-000000000001', 'owed_to_estate', 'Loan A (sample child)', 50000, 5, 'active', true, null, null),
+  ('000000ac-0000-4000-8000-000000000002', 'owed_to_estate', 'Loan B (sample child)', 50000, 5, 'proposed', false, null, null),
+  ('000000ac-0000-4000-8000-000000000003', 'owed_by_estate', 'Sample Mortgage Co.', 185000, 3.25, 'active', true, '000000b3-0000-4000-8000-000000000002', '[Sample] About $120k remaining, 30-year fixed from 2018.'),
+  ('000000ac-0000-4000-8000-000000000004', 'owed_by_estate', 'Sample Mortgage Co.', 210000, 3.5, 'active', true, '000000b3-0000-4000-8000-000000000003', '[Sample] About $150k remaining.');
+
+insert into public.insurance_policies (id, kind, carrier, insured, policy_last4, premium, renews_on, agent_person_id, notes, source) values
+  ('000000b4-0000-4000-8000-000000000001', 'auto', 'Sample Mutual', 'both', '4411', 1180, '2026-12-15', null, 'Two vehicles.', 'app'),
+  ('000000b4-0000-4000-8000-000000000002', 'classic_car', 'Sample Classic Insurers', 'rich', '7720', 420, '2027-03-25', null, 'Agreed value. Limited miles.', 'app'),
+  ('000000b4-0000-4000-8000-000000000003', 'home', 'Sample Mutual', 'both', '3305', 1650, '2027-05-24', null, null, 'app'),
+  ('000000b4-0000-4000-8000-000000000004', 'landlord', 'Sample Mutual', 'both', '9981', 2100, '2027-05-24', null, 'Covers both Tumwater rentals.', 'app'),
+  ('000000b4-0000-4000-8000-000000000005', 'umbrella', 'Sample Mutual', 'both', '1002', 390, '2027-05-24', null, '$1M.', 'app'),
+  ('000000b4-0000-4000-8000-000000000006', 'medicare', 'Medicare', 'both', null, null, null, null, 'Parts A & B. Cards in the blue folder.', 'app'),
+  ('000000b4-0000-4000-8000-000000000007', 'supplemental', 'Sample Health Plan (Medicare Advantage)', 'diana', '5566', 231, '2026-12-30', null, 'Open enrollment each fall.', 'app'),
+  ('000000b4-0000-4000-8000-000000000008', 'champva', 'CHAMPVA', 'diana', null, null, null, null, 'Secondary to Medicare.', 'app'),
+  ('000000b4-0000-4000-8000-000000000009', 'life', 'Sample Life Co.', 'rich', '2290', 95, null, null, '[Sample] Term policy; beneficiary Diana. Check the end date.', 'app');
+
+insert into public.tax_records (id, tax_year, kind, preparer, status, filed_on, notes, source) values
+  ('000000b5-0000-4000-8000-000000000001', 2025, 'federal', 'Sample CPA, PLLC', 'Filed', '2026-03-20', null, 'app'),
+  ('000000b5-0000-4000-8000-000000000002', 2025, 'state', 'Sample CPA, PLLC', 'Not required (AZ resident, WA rental income reported federally)', null, null, 'app'),
+  ('000000b5-0000-4000-8000-000000000003', 2025, 'property', null, 'Second half due', null, 'Tumwater rentals. Due dates on the calendar.', 'app'),
+  ('000000b5-0000-4000-8000-000000000004', 2026, 'exemption', null, 'Active', null, 'Disabled-veteran exemption on the Lake Havasu home. Renew with the county assessor if asked.', 'app'),
+  ('000000b5-0000-4000-8000-000000000005', 2024, 'federal', 'Sample CPA, PLLC', 'Filed', '2025-04-02', null, 'app'),
+  ('000000b5-0000-4000-8000-000000000006', 2026, 'federal', 'Sample CPA, PLLC', 'Not started', null, 'Gather 1099s in January.', 'app');
 
 insert into public.riana_updates (id, kind, summary, received_at, review_status, payload) values
   ('000000ab-0000-4000-8000-000000000001', 'lab_result', 'New A1C result for Diana: 6.1 %', '2026-11-05T07:42:00-07:00', 'pending', '{}'),

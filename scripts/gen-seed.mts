@@ -32,10 +32,13 @@ out += insert("notification_lists", f.notificationLists.map((x) => pick(x, "id",
 out += insert("notification_list_members", f.notificationLists.flatMap((l) => l.members.map((m) => ({ list_id: l.id, person_id: m.person_id, wave: m.wave }))));
 out += insert("notification_campaigns", f.notificationCampaigns.map((x) => ({ id: x.id, list_id: x.list_id, title: x.title, message: x.message, status: "draft" })));
 out += insert("notification_recipients", f.notificationCampaigns.flatMap((c) => c.recipients.map((r) => ({ campaign_id: c.id, person_id: r.person_id, status: r.status, contacted_by: r.contacted_by, note: r.note }))));
-out += insert("bills", f.bills.map((x) => pick(x, "id", "payee", "category", "amount", "frequency", "next_due_on", "autopay", "status", "notes", "source")));
+out += insert("properties", f.properties.map((x) => pick(x, "id", "name", "kind", "address", "held_by", "succession_plan", "manager_person_id", "hoa_name", "notes", "source")));
+out += insert("bills", f.bills.map((x) => ({ ...pick(x, "id", "payee", "category", "amount", "frequency", "next_due_on", "autopay", "status", "notes", "source"), property_id: x.property_id ?? null })));
 out += insert("lab_results", f.labResults.map((x) => pick(x, "id", "patient", "test_name", "value", "unit", "ref_low", "ref_high", "taken_on", "source")));
 out += insert("final_wishes", f.finalWishes.map((x) => pick(x, "id", "person", "topic", "wish", "confirmed")));
-out += insert("loans", f.loans.map((x) => pick(x, "id", "direction", "counterparty", "principal", "rate_pct", "status", "note_signed")));
+out += insert("loans", f.loans.map((x) => ({ ...pick(x, "id", "direction", "counterparty", "principal", "rate_pct", "status", "note_signed"), property_id: x.property_id ?? null, balance_note: x.balance_note ?? null })));
+out += insert("insurance_policies", f.insurancePolicies.map((x) => pick(x, "id", "kind", "carrier", "insured", "policy_last4", "premium", "renews_on", "agent_person_id", "notes", "source")));
+out += insert("tax_records", f.taxRecords.map((x) => pick(x, "id", "tax_year", "kind", "preparer", "status", "filed_on", "notes", "source")));
 out += insert("riana_updates", f.rianaUpdates.map((x) => ({ ...pick(x, "id", "kind", "summary", "received_at", "review_status"), payload: "{}" })));
 out += insert("providers", f.providers.map((x) => pick(x, "id", "patient", "name", "specialty", "practice", "phone", "portal_name", "is_va", "notes")));
 out += insert("medications", f.medications.map((x) => pick(x, "id", "patient", "name", "dose", "schedule", "purpose", "prescriber_id", "started_on", "stopped_on", "active", "notes", "source")));

@@ -5,7 +5,7 @@ import { SENSITIVE } from "./permissions";
 import * as fx from "./demo/fixtures";
 import type {
   Account, AuditEntry, Bill, CalendarEvent, ContactGroup, FinalWish, HealthCondition, LabResult, LegalDocument, Loan,
-  Medication, NotificationCampaign, NotificationList, Person, Provider, RianaUpdate, Section, UrgentQuestion, VaClaim, VisitNote,
+  InsurancePolicy, Medication, NotificationCampaign, NotificationList, Person, Property, Provider, RianaUpdate, Section, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
 } from "./types";
 
 // -----------------------------------------------------------------------------
@@ -13,6 +13,7 @@ import type {
 // while the server runs. Real mode never touches it.
 // -----------------------------------------------------------------------------
 type Store = {
+  properties: Property[]; policies: InsurancePolicy[]; taxes: TaxRecord[];
   providers: Provider[]; medications: Medication[]; conditions: HealthCondition[]; visits: VisitNote[]; vaClaims: VaClaim[]; accounts: Account[];
   questions: UrgentQuestion[]; events: CalendarEvent[]; legal: LegalDocument[];
   groups: ContactGroup[]; people: Person[]; lists: NotificationList[];
@@ -20,11 +21,12 @@ type Store = {
   wishes: FinalWish[]; loans: Loan[]; riana: RianaUpdate[]; audit: AuditEntry[];
 };
 // Bump when Store gains a key, so a dev server that kept the old object rebuilds it.
-const STORE_VERSION = 2;
+const STORE_VERSION = 3;
 const g = globalThis as unknown as { __greeneDemo?: Store; __greeneDemoV?: number };
 export function demoStore(): Store {
   if (g.__greeneDemoV !== STORE_VERSION) { g.__greeneDemo = undefined; g.__greeneDemoV = STORE_VERSION; }
   g.__greeneDemo ??= structuredClone({
+    properties: fx.properties, policies: fx.insurancePolicies, taxes: fx.taxRecords,
     providers: fx.providers, medications: fx.medications, conditions: fx.healthConditions, visits: fx.visitNotes, vaClaims: fx.vaClaims, accounts: fx.accounts,
     questions: fx.urgentQuestions, events: fx.calendarEvents, legal: fx.legalDocuments,
     groups: fx.contactGroups, people: fx.people, lists: fx.notificationLists,
@@ -120,11 +122,11 @@ export async function getFinalWishes(v: Viewer): Promise<FinalWish[]> {
   return data as FinalWish[];
 }
 
-export async function getLoans(v: Viewer): Promise<Loan[]> {
-  if (!canRead(v, "accounts")) return [];
-  if (v.demo) return demoStore().loans;
+export async function getLoans(v: Viewer, direction: "owed_to_estate" | "owed_by_estate" = "owed_to_estate"): Promise<Loan[]> {
+  if (!canRead(v, direction === "owed_to_estate" ? "accounts" : "properties")) return [];
+  if (v.demo) return demoStore().loans.filter((l) => l.direction === direction);
   const supabase = await createClient();
-  const { data, error } = await supabase.from("loans").select("*").eq("direction", "owed_to_estate");
+  const { data, error } = await supabase.from("loans").select("*").eq("direction", direction);
   if (error) fail("loans", error);
   return data as Loan[];
 }
@@ -243,4 +245,32 @@ export async function getAccounts(v: Viewer): Promise<Account[]> {
   const { data, error } = await supabase.from("accounts").select("*").order("institution");
   if (error) fail("accounts", error);
   return data as Account[];
+}
+
+// --- Properties, insurance, taxes ---------------------------------------------------
+export async function getProperties(v: Viewer): Promise<Property[]> {
+  if (!canRead(v, "properties")) return [];
+  if (v.demo) return demoStore().properties;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("properties").select("*").order("kind").order("name");
+  if (error) fail("properties", error);
+  return data as Property[];
+}
+
+export async function getPolicies(v: Viewer): Promise<InsurancePolicy[]> {
+  if (!canRead(v, "insurance")) return [];
+  if (v.demo) return demoStore().policies;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("insurance_policies").select("*").order("kind");
+  if (error) fail("insurance", error);
+  return data as InsurancePolicy[];
+}
+
+export async function getTaxRecords(v: Viewer): Promise<TaxRecord[]> {
+  if (!canRead(v, "taxes")) return [];
+  if (v.demo) return [...demoStore().taxes].sort((a, b) => b.tax_year - a.tax_year || a.kind.localeCompare(b.kind));
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("tax_records").select("*").order("tax_year", { ascending: false }).order("kind");
+  if (error) fail("tax records", error);
+  return data as TaxRecord[];
 }

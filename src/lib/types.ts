@@ -120,6 +120,7 @@ export type Bill = {
   autopay: boolean;
   status: "upcoming" | "paid" | "failed" | "overdue";
   last_paid_on?: string | null;
+  property_id?: string | null;
   notes: string | null;
   source: Source;
 };
@@ -170,6 +171,8 @@ export type Loan = {
   id: string;
   direction: "owed_to_estate" | "owed_by_estate";
   counterparty: string;
+  property_id?: string | null;
+  balance_note?: string | null;
   principal: number | null;
   rate_pct: number | null;
   status: "proposed" | "active" | "paid_off" | "forgiven";
@@ -245,6 +248,43 @@ export type Account = {
   last4: string | null;
   held_by: Subject;
   beneficiary_notes: string | null;
+  notes: string | null;
+  source: Source;
+};
+
+export type Property = {
+  id: string;
+  name: string;
+  kind: "residence" | "rental" | "land" | "other";
+  address: string | null;
+  held_by: string | null;
+  succession_plan: string | null;
+  manager_person_id: string | null;
+  hoa_name: string | null;
+  notes: string | null;
+  source: Source;
+};
+
+export type InsurancePolicy = {
+  id: string;
+  kind: "auto" | "home" | "classic_car" | "umbrella" | "medicare" | "supplemental" | "champva" | "life" | "landlord" | "other";
+  carrier: string;
+  insured: Subject;
+  policy_last4: string | null;
+  premium: number | null;
+  renews_on: string | null;
+  agent_person_id: string | null;
+  notes: string | null;
+  source: Source;
+};
+
+export type TaxRecord = {
+  id: string;
+  tax_year: number;
+  kind: "federal" | "state" | "property" | "exemption" | "other";
+  preparer: string | null;
+  status: string;
+  filed_on: string | null;
   notes: string | null;
   source: Source;
 };

@@ -15,6 +15,7 @@ export function uid(kind: string, n: number): string {
     q: "a1", e: "a2", l: "a3", g: "a4", p: "a5", nl: "a6", nc: "a7",
     b: "a8", lab: "a9", w: "aa", r: "ab", loan: "ac",
     prov: "ad", med: "ae", cond: "af", vn: "b0", va: "b1", acct: "b2",
+    prop: "b3", ins: "b4", tax: "b5",
   };
   const hex = n.toString(16).padStart(12, "0");
   return `000000${prefix[kind] ?? "ff"}-0000-4000-8000-${hex}`;
@@ -138,11 +139,11 @@ export const notificationCampaigns: NotificationCampaign[] = [
 
 export const bills: Bill[] = [
   { id: uid("b", 1), payee: "Sample Electric Co.", category: "Utilities", amount: 142.18, frequency: "monthly", next_due_on: day(-2), autopay: true, status: "failed", notes: "Card on file expired (sample).", source: "riana" },
-  { id: uid("b", 2), payee: "Mortgage · Rental A", category: "Mortgage", amount: 1210.0, frequency: "monthly", next_due_on: day(-4), autopay: true, status: "paid", notes: null, source: "app" },
-  { id: uid("b", 3), payee: "HOA · Rental B", category: "HOA", amount: 95.0, frequency: "monthly", next_due_on: day(10), autopay: false, status: "upcoming", notes: null, source: "app" },
+  { id: uid("b", 2), payee: "Mortgage · Rental A", category: "Mortgage", amount: 1210.0, frequency: "monthly", next_due_on: day(-4), autopay: true, status: "paid", property_id: uid("prop", 2), notes: null, source: "app" },
+  { id: uid("b", 3), payee: "HOA · Rental A", category: "HOA", amount: 95.0, frequency: "monthly", next_due_on: day(10), autopay: false, status: "upcoming", property_id: uid("prop", 2), notes: null, source: "app" },
   { id: uid("b", 4), payee: "Water & sewer (sample)", category: "Utilities", amount: 68.4, frequency: "monthly", next_due_on: day(12), autopay: true, status: "upcoming", notes: null, source: "app" },
   { id: uid("b", 5), payee: "Medicare supplement (sample)", category: "Insurance", amount: 231.0, frequency: "monthly", next_due_on: day(14), autopay: true, status: "upcoming", notes: null, source: "app" },
-  { id: uid("b", 6), payee: "Property tax · WA (sample)", category: "Taxes", amount: 1850.0, frequency: "semiannual", next_due_on: day(25), autopay: false, status: "upcoming", notes: null, source: "app" },
+  { id: uid("b", 6), payee: "Property tax · WA (sample)", category: "Taxes", amount: 1850.0, frequency: "semiannual", next_due_on: day(25), autopay: false, status: "upcoming", property_id: uid("prop", 3), notes: null, source: "app" },
   { id: uid("b", 7), payee: "Phone & internet (sample)", category: "Utilities", amount: 119.99, frequency: "monthly", next_due_on: day(18), autopay: true, status: "upcoming", notes: null, source: "app" },
 ];
 
@@ -165,6 +166,8 @@ export const finalWishes: FinalWish[] = [
 export const loans: Loan[] = [
   { id: uid("loan", 1), direction: "owed_to_estate", counterparty: "Loan A (sample child)", principal: 50000, rate_pct: 5, status: "active", note_signed: true },
   { id: uid("loan", 2), direction: "owed_to_estate", counterparty: "Loan B (sample child)", principal: 50000, rate_pct: 5, status: "proposed", note_signed: false },
+  { id: uid("loan", 3), direction: "owed_by_estate", counterparty: "Sample Mortgage Co.", property_id: uid("prop", 2), principal: 185000, rate_pct: 3.25, status: "active", note_signed: true, balance_note: "[Sample] About $120k remaining, 30-year fixed from 2018." },
+  { id: uid("loan", 4), direction: "owed_by_estate", counterparty: "Sample Mortgage Co.", property_id: uid("prop", 3), principal: 210000, rate_pct: 3.5, status: "active", note_signed: true, balance_note: "[Sample] About $150k remaining." },
 ];
 
 export const rianaUpdates: RianaUpdate[] = [
@@ -229,4 +232,34 @@ export const accounts: Account[] = [
   { id: uid("acct", 3), institution: "Sample Brokerage", kind: "retirement", purpose: "Rich's IRA", last4: "9012", held_by: "rich", beneficiary_notes: "[Sample] Diana primary; children contingent.", notes: null, source: "app" },
   { id: uid("acct", 4), institution: "Sample Bank", kind: "checking", purpose: "Rental income and expenses (StarLar)", last4: "3456", held_by: "both", beneficiary_notes: null, notes: "Property manager deposits here.", source: "app" },
   { id: uid("acct", 5), institution: "Sample Card Co.", kind: "credit_card", purpose: "Travel and groceries", last4: "7890", held_by: "diana", beneficiary_notes: null, notes: "Autopay from checking 1234.", source: "app" },
+];
+
+// --- Properties, insurance, taxes (FAKE) --------------------------------------
+import type { InsurancePolicy, Property, TaxRecord } from "../types";
+
+export const properties: Property[] = [
+  { id: uid("prop", 1), name: "Home · Lake Havasu City", kind: "residence", address: "[Sample] 123 Example Dr, Lake Havasu City, AZ", held_by: "Rich & Diana", succession_plan: "[Sample] Passes under the will (six-way split).", manager_person_id: null, hoa_name: null, notes: "Paid off. Disabled-veteran property tax exemption applied.", source: "app" },
+  { id: uid("prop", 2), name: "Rental A · Tumwater", kind: "rental", address: "[Sample] 100 Example Cir SW, Tumwater, WA", held_by: "StarLar (Rich & Diana)", succession_plan: "[Sample] 50/50 to two children via TOD deed, outside the will.", manager_person_id: uid("p", 15), hoa_name: "Sample HOA", notes: "Duplex. Both units rented.", source: "app" },
+  { id: uid("prop", 3), name: "Rental B · Tumwater", kind: "rental", address: "[Sample] 200 Example St SE, Tumwater, WA", held_by: "StarLar (Rich & Diana)", succession_plan: "[Sample] 50/50 to two children via TOD deed, outside the will.", manager_person_id: uid("p", 15), hoa_name: null, notes: "Easement amendment drafted 2021, unsigned.", source: "import" },
+];
+
+export const insurancePolicies: InsurancePolicy[] = [
+  { id: uid("ins", 1), kind: "auto", carrier: "Sample Mutual", insured: "both", policy_last4: "4411", premium: 1180, renews_on: day(40), agent_person_id: null, notes: "Two vehicles.", source: "app" },
+  { id: uid("ins", 2), kind: "classic_car", carrier: "Sample Classic Insurers", insured: "rich", policy_last4: "7720", premium: 420, renews_on: day(140), agent_person_id: null, notes: "Agreed value. Limited miles.", source: "app" },
+  { id: uid("ins", 3), kind: "home", carrier: "Sample Mutual", insured: "both", policy_last4: "3305", premium: 1650, renews_on: day(200), agent_person_id: null, notes: null, source: "app" },
+  { id: uid("ins", 4), kind: "landlord", carrier: "Sample Mutual", insured: "both", policy_last4: "9981", premium: 2100, renews_on: day(200), agent_person_id: null, notes: "Covers both Tumwater rentals.", source: "app" },
+  { id: uid("ins", 5), kind: "umbrella", carrier: "Sample Mutual", insured: "both", policy_last4: "1002", premium: 390, renews_on: day(200), agent_person_id: null, notes: "$1M.", source: "app" },
+  { id: uid("ins", 6), kind: "medicare", carrier: "Medicare", insured: "both", policy_last4: null, premium: null, renews_on: null, agent_person_id: null, notes: "Parts A & B. Cards in the blue folder.", source: "app" },
+  { id: uid("ins", 7), kind: "supplemental", carrier: "Sample Health Plan (Medicare Advantage)", insured: "diana", policy_last4: "5566", premium: 231, renews_on: day(55), agent_person_id: null, notes: "Open enrollment each fall.", source: "app" },
+  { id: uid("ins", 8), kind: "champva", carrier: "CHAMPVA", insured: "diana", policy_last4: null, premium: null, renews_on: null, agent_person_id: null, notes: "Secondary to Medicare.", source: "app" },
+  { id: uid("ins", 9), kind: "life", carrier: "Sample Life Co.", insured: "rich", policy_last4: "2290", premium: 95, renews_on: null, agent_person_id: null, notes: "[Sample] Term policy; beneficiary Diana. Check the end date.", source: "app" },
+];
+
+export const taxRecords: TaxRecord[] = [
+  { id: uid("tax", 1), tax_year: 2025, kind: "federal", preparer: "Sample CPA, PLLC", status: "Filed", filed_on: "2026-03-20", notes: null, source: "app" },
+  { id: uid("tax", 2), tax_year: 2025, kind: "state", preparer: "Sample CPA, PLLC", status: "Not required (AZ resident, WA rental income reported federally)", filed_on: null, notes: null, source: "app" },
+  { id: uid("tax", 3), tax_year: 2025, kind: "property", preparer: null, status: "Second half due", filed_on: null, notes: "Tumwater rentals. Due dates on the calendar.", source: "app" },
+  { id: uid("tax", 4), tax_year: 2026, kind: "exemption", preparer: null, status: "Active", filed_on: null, notes: "Disabled-veteran exemption on the Lake Havasu home. Renew with the county assessor if asked.", source: "app" },
+  { id: uid("tax", 5), tax_year: 2024, kind: "federal", preparer: "Sample CPA, PLLC", status: "Filed", filed_on: "2025-04-02", notes: null, source: "app" },
+  { id: uid("tax", 6), tax_year: 2026, kind: "federal", preparer: "Sample CPA, PLLC", status: "Not started", filed_on: null, notes: "Gather 1099s in January.", source: "app" },
 ];
