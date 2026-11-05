@@ -128,7 +128,7 @@ export async function getRianaPending(v: Viewer): Promise<RianaUpdate[]> {
   if (!canRead(v, "admin")) return [];
   if (v.demo) return demoStore().riana.filter((r) => r.review_status === "pending");
   const supabase = await createClient();
-  const { data, error } = await supabase.from("riana_updates").select("id, kind, summary, received_at, review_status")
+  const { data, error } = await supabase.from("riana_updates").select("id, kind, summary, received_at, review_status, external_ref")
     .eq("review_status", "pending").order("received_at", { ascending: false });
   if (error) fail("Riana updates", error);
   return data as RianaUpdate[];

@@ -171,3 +171,52 @@ reset role; select test.act(:DAV, 'aal2'); set role authenticated;
 select test.ok(test.rows('select * from public.invitations') = 0, 'family cannot see invitations');
 reset role;
 \echo 'Onboarding tests passed.'
+
+-- Riana inbound endpoint -------------------------------------------------------
+select test.act(:DAV, 'aal2'); set role authenticated;
+select test.ok(test.fails($$select public.riana_inbound_key_create('nope')$$), 'family cannot mint an inbound key');
+select test.ok(test.rows('select id, label from public.riana_inbound_keys') = 0, 'family cannot see inbound keys');
+reset role; select test.act(:K, 'aal1'); set role authenticated;
+select test.ok(test.fails($$select public.riana_inbound_key_create('nope')$$), 'super admin WITHOUT 2FA cannot mint an inbound key');
+reset role; select test.act(:K, 'aal2'); set role authenticated;
+select test.ok(test.fails($$select public.riana_inbound_key_create('short', 'tooshort')$$), 'a short key is refused');
+select set_config('test.key', public.riana_inbound_key_create('Grok assistant'), false);
+select test.ok(length(current_setting('test.key')) = 64, 'minted key is 64 hex characters');
+select test.ok(test.rows('select id, label, use_count from public.riana_inbound_keys') = 1, 'super admin sees the key');
+select test.ok(test.fails('select key_hash from public.riana_inbound_keys'), 'nobody can read key hashes through the API');
+select test.ok(test.fails($$insert into public.riana_inbound_keys (label, key_hash) values ('x', repeat('0', 64))$$), 'keys cannot be inserted directly');
+select test.ok((select details ->> 'label' from public.audit_log where entity = 'riana_inbound_keys' order by at desc limit 1) = 'Grok assistant'
+           and not exists (select 1 from public.audit_log where entity = 'riana_inbound_keys' and details::text like '%key_hash%'), 'minting is audited without the hash');
+reset role;
+
+-- The web app calls riana_inbound as anon (no session, no JWT) with the bearer key.
+select set_config('request.jwt.claims', '', false);
+set role anon;
+select test.ok(test.fails($$select public.riana_inbound('wrong-key-wrong-key-wrong-key-wrong', 'note', 'hi')$$), 'wrong key is refused');
+select test.ok(test.fails($$select public.riana_inbound(current_setting('test.key'), 'gossip', 'hi')$$), 'unknown kind is refused');
+select test.ok(test.fails($$select public.riana_inbound(current_setting('test.key'), 'note', '   ')$$), 'empty summary is refused');
+select test.ok(test.fails($$select public.riana_inbound(current_setting('test.key'), 'note', 'hi', '[1,2]'::jsonb)$$), 'payload must be an object');
+select set_config('test.upd', public.riana_inbound(current_setting('test.key'), 'lab_result', 'A1C 6.0 for Diana', '{"test":"A1C","value":6.0}', 'grok-msg-1')::text, false);
+select test.ok(current_setting('test.upd') <> '', 'a valid update is accepted');
+select test.ok(public.riana_inbound(current_setting('test.key'), 'lab_result', 'A1C 6.0 for Diana (retry)', '{}', 'grok-msg-1')::text = current_setting('test.upd'), 'a retry with the same external_ref returns the same id');
+select test.ok(test.rows('select * from public.riana_updates') <= 0, 'anon still cannot read the inbox');
+select test.ok(test.fails($$insert into public.riana_updates (kind, summary, payload) values ('note', 'x', '{}')$$), 'anon cannot insert into the inbox directly');
+reset role;
+
+select test.act(:K, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.riana_updates') = 3, 'the update is in the inbox, once');
+select test.ok((select review_status from public.riana_updates where id = current_setting('test.upd')::uuid) = 'pending', 'it waits as pending');
+select test.ok((select source from public.riana_updates where id = current_setting('test.upd')::uuid) = 'riana', 'it is stamped via Riana');
+select test.ok(exists (select 1 from public.audit_log where entity = 'riana_updates' and entity_id = current_setting('test.upd')::uuid and via = 'riana' and action = 'create'), 'receipt is in the audit log via Riana');
+select test.ok((select actor_name from public.audit_log_named where entity_id = current_setting('test.upd')::uuid) = 'Riana', 'audit log names Riana as the actor');
+select test.ok((select use_count from public.riana_inbound_keys) = 2 and (select last_used_at is not null from public.riana_inbound_keys), 'key usage is counted');
+select public.riana_inbound_key_revoke((select id from public.riana_inbound_keys));
+reset role;
+select set_config('request.jwt.claims', '', false);
+set role anon;
+select test.ok(test.fails($$select public.riana_inbound(current_setting('test.key'), 'note', 'after revoke')$$), 'a revoked key is refused');
+reset role;
+select test.act(:DAV, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.riana_updates') = 0, 'family still cannot see the inbox');
+reset role;
+\echo 'Riana inbound tests passed.'

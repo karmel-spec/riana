@@ -31,7 +31,7 @@ export default async function RianaPage() {
         <h2 className="text-[1.2rem] font-semibold">How Riana will connect</h2>
         <ol className="mt-2 list-decimal space-y-1 pl-5 text-ink-soft">
           <li><strong>Phase 1 — Drive sync.</strong> The app reads the Greene Family Binder Google Doc and the Legal Docs folder (read-only) and proposes changes here.</li>
-          <li><strong>Phase 2 — Inbound endpoint.</strong> A token-protected address where Riana (or you, pasting her output) posts structured updates. Each one is logged and waits here for approval.</li>
+          <li><strong>Phase 2 — Inbound endpoint (ready).</strong> Riana, a Grok or Claude assistant, or you pasting their output, posts structured updates to <code>/api/riana/inbound</code> with a key. Each one is logged and waits here for approval. Keys are minted and revoked by a super admin; see <code>docs/RIANA_INBOUND.md</code>.</li>
           <li><strong>Phase 3 — Outbound.</strong> A read-only, permission-scoped export Riana can read so her Monday update uses the latest data.</li>
         </ol>
       </section>
