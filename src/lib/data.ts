@@ -5,7 +5,7 @@ import { SENSITIVE } from "./permissions";
 import * as fx from "./demo/fixtures";
 import type {
   Account, AuditEntry, Bill, CalendarEvent, ContactGroup, FinalWish, HealthCondition, LabResult, LegalDocument, Loan,
-  DigitalAccount, EstatePlanVersion, EstateProvision, HouseholdItem, InsurancePolicy, Medication, PlanConflict, TaxSourceItem, NotificationCampaign, NotificationList, Person, Property, Provider, RianaUpdate, Section, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
+  DigitalAccount, EstatePlanVersion, LoanPayment, EstateProvision, HouseholdItem, InsurancePolicy, Medication, PlanConflict, TaxSourceItem, NotificationCampaign, NotificationList, Person, Property, Provider, RianaUpdate, Section, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
 } from "./types";
 
 // -----------------------------------------------------------------------------
@@ -13,6 +13,7 @@ import type {
 // while the server runs. Real mode never touches it.
 // -----------------------------------------------------------------------------
 type Store = {
+  loanPayments: LoanPayment[];
   planVersions: EstatePlanVersion[]; provisions: EstateProvision[]; conflicts: PlanConflict[];
   taxSources: TaxSourceItem[];
   digital: DigitalAccount[]; household: HouseholdItem[];
@@ -24,11 +25,12 @@ type Store = {
   wishes: FinalWish[]; loans: Loan[]; riana: RianaUpdate[]; audit: AuditEntry[];
 };
 // Bump when Store gains a key, so a dev server that kept the old object rebuilds it.
-const STORE_VERSION = 6;
+const STORE_VERSION = 7;
 const g = globalThis as unknown as { __greeneDemo?: Store; __greeneDemoV?: number };
 export function demoStore(): Store {
   if (g.__greeneDemoV !== STORE_VERSION) { g.__greeneDemo = undefined; g.__greeneDemoV = STORE_VERSION; }
   g.__greeneDemo ??= structuredClone({
+    loanPayments: fx.loanPayments,
     planVersions: fx.estatePlanVersions, provisions: fx.estateProvisions, conflicts: fx.planConflicts,
     taxSources: fx.taxSourceItems,
     digital: fx.digitalAccounts, household: fx.householdItems,
@@ -128,11 +130,14 @@ export async function getFinalWishes(v: Viewer): Promise<FinalWish[]> {
   return data as FinalWish[];
 }
 
-export async function getLoans(v: Viewer, direction: "owed_to_estate" | "owed_by_estate" = "owed_to_estate"): Promise<Loan[]> {
-  if (!canRead(v, direction === "owed_to_estate" ? "accounts" : "properties")) return [];
-  if (v.demo) return demoStore().loans.filter((l) => l.direction === direction);
+export async function getLoans(v: Viewer, direction: "owed_to_estate" | "owed_by_estate" | "all" = "owed_to_estate"): Promise<Loan[]> {
+  const section = direction === "owed_by_estate" ? "properties" : "accounts";
+  if (direction !== "all" && !canRead(v, section)) return [];
+  if (v.demo) return demoStore().loans.filter((l) => (direction === "all" ? canRead(v, l.direction === "owed_by_estate" ? "properties" : "accounts") : l.direction === direction));
   const supabase = await createClient();
-  const { data, error } = await supabase.from("loans").select("*").eq("direction", direction);
+  let q = supabase.from("loans").select("*");
+  if (direction !== "all") q = q.eq("direction", direction);
+  const { data, error } = await q;
   if (error) fail("loans", error);
   return data as Loan[];
 }
@@ -335,4 +340,13 @@ export async function getPlanConflicts(v: Viewer): Promise<PlanConflict[]> {
   const { data, error } = await supabase.from("plan_conflicts").select("*").order("sort_order");
   if (error) fail("open questions", error);
   return data as PlanConflict[];
+}
+
+export async function getLoanPayments(v: Viewer): Promise<LoanPayment[]> {
+  if (!canRead(v, "accounts")) return [];
+  if (v.demo) return [...demoStore().loanPayments].sort((a, b) => a.paid_on.localeCompare(b.paid_on));
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("loan_payments").select("*").order("paid_on");
+  if (error) fail("loan payments", error);
+  return data as LoanPayment[];
 }

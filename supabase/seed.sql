@@ -150,13 +150,19 @@ insert into public.final_wishes (id, person, topic, wish, confirmed) values
   ('000000aa-0000-4000-8000-000000000004', 'rich', 'military_honors', '[Sample] Military honors at the graveside, if possible.', true),
   ('000000aa-0000-4000-8000-000000000005', 'both', 'obituary', '[Sample] Keep it short; include the grandchildren''s names.', false);
 
-insert into public.loans (id, direction, counterparty, principal, rate_pct, status, note_signed, property_id, balance_note, term_months, monthly_payment, first_payment_on, legal_document_id) values
-  ('000000ac-0000-4000-8000-000000000001', 'owed_to_estate', 'Loan A (sample child)', 50000, 5, 'active', true, null, null, null, null, null, null),
-  ('000000ac-0000-4000-8000-000000000002', 'owed_to_estate', 'Loan B (sample child)', 50000, 5, 'proposed', false, null, null, null, null, null, null),
-  ('000000ac-0000-4000-8000-000000000005', 'owed_to_estate', 'StarLar · Note 1', 250000, 4.75, 'active', true, null, 'Rents pay this note to Rich & Diana. Unpaid balance at death splits equally among the six children.', 240, 1655, '2021-04-01', '000000a3-0000-4000-8000-000000000009'),
-  ('000000ac-0000-4000-8000-000000000006', 'owed_to_estate', 'StarLar · Note 2', 300000, 6.25, 'active', true, null, 'Rents pay this note to Rich & Diana. Unpaid balance at death splits equally among the six children.', 180, 2575, '2023-03-01', null),
-  ('000000ac-0000-4000-8000-000000000003', 'owed_by_estate', 'Sample Mortgage Co.', 185000, 3.25, 'active', true, '000000b3-0000-4000-8000-000000000002', '[Sample] About $120k remaining, 30-year fixed from 2018.', null, null, null, null),
-  ('000000ac-0000-4000-8000-000000000004', 'owed_by_estate', 'Sample Mortgage Co.', 210000, 3.5, 'active', true, '000000b3-0000-4000-8000-000000000003', '[Sample] About $150k remaining.', null, null, null, null);
+insert into public.loans (id, direction, counterparty, principal, rate_pct, status, note_signed, property_id, balance_note, term_months, monthly_payment, first_payment_on, legal_document_id, lender, purpose, appraisal_on, appraisal_value, appraisal_source, gift_or_loan, advance_on_inheritance, started_on) values
+  ('000000ac-0000-4000-8000-000000000001', 'owed_to_estate', 'Ryan & Tracy (sample)', 50000, null, 'active', true, null, 'Note signed 2023. No interest stated on the note.', null, null, null, '000000a3-0000-4000-8000-000000000009', null, '[Sample] Home purchase help', null, null, null, 'loan', 'undecided', '2023-06-01'),
+  ('000000ac-0000-4000-8000-000000000002', 'owed_to_estate', 'David (sample)', 50000, 5, 'proposed', false, null, 'Proposed at 5%. Note drafted, not signed.', null, null, null, '000000a3-0000-4000-8000-00000000000a', null, 'For a casita', null, null, null, 'loan', 'undecided', null),
+  ('000000ac-0000-4000-8000-000000000007', 'owed_to_estate', 'StarLar', 20000, null, 'unclassified', false, null, 'Gift or loan: to be decided. If a loan, StarLar repays it from rents.', null, null, null, null, null, '[Sample] Roof on Rental A', null, null, null, 'undecided', 'no', '2025-02-01'),
+  ('000000ac-0000-4000-8000-000000000005', 'owed_to_estate', 'StarLar · Note 1', 250000, 4.75, 'active', true, null, 'Rents pay this note to Rich & Diana. Unpaid balance at death splits equally among the six children.', 240, 1655, '2021-04-01', '000000a3-0000-4000-8000-000000000009', null, null, null, null, null, 'loan', null, null),
+  ('000000ac-0000-4000-8000-000000000006', 'owed_to_estate', 'StarLar · Note 2', 300000, 6.25, 'active', true, null, 'Rents pay this note to Rich & Diana. Unpaid balance at death splits equally among the six children.', 180, 2575, '2023-03-01', null, null, null, null, null, null, 'loan', null, null),
+  ('000000ac-0000-4000-8000-000000000003', 'owed_by_estate', 'Sample Mortgage Co.', 185000, 3.25, 'active', true, '000000b3-0000-4000-8000-000000000002', '[Sample] 30-year fixed from 2018.', 360, 805.16, '2018-06-01', null, 'Sample Mortgage Co.', null, null, null, null, null, null, '2018-05-01'),
+  ('000000ac-0000-4000-8000-000000000004', 'owed_by_estate', 'Sample Federal Credit Union', 210000, 3.5, 'active', true, '000000b3-0000-4000-8000-000000000003', '[Sample] AVM appraisal on file from the lender.', 360, 943.03, '2019-10-01', null, 'Sample Federal Credit Union', null, '2026-09-10', 485000, 'Lender AVM package (sample)', null, null, '2019-09-01');
+
+insert into public.loan_payments (id, loan_id, paid_on, amount, kind, note) values
+  ('000000bc-0000-4000-8000-000000000001', '000000ac-0000-4000-8000-000000000001', '2024-01-15', 5000, 'payment', '[Sample] First repayment'),
+  ('000000bc-0000-4000-8000-000000000002', '000000ac-0000-4000-8000-000000000001', '2025-01-15', 5000, 'payment', null),
+  ('000000bc-0000-4000-8000-000000000003', '000000ac-0000-4000-8000-000000000001', '2026-01-15', 5000, 'payment', null);
 
 insert into public.estate_plan_versions (id, version_no, title, plan_date, status, summary, source_docs) values
   ('000000b9-0000-4000-8000-000000000001', 1, '2026 estate plan (in progress)', '2026-10-15', 'current', 'A revocable living trust to hold the Washington rentals, the vehicles and the CDs; StarLar passes to Mike and Karmel; the rents keep paying the parents on two notes; anything unpaid at death is split six ways.', '{"Attorney Strategic Summary Brief","Family Agreement Notes"}');

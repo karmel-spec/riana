@@ -181,8 +181,24 @@ export type Loan = {
   advance_on_inheritance?: "yes" | "no" | "undecided" | null;
   principal: number | null;
   rate_pct: number | null;
-  status: "proposed" | "active" | "paid_off" | "forgiven";
+  status: "proposed" | "unclassified" | "active" | "paid_off" | "forgiven";
   note_signed: boolean;
+  lender?: string | null;
+  purpose?: string | null;
+  appraisal_on?: string | null;
+  appraisal_value?: number | null;
+  appraisal_source?: string | null;
+  gift_or_loan?: "gift" | "loan" | "undecided" | null;
+  started_on?: string | null;
+};
+
+export type LoanPayment = {
+  id: string;
+  loan_id: string;
+  paid_on: string;
+  amount: number;
+  kind: "payment" | "interest_only" | "principal_only" | "forgiveness" | "adjustment";
+  note: string | null;
 };
 
 export type Provider = {

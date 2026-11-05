@@ -15,7 +15,7 @@ export function uid(kind: string, n: number): string {
     q: "a1", e: "a2", l: "a3", g: "a4", p: "a5", nl: "a6", nc: "a7",
     b: "a8", lab: "a9", w: "aa", r: "ab", loan: "ac",
     prov: "ad", med: "ae", cond: "af", vn: "b0", va: "b1", acct: "b2",
-    prop: "b3", ins: "b4", tax: "b5", dig: "b6", hh: "b7", tsi: "b8", epv: "b9", epr: "ba", pc: "bb",
+    lp: "bc", prop: "b3", ins: "b4", tax: "b5", dig: "b6", hh: "b7", tsi: "b8", epv: "b9", epr: "ba", pc: "bb",
   };
   const hex = n.toString(16).padStart(12, "0");
   return `000000${prefix[kind] ?? "ff"}-0000-4000-8000-${hex}`;
@@ -164,12 +164,19 @@ export const finalWishes: FinalWish[] = [
 ];
 
 export const loans: Loan[] = [
-  { id: uid("loan", 1), direction: "owed_to_estate", counterparty: "Loan A (sample child)", principal: 50000, rate_pct: 5, status: "active", note_signed: true },
-  { id: uid("loan", 2), direction: "owed_to_estate", counterparty: "Loan B (sample child)", principal: 50000, rate_pct: 5, status: "proposed", note_signed: false },
-  { id: uid("loan", 5), direction: "owed_to_estate", counterparty: "StarLar · Note 1", principal: 250000, rate_pct: 4.75, status: "active", note_signed: true, term_months: 240, monthly_payment: 1655, first_payment_on: "2021-04-01", legal_document_id: uid("l", 9), balance_note: "Rents pay this note to Rich & Diana. Unpaid balance at death splits equally among the six children." },
-  { id: uid("loan", 6), direction: "owed_to_estate", counterparty: "StarLar · Note 2", principal: 300000, rate_pct: 6.25, status: "active", note_signed: true, term_months: 180, monthly_payment: 2575, first_payment_on: "2023-03-01", legal_document_id: null, balance_note: "Rents pay this note to Rich & Diana. Unpaid balance at death splits equally among the six children." },
-  { id: uid("loan", 3), direction: "owed_by_estate", counterparty: "Sample Mortgage Co.", property_id: uid("prop", 2), principal: 185000, rate_pct: 3.25, status: "active", note_signed: true, balance_note: "[Sample] About $120k remaining, 30-year fixed from 2018." },
-  { id: uid("loan", 4), direction: "owed_by_estate", counterparty: "Sample Mortgage Co.", property_id: uid("prop", 3), principal: 210000, rate_pct: 3.5, status: "active", note_signed: true, balance_note: "[Sample] About $150k remaining." },
+  { id: uid("loan", 1), direction: "owed_to_estate", counterparty: "Ryan & Tracy (sample)", principal: 50000, rate_pct: null, status: "active", note_signed: true, started_on: "2023-06-01", purpose: "[Sample] Home purchase help", legal_document_id: uid("l", 9), advance_on_inheritance: "undecided", gift_or_loan: "loan", balance_note: "Note signed 2023. No interest stated on the note." },
+  { id: uid("loan", 2), direction: "owed_to_estate", counterparty: "David (sample)", principal: 50000, rate_pct: 5, status: "proposed", note_signed: false, purpose: "For a casita", legal_document_id: uid("l", 10), advance_on_inheritance: "undecided", gift_or_loan: "loan", balance_note: "Proposed at 5%. Note drafted, not signed." },
+  { id: uid("loan", 7), direction: "owed_to_estate", counterparty: "StarLar", principal: 20000, rate_pct: null, status: "unclassified", note_signed: false, started_on: "2025-02-01", purpose: "[Sample] Roof on Rental A", gift_or_loan: "undecided", advance_on_inheritance: "no", balance_note: "Gift or loan: to be decided. If a loan, StarLar repays it from rents." },
+  { id: uid("loan", 5), direction: "owed_to_estate", counterparty: "StarLar · Note 1", principal: 250000, rate_pct: 4.75, status: "active", note_signed: true, term_months: 240, monthly_payment: 1655, first_payment_on: "2021-04-01", legal_document_id: uid("l", 9), gift_or_loan: "loan", balance_note: "Rents pay this note to Rich & Diana. Unpaid balance at death splits equally among the six children." },
+  { id: uid("loan", 6), direction: "owed_to_estate", counterparty: "StarLar · Note 2", principal: 300000, rate_pct: 6.25, status: "active", note_signed: true, term_months: 180, monthly_payment: 2575, first_payment_on: "2023-03-01", legal_document_id: null, gift_or_loan: "loan", balance_note: "Rents pay this note to Rich & Diana. Unpaid balance at death splits equally among the six children." },
+  { id: uid("loan", 3), direction: "owed_by_estate", counterparty: "Sample Mortgage Co.", lender: "Sample Mortgage Co.", property_id: uid("prop", 2), principal: 185000, rate_pct: 3.25, status: "active", note_signed: true, started_on: "2018-05-01", term_months: 360, monthly_payment: 805.16, first_payment_on: "2018-06-01", balance_note: "[Sample] 30-year fixed from 2018." },
+  { id: uid("loan", 4), direction: "owed_by_estate", counterparty: "Sample Federal Credit Union", lender: "Sample Federal Credit Union", property_id: uid("prop", 3), principal: 210000, rate_pct: 3.5, status: "active", note_signed: true, started_on: "2019-09-01", term_months: 360, monthly_payment: 943.03, first_payment_on: "2019-10-01", appraisal_on: "2026-09-10", appraisal_value: 485000, appraisal_source: "Lender AVM package (sample)", balance_note: "[Sample] AVM appraisal on file from the lender." },
+];
+
+export const loanPayments: LoanPayment[] = [
+  { id: uid("lp", 1), loan_id: uid("loan", 1), paid_on: "2024-01-15", amount: 5000, kind: "payment", note: "[Sample] First repayment" },
+  { id: uid("lp", 2), loan_id: uid("loan", 1), paid_on: "2025-01-15", amount: 5000, kind: "payment", note: null },
+  { id: uid("lp", 3), loan_id: uid("loan", 1), paid_on: "2026-01-15", amount: 5000, kind: "payment", note: null },
 ];
 
 export const rianaUpdates: RianaUpdate[] = [
@@ -187,7 +194,7 @@ export const auditEntries: AuditEntry[] = [
 ];
 
 // --- Health (FAKE) -------------------------------------------------------------
-import type { Account, HealthCondition, Medication, Provider, VaClaim, VisitNote } from "../types";
+import type { Account, HealthCondition, LoanPayment, Medication, Provider, VaClaim, VisitNote } from "../types";
 
 export const providers: Provider[] = [
   { id: uid("prov", 1), patient: "diana", name: "Dr. Sample Primary", specialty: "Primary care", practice: "Sample Family Medicine", phone: "(555) 010-0703", portal_name: "MyChart (sample)", is_va: false, notes: null },
