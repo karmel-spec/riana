@@ -17,7 +17,7 @@ export function ParentNav() {
   const pathname = usePathname();
   return (
     <nav aria-label="Main" className="mx-auto w-full max-w-[1100px] px-2 sm:px-6">
-      <ul className="flex gap-1 overflow-x-auto pb-3 sm:gap-2">
+      <ul className="flex gap-1 overflow-x-auto pb-3 sm:gap-2 md:flex-wrap md:overflow-visible">
         {ITEMS.map(({ href, label, icon: Icon }) => {
           const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
           return (

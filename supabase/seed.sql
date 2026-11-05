@@ -4,17 +4,17 @@ begin;
 insert into public.urgent_questions (id, question, topic, asked_of, owner_name, priority, status, answer, answered_by, answered_at, due_on, sort_order, source) values
   ('000000a1-0000-4000-8000-000000000001', 'Where is the original signed healthcare power of attorney kept?', 'legal', 'both', 'Heather', 'high', 'asked', null, null, null, '2026-11-09', 1, 'app'),
   ('000000a1-0000-4000-8000-000000000002', 'Do you still want Karmel and Heather as co-executors in the new will?', 'legal', 'both', 'Karmel', 'high', 'open', null, null, null, '2026-11-09', 2, 'app'),
-  ('000000a1-0000-4000-8000-000000000003', 'Which hymns would you like sung at your service?', 'final_wishes', 'diana', 'Karmel', 'normal', 'partly_answered', '[Sample] One favorite hymn chosen; still thinking about the closing song.', 'diana', '2026-10-30T15:00:00.000Z', null, 3, 'app'),
+  ('000000a1-0000-4000-8000-000000000003', 'Which hymns would you like sung at your service?', 'final_wishes', 'diana', 'Karmel', 'normal', 'partly_answered', '[Sample] One favorite hymn chosen; still thinking about the closing song.', 'diana', '2026-10-30T15:00:00-07:00', null, 3, 'app'),
   ('000000a1-0000-4000-8000-000000000004', 'Who should be called first if Dad goes to the hospital?', 'contacts', 'rich', 'Heather', 'normal', 'open', null, null, null, null, 4, 'riana'),
-  ('000000a1-0000-4000-8000-000000000005', 'Is the classic car going to anyone in particular?', 'household', 'rich', 'Karmel', 'normal', 'answered', '[Sample] Yes — written down in the household section.', 'rich', '2026-10-16T10:00:00.000Z', null, 5, 'app');
+  ('000000a1-0000-4000-8000-000000000005', 'Is the classic car going to anyone in particular?', 'household', 'rich', 'Karmel', 'normal', 'answered', '[Sample] Yes — written down in the household section.', 'rich', '2026-10-16T10:00:00-07:00', null, 5, 'app');
 
 insert into public.calendar_events (id, section, title, kind, about, starts_at, all_day, location, driver, notes, source) values
-  ('000000a2-0000-4000-8000-000000000001', 'health_diana', 'Cardiology follow-up', 'appointment', 'diana', '2026-11-12T10:30:00.000Z', false, 'Sample Heart Clinic', 'Karmel', 'Bring medication list.', 'app'),
-  ('000000a2-0000-4000-8000-000000000002', 'health_rich', 'VA C&P exam', 'appointment', 'rich', '2026-11-18T13:00:00.000Z', false, 'VA clinic (sample)', 'Heather', 'Bring claim packet.', 'riana'),
-  ('000000a2-0000-4000-8000-000000000003', 'taxes', 'Property tax, second half due', 'deadline', 'household', '2026-11-30T09:00:00.000Z', true, null, null, 'Tumwater rentals (sample).', 'app'),
-  ('000000a2-0000-4000-8000-000000000004', 'calendar', 'Family video call', 'family', 'both', '2026-11-08T18:00:00.000Z', false, 'Video call', null, null, 'app'),
-  ('000000a2-0000-4000-8000-000000000005', 'insurance', 'Auto policy renewal', 'renewal', 'both', '2026-12-15T09:00:00.000Z', true, null, null, null, 'app'),
-  ('000000a2-0000-4000-8000-000000000006', 'health_diana', 'Lab draw (fasting)', 'appointment', 'diana', '2026-11-24T08:00:00.000Z', false, 'Sample Lab', 'Rich', null, 'app');
+  ('000000a2-0000-4000-8000-000000000001', 'health_diana', 'Cardiology follow-up', 'appointment', 'diana', '2026-11-12T10:30:00-07:00', false, 'Sample Heart Clinic', 'Karmel', 'Bring medication list.', 'app'),
+  ('000000a2-0000-4000-8000-000000000002', 'health_rich', 'VA C&P exam', 'appointment', 'rich', '2026-11-18T13:00:00-07:00', false, 'VA clinic (sample)', 'Heather', 'Bring claim packet.', 'riana'),
+  ('000000a2-0000-4000-8000-000000000003', 'taxes', 'Property tax, second half due', 'deadline', 'household', '2026-11-30T09:00:00-07:00', true, null, null, 'Tumwater rentals (sample).', 'app'),
+  ('000000a2-0000-4000-8000-000000000004', 'calendar', 'Family video call', 'family', 'both', '2026-11-08T18:00:00-07:00', false, 'Video call', null, null, 'app'),
+  ('000000a2-0000-4000-8000-000000000005', 'insurance', 'Auto policy renewal', 'renewal', 'both', '2026-12-15T09:00:00-07:00', true, null, null, null, 'app'),
+  ('000000a2-0000-4000-8000-000000000006', 'health_diana', 'Lab draw (fasting)', 'appointment', 'diana', '2026-11-24T08:00:00-07:00', false, 'Sample Lab', 'Rich', null, 'app');
 
 insert into public.legal_documents (id, doc_type, title, principal, status, needs_recording, prepared_by, drafted_on, signed_on, recorded_on, original_location, open_issue, notes, sort_order, source) values
   ('000000a3-0000-4000-8000-000000000001', 'will', 'Last will and testament', 'both', 'drafted', false, 'Sample Law Office', '2021-06-01', null, null, null, 'Draft names one executor; family intends co-executors.', '2021 draft, unsigned.', 1, 'app'),
@@ -150,7 +150,7 @@ insert into public.loans (id, direction, counterparty, principal, rate_pct, stat
   ('000000ac-0000-4000-8000-000000000002', 'owed_to_estate', 'Loan B (sample child)', 50000, 5, 'proposed', false);
 
 insert into public.riana_updates (id, kind, summary, received_at, review_status, payload) values
-  ('000000ab-0000-4000-8000-000000000001', 'lab_result', 'New A1C result for Diana: 6.1 %', '2026-11-05T07:42:00.000Z', 'pending', '{}'),
-  ('000000ab-0000-4000-8000-000000000002', 'bill', 'Payment failed: Sample Electric Co., $142.18', '2026-11-04T09:05:00.000Z', 'pending', '{}');
+  ('000000ab-0000-4000-8000-000000000001', 'lab_result', 'New A1C result for Diana: 6.1 %', '2026-11-05T07:42:00-07:00', 'pending', '{}'),
+  ('000000ab-0000-4000-8000-000000000002', 'bill', 'Payment failed: Sample Electric Co., $142.18', '2026-11-04T09:05:00-07:00', 'pending', '{}');
 
 commit;

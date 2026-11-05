@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Viewer } from "@/lib/session";
-import { canRead } from "@/lib/session";
+import { canRead, canWrite } from "@/lib/session";
 import * as data from "@/lib/data";
 import { fmtTime, greeting, monthDay, relative, subjectName, todayLong, fmtMoney, fmtDate } from "@/lib/format";
 import { DateChip, Empty, LegalStatusPill, SectionCard, SourceTag, Stat } from "@/components/ui";
@@ -24,9 +24,9 @@ export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
         <div>
           <div className="text-[0.9rem] font-semibold uppercase tracking-[0.04em] text-ink-soft">{todayLong()}</div>
           <h1 className="text-[2.2rem] font-semibold leading-tight sm:text-[2.6rem]">{greeting()}, {v.name}</h1>
-          <p className="text-ink-soft">Here is what needs your care this week.</p>
+          <p className="text-ink-soft">{canWrite(v, "urgent_questions") ? "Here is what needs your care this week." : "Here is what is happening in the family."}</p>
         </div>
-        <Link href="/questions?new=1" className="btn-primary">+ Add an update</Link>
+        {canWrite(v, "urgent_questions") && <Link href="/questions?new=1" className="btn-primary">+ Add an update</Link>}
       </header>
 
       {v.locked.length > 0 && (

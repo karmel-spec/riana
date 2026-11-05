@@ -6,6 +6,11 @@ import type { NextConfig } from "next";
 // None of that should ever be served from a shared cache.
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  turbopack: {
+    rules: {
+      "*.css": { loaders: ["@tailwindcss/turbopack"], as: "*.css" },
+    },
+  },
   async headers() {
     return [
       {

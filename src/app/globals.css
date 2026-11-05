@@ -104,13 +104,13 @@ button, [role="button"], a.btn, input, select, textarea {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 font-semibold no-underline transition-colors;
   }
   .btn-primary {
-    @apply btn bg-evergreen text-paper hover:bg-evergreen-deep;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 font-semibold no-underline transition-colors bg-evergreen text-paper hover:bg-evergreen-deep;
   }
   .btn-secondary {
-    @apply btn border border-rule bg-paper text-ink hover:bg-paper-warm;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 font-semibold no-underline transition-colors border border-rule bg-paper text-ink hover:bg-paper-warm;
   }
   .btn-brass {
-    @apply btn bg-brass text-ink hover:bg-[#b8923f];
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 font-semibold no-underline transition-colors bg-brass text-ink hover:bg-[#b8923f];
   }
   .label {
     @apply mb-1 block text-[0.9rem] font-semibold text-ink-soft;

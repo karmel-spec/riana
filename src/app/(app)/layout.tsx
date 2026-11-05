@@ -21,6 +21,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
 /** Sets html[data-text] so the whole page scales, without a client component. */
 function TextScale({ large }: { large: boolean }) {
-  const js = `document.documentElement.dataset.text=${JSON.stringify(large ? "large" : "")};`;
+  const js = large
+    ? 'document.documentElement.setAttribute("data-text","large");'
+    : 'document.documentElement.removeAttribute("data-text");';
   return <script dangerouslySetInnerHTML={{ __html: js }} />;
 }

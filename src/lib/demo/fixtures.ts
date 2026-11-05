@@ -22,9 +22,12 @@ export function uid(kind: string, n: number): string {
 /** Dates relative to today so the sample never goes stale. */
 export function day(offset: number, hour?: number, minute = 0): string {
   const d = new Date();
-  d.setHours(hour ?? 12, minute, 0, 0);
-  d.setDate(d.getDate() + offset);
-  return hour === undefined ? d.toISOString().slice(0, 10) : d.toISOString();
+  d.setUTCHours(12, 0, 0, 0);
+  d.setUTCDate(d.getUTCDate() + offset);
+  const ymd = d.toISOString().slice(0, 10);
+  if (hour === undefined) return ymd;
+  // Arizona has no daylight saving time: always UTC-7.
+  return `${ymd}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00-07:00`;
 }
 
 const now = () => new Date().toISOString();
