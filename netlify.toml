@@ -1,0 +1,16 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+# Netlify's Next.js runtime is picked up automatically for Next 13.5+ (App Router,
+# server actions, proxy). Set these in Site settings → Environment variables:
+#   NEXT_PUBLIC_SUPABASE_URL
+#   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+#   NEXT_PUBLIC_SITE_URL   (e.g. https://greene-binder.netlify.app)
+# For a fake-data preview while Supabase isn't connected yet, set GREENE_DEMO=1
+# and leave the Supabase variables unset. Never set GREENE_DEMO on the real site.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow, noarchive"

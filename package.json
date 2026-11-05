@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:db": "bash scripts/test-db.sh",
+    "gen:seed": "node scripts/gen-seed.mts > supabase/seed.sql",
+    "dev:demo": "GREENE_DEMO=1 next dev"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

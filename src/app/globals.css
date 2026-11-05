@@ -1,26 +1,127 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   Greene Family Legacy · design tokens ("Heirloom Binder")
+   One palette, one type system. The parent view uses the SAME tokens; it
+   only scales the type up (html[data-text="large"]) and shows fewer things.
+   --------------------------------------------------------------------------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --parchment: #f4eee2;
+  --paper: #fffdf8;
+  --paper-warm: #fbf7ee;
+  --rule: #dcd2bf;
+  --rule-soft: #eae2d2;
+  --ink: #2b2620;
+  --ink-soft: #5e5548;
+  --evergreen: #2f5141;
+  --evergreen-deep: #1e372b;
+  --evergreen-mid: #4e6e5e;
+  --evergreen-tint: #e7eee9;
+  --mist: #d9e3dc;
+  --brass: #c9a35a;
+  --brass-deep: #6e5323;
+  --brass-tint: #fff4de;
+  --ember: #9a3412;
+  --ember-tint: #fdece4;
+  --slate: #2e5a73;
+  --slate-tint: #e3eef4;
+  --plum: #4b2e83;
+  --plum-tint: #f1ecfa;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-parchment: var(--parchment);
+  --color-paper: var(--paper);
+  --color-paper-warm: var(--paper-warm);
+  --color-rule: var(--rule);
+  --color-rule-soft: var(--rule-soft);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-evergreen: var(--evergreen);
+  --color-evergreen-deep: var(--evergreen-deep);
+  --color-evergreen-mid: var(--evergreen-mid);
+  --color-evergreen-tint: var(--evergreen-tint);
+  --color-mist: var(--mist);
+  --color-brass: var(--brass);
+  --color-brass-deep: var(--brass-deep);
+  --color-brass-tint: var(--brass-tint);
+  --color-ember: var(--ember);
+  --color-ember-tint: var(--ember-tint);
+  --color-slate: var(--slate);
+  --color-slate-tint: var(--slate-tint);
+  --color-plum: var(--plum);
+  --color-plum-tint: var(--plum-tint);
+  --font-sans: var(--font-body), "Source Sans 3", system-ui, sans-serif;
+  --font-serif: var(--font-display), Lora, Georgia, serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  font-size: 18px;
+  -webkit-text-size-adjust: 100%;
+}
+/* Parent view and anyone who prefers it: everything grows together. */
+html[data-text="large"] {
+  font-size: 22px;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--parchment);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  min-height: 100dvh;
+}
+
+h1, h2, h3, .font-serif {
+  font-family: var(--font-serif);
+  letter-spacing: -0.005em;
+}
+
+/* Focus rings: visible everywhere, brass on green, green on paper. */
+:focus-visible {
+  outline: 3px solid var(--brass);
+  outline-offset: 2px;
+}
+.on-dark :focus-visible {
+  outline-color: #fff;
+}
+
+/* Touch targets: nothing interactive smaller than 44px. */
+button, [role="button"], a.btn, input, select, textarea {
+  min-height: 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* Shared components ---------------------------------------------------- */
+@layer components {
+  .card {
+    @apply rounded-2xl border border-rule bg-paper p-5 sm:p-6;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 font-semibold no-underline transition-colors;
+  }
+  .btn-primary {
+    @apply btn bg-evergreen text-paper hover:bg-evergreen-deep;
+  }
+  .btn-secondary {
+    @apply btn border border-rule bg-paper text-ink hover:bg-paper-warm;
+  }
+  .btn-brass {
+    @apply btn bg-brass text-ink hover:bg-[#b8923f];
+  }
+  .label {
+    @apply mb-1 block text-[0.9rem] font-semibold text-ink-soft;
+  }
+  .field {
+    @apply w-full rounded-xl border border-rule bg-paper px-4 py-2.5 text-ink placeholder:text-ink-soft/70 focus:border-evergreen;
+  }
+  .pill {
+    @apply inline-flex items-center rounded-full px-3 py-0.5 text-[0.8rem] font-bold;
+  }
+  .eyebrow {
+    @apply text-[0.8rem] font-bold uppercase tracking-[0.08em] text-brass-deep;
+  }
 }
