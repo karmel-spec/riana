@@ -15,7 +15,7 @@ export function uid(kind: string, n: number): string {
     q: "a1", e: "a2", l: "a3", g: "a4", p: "a5", nl: "a6", nc: "a7",
     b: "a8", lab: "a9", w: "aa", r: "ab", loan: "ac",
     prov: "ad", med: "ae", cond: "af", vn: "b0", va: "b1", acct: "b2",
-    prop: "b3", ins: "b4", tax: "b5", dig: "b6", hh: "b7", tsi: "b8",
+    prop: "b3", ins: "b4", tax: "b5", dig: "b6", hh: "b7", tsi: "b8", epv: "b9", epr: "ba", pc: "bb",
   };
   const hex = n.toString(16).padStart(12, "0");
   return `000000${prefix[kind] ?? "ff"}-0000-4000-8000-${hex}`;
@@ -166,6 +166,8 @@ export const finalWishes: FinalWish[] = [
 export const loans: Loan[] = [
   { id: uid("loan", 1), direction: "owed_to_estate", counterparty: "Loan A (sample child)", principal: 50000, rate_pct: 5, status: "active", note_signed: true },
   { id: uid("loan", 2), direction: "owed_to_estate", counterparty: "Loan B (sample child)", principal: 50000, rate_pct: 5, status: "proposed", note_signed: false },
+  { id: uid("loan", 5), direction: "owed_to_estate", counterparty: "StarLar · Note 1", principal: 250000, rate_pct: 4.75, status: "active", note_signed: true, term_months: 240, monthly_payment: 1655, first_payment_on: "2021-04-01", legal_document_id: uid("l", 9), balance_note: "Rents pay this note to Rich & Diana. Unpaid balance at death splits equally among the six children." },
+  { id: uid("loan", 6), direction: "owed_to_estate", counterparty: "StarLar · Note 2", principal: 300000, rate_pct: 6.25, status: "active", note_signed: true, term_months: 180, monthly_payment: 2575, first_payment_on: "2023-03-01", legal_document_id: null, balance_note: "Rents pay this note to Rich & Diana. Unpaid balance at death splits equally among the six children." },
   { id: uid("loan", 3), direction: "owed_by_estate", counterparty: "Sample Mortgage Co.", property_id: uid("prop", 2), principal: 185000, rate_pct: 3.25, status: "active", note_signed: true, balance_note: "[Sample] About $120k remaining, 30-year fixed from 2018." },
   { id: uid("loan", 4), direction: "owed_by_estate", counterparty: "Sample Mortgage Co.", property_id: uid("prop", 3), principal: 210000, rate_pct: 3.5, status: "active", note_signed: true, balance_note: "[Sample] About $150k remaining." },
 ];
@@ -306,4 +308,39 @@ export const householdItems: HouseholdItem[] = [
   { id: uid("hh", 7), kind: "service", name: "Housekeeper (sample)", details: "[Sample] Fridays. Has a key. Phone (555) 010-1003.", source: "app" },
   { id: uid("hh", 8), kind: "other", name: "Home safe", details: "[Sample] In the master closet. Combination is in 1Password under \"Greene – Home safe\". Holds titles, the POA originals and passports.", source: "app" },
   { id: uid("hh", 9), kind: "other", name: "Spare keys", details: "[Sample] Next-door neighbor has a house key. Garage code is in 1Password.", source: "app" },
+];
+
+// --- Estate plan (Update Brief #2 §3d: the family's stated plan, no identifiers) -----
+import type { EstatePlanVersion, EstateProvision, PlanConflict } from "../types";
+
+export const estatePlanVersions: EstatePlanVersion[] = [
+  { id: uid("epv", 1), version_no: 1, title: "2026 estate plan (in progress)", plan_date: "2026-10-15", status: "current",
+    source_docs: ["Attorney Strategic Summary Brief", "Family Agreement Notes"],
+    summary: "A revocable living trust to hold the Washington rentals, the vehicles and the CDs; StarLar passes to Mike and Karmel; the rents keep paying the parents on two notes; anything unpaid at death is split six ways." },
+];
+
+const PV = (n: number, category: EstateProvision["category"], subject: string, planned: string, legal_document_id: string | null = null, notes: string | null = null): EstateProvision =>
+  ({ id: uid("epr", n), plan_version_id: uid("epv", 1), category, subject, planned, legal_document_id, sort_order: n, notes });
+export const estateProvisions: EstateProvision[] = [
+  PV(1, "asset", "Revocable living trust", "Create a revocable living trust to hold the WA rentals, the vehicles, and the Foothills and Glacier CDs.", uid("l", 2), "Trust not yet drafted."),
+  PV(2, "asset", "WA rentals (StarLar)", "Title and appreciation go to Mike and Karmel 50/50, held through the trust; outside the six-way split of the will.", uid("l", 6), "2021 TOD deeds conflict with this (see open questions)."),
+  PV(3, "asset", "Vehicles (Vickie, '56 Chevy)", "Held by the trust.", uid("l", 2)),
+  PV(4, "asset", "Foothills and Glacier CDs", "Held by the trust.", uid("l", 2)),
+  PV(5, "role", "Successor trustee / executrix", "Heather.", uid("l", 1), "The 2021 draft will names one executor; family intends co-executors (Karmel & Heather) — confirm which role each holds."),
+  PV(6, "role", "Co-attorneys-in-fact", "Mike and Karmel.", uid("l", 3), "Current signed financial POA (2019) names someone — confirm."),
+  PV(7, "term", "StarLar Note 1", "$1,655/mo · $250k at 4.75% · 20 years · from Apr 2021. Rents pay the parents.", uid("l", 9)),
+  PV(8, "term", "StarLar Note 2", "$2,575/mo · $300k at 6.25% · 15 years · from Mar 2023. Rents pay the parents.", null, "No signed note on the Legal board yet."),
+  PV(9, "term", "Unpaid note balance at death", "Split equally among all six children.", null),
+  PV(10, "term", "Loans to children ($50k each)", "Not addressed in the plan.", null, "Open question."),
+];
+
+const PC = (n: number, title: string, detail: string, owner_name: string, status: PlanConflict["status"], provision_id: string | null = null): PlanConflict =>
+  ({ id: uid("pc", n), plan_version_id: uid("epv", 1), provision_id, title, detail, owner_name, status, resolution: null, due_on: null, sort_order: n });
+export const planConflicts: PlanConflict[] = [
+  PC(1, "Equity figure: $480k vs. $540k", "The attorney's summary and the family notes give different equity figures for the rentals. Which one does the plan use, and as of what date?", "Karmel", "open", uid("epr", 2)),
+  PC(2, "Payout at the first death vs. after both deaths", "Does the six-way split (and the StarLar transfer) happen when the first parent dies, or only after both?", "Heather", "open", uid("epr", 9)),
+  PC(3, "No attorney named yet", "The 2026 plan has no engaged attorney. Larry Stout drafted the 2021 documents.", "Karmel", "open"),
+  PC(4, "The $50k loans to children aren't addressed", "Ryan & Tracy ($50k, signed) and David ($50k, proposed): advances against inheritance, repaid, or forgiven?", "Heather", "open", uid("epr", 10)),
+  PC(5, "2021 TOD deeds conflict with the trust plan", "Recorded transfer-on-death deeds (nos. 4857438 and 4857439) would pass the rentals outside the trust. They must be revoked or the plan must change.", "Karmel", "with_attorney", uid("epr", 2)),
+  PC(6, "Note 1 terms don't match its payment", "$250k at 4.75% over 20 years computes to $1,615.56/mo, not $1,655 (about $40/mo apart; $1,655 pays off in ~19 years). Confirm the note's actual rate, term or payment.", "Karmel", "open", uid("epr", 7)),
 ];

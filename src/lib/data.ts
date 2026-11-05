@@ -5,7 +5,7 @@ import { SENSITIVE } from "./permissions";
 import * as fx from "./demo/fixtures";
 import type {
   Account, AuditEntry, Bill, CalendarEvent, ContactGroup, FinalWish, HealthCondition, LabResult, LegalDocument, Loan,
-  DigitalAccount, HouseholdItem, InsurancePolicy, Medication, TaxSourceItem, NotificationCampaign, NotificationList, Person, Property, Provider, RianaUpdate, Section, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
+  DigitalAccount, EstatePlanVersion, EstateProvision, HouseholdItem, InsurancePolicy, Medication, PlanConflict, TaxSourceItem, NotificationCampaign, NotificationList, Person, Property, Provider, RianaUpdate, Section, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
 } from "./types";
 
 // -----------------------------------------------------------------------------
@@ -13,6 +13,7 @@ import type {
 // while the server runs. Real mode never touches it.
 // -----------------------------------------------------------------------------
 type Store = {
+  planVersions: EstatePlanVersion[]; provisions: EstateProvision[]; conflicts: PlanConflict[];
   taxSources: TaxSourceItem[];
   digital: DigitalAccount[]; household: HouseholdItem[];
   properties: Property[]; policies: InsurancePolicy[]; taxes: TaxRecord[];
@@ -23,11 +24,12 @@ type Store = {
   wishes: FinalWish[]; loans: Loan[]; riana: RianaUpdate[]; audit: AuditEntry[];
 };
 // Bump when Store gains a key, so a dev server that kept the old object rebuilds it.
-const STORE_VERSION = 5;
+const STORE_VERSION = 6;
 const g = globalThis as unknown as { __greeneDemo?: Store; __greeneDemoV?: number };
 export function demoStore(): Store {
   if (g.__greeneDemoV !== STORE_VERSION) { g.__greeneDemo = undefined; g.__greeneDemoV = STORE_VERSION; }
   g.__greeneDemo ??= structuredClone({
+    planVersions: fx.estatePlanVersions, provisions: fx.estateProvisions, conflicts: fx.planConflicts,
     taxSources: fx.taxSourceItems,
     digital: fx.digitalAccounts, household: fx.householdItems,
     properties: fx.properties, policies: fx.insurancePolicies, taxes: fx.taxRecords,
@@ -305,4 +307,32 @@ export async function getTaxSourceItems(v: Viewer): Promise<TaxSourceItem[]> {
   const { data, error } = await supabase.from("tax_source_items").select("*").order("tax_year", { ascending: false }).order("label");
   if (error) fail("tax source items", error);
   return data as TaxSourceItem[];
+}
+
+// --- Estate plan -----------------------------------------------------------------------
+export async function getPlanVersions(v: Viewer): Promise<EstatePlanVersion[]> {
+  if (!canRead(v, "legal")) return [];
+  if (v.demo) return [...demoStore().planVersions].sort((a, b) => b.version_no - a.version_no);
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("estate_plan_versions").select("*").order("version_no", { ascending: false });
+  if (error) fail("estate plan", error);
+  return data as EstatePlanVersion[];
+}
+
+export async function getProvisions(v: Viewer, versionId: string): Promise<EstateProvision[]> {
+  if (!canRead(v, "legal")) return [];
+  if (v.demo) return demoStore().provisions.filter((p) => p.plan_version_id === versionId).sort((a, b) => a.sort_order - b.sort_order);
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("estate_provisions").select("*").eq("plan_version_id", versionId).order("sort_order");
+  if (error) fail("provisions", error);
+  return data as EstateProvision[];
+}
+
+export async function getPlanConflicts(v: Viewer): Promise<PlanConflict[]> {
+  if (!canRead(v, "legal")) return [];
+  if (v.demo) return [...demoStore().conflicts].sort((a, b) => a.sort_order - b.sort_order);
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("plan_conflicts").select("*").order("sort_order");
+  if (error) fail("open questions", error);
+  return data as PlanConflict[];
 }

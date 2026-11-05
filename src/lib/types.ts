@@ -173,6 +173,12 @@ export type Loan = {
   counterparty: string;
   property_id?: string | null;
   balance_note?: string | null;
+  term_months?: number | null;
+  monthly_payment?: number | null;
+  first_payment_on?: string | null;
+  legal_document_id?: string | null;
+  imported_file_id?: string | null;
+  advance_on_inheritance?: "yes" | "no" | "undecided" | null;
   principal: number | null;
   rate_pct: number | null;
   status: "proposed" | "active" | "paid_off" | "forgiven";
@@ -327,4 +333,38 @@ export type HouseholdItem = {
   name: string;
   details: string | null;
   source: Source;
+};
+
+export type EstatePlanVersion = {
+  id: string;
+  version_no: number;
+  title: string;
+  plan_date: string;
+  status: "draft" | "current" | "superseded";
+  source_docs: string[];
+  summary: string | null;
+};
+
+export type EstateProvision = {
+  id: string;
+  plan_version_id: string;
+  category: "asset" | "role" | "term";
+  subject: string;
+  planned: string;
+  legal_document_id: string | null;
+  sort_order: number;
+  notes: string | null;
+};
+
+export type PlanConflict = {
+  id: string;
+  plan_version_id: string | null;
+  provision_id: string | null;
+  title: string;
+  detail: string | null;
+  owner_name: string | null;
+  status: "open" | "with_attorney" | "decided" | "resolved";
+  resolution: string | null;
+  due_on: string | null;
+  sort_order: number;
 };
