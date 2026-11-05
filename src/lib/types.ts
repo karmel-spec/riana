@@ -151,6 +151,8 @@ export type RianaUpdate = {
   summary: string;
   received_at: string;
   review_status: "pending" | "approved" | "rejected";
+  /** Set by the agent that sent it, so a retry is recognized as the same update. */
+  external_ref?: string | null;
 };
 
 export type AuditEntry = {

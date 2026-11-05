@@ -57,6 +57,10 @@ In Netlify: **Site configuration → Environment variables**. Add those two, add
 
 The publishable key is safe to expose; it can only do what the row-level-security rules allow, which for a stranger is nothing. The **secret / service_role key** is different: the app doesn't use it, so don't put it anywhere.
 
+## 5b. (Optional) Let an assistant send updates
+
+Once you are signed in as a super admin, mint a key for Riana or any other agent and hand it over. See `docs/RIANA_INBOUND.md`.
+
 ## 6. First sign-in
 
 1. Open the site. Enter your email. Click the link in the email.
