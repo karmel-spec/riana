@@ -28,7 +28,7 @@ export const NAV: NavItem[] = [
   { href: "/wishes", label: "Final Wishes", section: "final_wishes", icon: I.Dove, built: true },
   { href: "/digital", label: "Accounts Directory", section: "digital_accounts", icon: I.Key, built: true },
   { href: "/household", label: "Pets & Household", section: "household", icon: I.Paw, built: true },
-  { href: "/history", label: "Family History", section: "family_history", icon: I.Book },
+  { href: "/history", label: "Family History", section: "family_history", icon: I.Book, built: true },
 ];
 
 export const ADMIN_NAV: NavItem[] = [

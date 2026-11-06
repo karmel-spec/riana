@@ -7,6 +7,15 @@ Two endpoints, one key per assistant:
 
 Keys, usage, and read grants are listed on the Updates from Riana screen.
 
+### Proposing contacts and album links
+
+Two kinds create records only when a super admin approves them in **Admin → Updates from Riana**:
+
+- `contact` — payload `full_name` (required), `relationship`, `connected_to` (`rich`, `diana` or `both`), `phone`, `email`, `city`, `region`, `preferred_method`, `notify_first`, `is_professional`, `notes`. Approval adds the person to People, unconfirmed, stamped *via Riana*.
+- `album` — payload `title`, `url` (https, required), `note`. Approval saves the link under Family History → Shared albums.
+
+A super admin can also paste the binder's Who-to-Notify additions on the same page (one person per line); each line becomes a pending `contact` update.
+
 ## 1. Mint a key (super admin, once per agent)
 
 Sign in to Supabase, open **SQL Editor**, and run as yourself (you must be a 2-step-verified super admin, so run it through the app's database session or set `request.jwt.claims` the way the Supabase SQL editor does when you choose *Run as authenticated user*):

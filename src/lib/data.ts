@@ -5,7 +5,7 @@ import { SENSITIVE } from "./permissions";
 import * as fx from "./demo/fixtures";
 import type {
   Account, AuditEntry, Bill, CalendarEvent, ContactGroup, FinalWish, HealthCondition, LabResult, LegalDocument, Loan,
-  DigitalAccount, EstatePlanVersion, LoanPayment, Vehicle, VehicleImprovement, EstateProvision, HouseholdItem, InsurancePolicy, Medication, PlanConflict, TaxSourceItem, NotificationCampaign, NotificationList, Person, Property, Provider, RianaKey, RianaUpdate, Section, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
+  DigitalAccount, EstatePlanVersion, LoanPayment, MediaItem, Playlist, TributeBlock, TributePage, Vehicle, VehicleImprovement, EstateProvision, HouseholdItem, InsurancePolicy, Medication, PlanConflict, TaxSourceItem, NotificationCampaign, NotificationList, Person, Property, Provider, RianaKey, RianaUpdate, Section, SharedAlbum, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
 } from "./types";
 
 // -----------------------------------------------------------------------------
@@ -13,6 +13,7 @@ import type {
 // while the server runs. Real mode never touches it.
 // -----------------------------------------------------------------------------
 type Store = {
+  media: MediaItem[]; playlists: Playlist[]; tributes: TributePage[]; tributeBlocks: TributeBlock[];
   vehicles: Vehicle[]; improvements: VehicleImprovement[];
   loanPayments: LoanPayment[];
   planVersions: EstatePlanVersion[]; provisions: EstateProvision[]; conflicts: PlanConflict[];
@@ -24,13 +25,15 @@ type Store = {
   groups: ContactGroup[]; people: Person[]; lists: NotificationList[];
   campaigns: NotificationCampaign[]; bills: Bill[]; labs: LabResult[];
   wishes: FinalWish[]; loans: Loan[]; riana: RianaUpdate[]; audit: AuditEntry[];
+  albums: SharedAlbum[];
 };
 // Bump when Store gains a key, so a dev server that kept the old object rebuilds it.
-const STORE_VERSION = 8;
+const STORE_VERSION = 11;
 const g = globalThis as unknown as { __greeneDemo?: Store; __greeneDemoV?: number };
 export function demoStore(): Store {
   if (g.__greeneDemoV !== STORE_VERSION) { g.__greeneDemo = undefined; g.__greeneDemoV = STORE_VERSION; }
   g.__greeneDemo ??= structuredClone({
+    media: [], playlists: fx.playlists, tributes: fx.tributePages, tributeBlocks: fx.tributeBlocks,
     vehicles: fx.vehicles, improvements: fx.vehicleImprovements,
     loanPayments: fx.loanPayments,
     planVersions: fx.estatePlanVersions, provisions: fx.estateProvisions, conflicts: fx.planConflicts,
@@ -42,6 +45,7 @@ export function demoStore(): Store {
     groups: fx.contactGroups, people: fx.people, lists: fx.notificationLists,
     campaigns: fx.notificationCampaigns, bills: fx.bills, labs: fx.labResults,
     wishes: fx.finalWishes, loans: fx.loans, riana: fx.rianaUpdates, audit: fx.auditEntries,
+    albums: fx.sharedAlbums,
   });
   return g.__greeneDemo;
 }
@@ -148,7 +152,7 @@ export async function getRianaPending(v: Viewer): Promise<RianaUpdate[]> {
   if (!canRead(v, "admin")) return [];
   if (v.demo) return demoStore().riana.filter((r) => r.review_status === "pending");
   const supabase = await createClient();
-  const { data, error } = await supabase.from("riana_updates").select("id, kind, summary, received_at, review_status, external_ref")
+  const { data, error } = await supabase.from("riana_updates").select("id, kind, summary, received_at, review_status, external_ref, payload")
     .eq("review_status", "pending").order("received_at", { ascending: false });
   if (error) fail("Riana updates", error);
   return data as RianaUpdate[];
@@ -255,9 +259,10 @@ export async function getAllLabs(v: Viewer, p: Patient): Promise<LabResult[]> {
 
 export async function getVaClaims(v: Viewer): Promise<VaClaim[]> {
   if (!canRead(v, "health_rich")) return [];
-  if (v.demo) return demoStore().vaClaims;
+  const key = (c: VaClaim) => c.event_on ?? c.decided_on ?? c.filed_on ?? "";
+  if (v.demo) return [...demoStore().vaClaims].sort((a, b) => key(a).localeCompare(key(b)));
   const supabase = await createClient();
-  const { data, error } = await supabase.from("va_claims").select("*").order("created_at");
+  const { data, error } = await supabase.from("va_claim_timeline").select("*").order("timeline_on");
   if (error) fail("VA claims", error);
   return data as VaClaim[];
 }
@@ -382,4 +387,50 @@ export async function getVehicleImprovements(v: Viewer): Promise<VehicleImprovem
   const { data, error } = await supabase.from("vehicle_improvements").select("*").order("done_on");
   if (error) fail("vehicle improvements", error);
   return data as VehicleImprovement[];
+}
+
+// --- Media library ------------------------------------------------------------------------
+export async function getMediaItems(v: Viewer): Promise<MediaItem[]> {
+  if (!canRead(v, "family_history")) return [];
+  if (v.demo) return [...demoStore().media].sort((a, b) => (b.taken_on ?? "").localeCompare(a.taken_on ?? ""));
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("media_items").select("*").order("taken_on", { ascending: false, nullsFirst: false });
+  if (error) fail("media", error);
+  return data as MediaItem[];
+}
+
+export async function getPlaylists(v: Viewer): Promise<Playlist[]> {
+  if (!canRead(v, "family_history")) return [];
+  if (v.demo) return demoStore().playlists;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("playlists").select("id, slug, title, description, tracks:playlist_tracks(media_item_id, position)").order("title");
+  if (error) fail("playlists", error);
+  return (data ?? []).map((p) => ({ id: p.id, slug: p.slug, title: p.title, description: p.description, track_ids: [...(p.tracks as { media_item_id: string; position: number }[])].sort((a, b) => a.position - b.position).map((t) => t.media_item_id) }));
+}
+
+export async function getTributePages(v: Viewer): Promise<TributePage[]> {
+  if (v.role !== "super_admin") return [];
+  if (v.demo) return demoStore().tributes;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("tribute_pages").select("*").order("created_at");
+  if (error) fail("tribute pages", error);
+  return data as TributePage[];
+}
+
+export async function getTributeBlocks(v: Viewer, pageId: string): Promise<TributeBlock[]> {
+  if (v.role !== "super_admin") return [];
+  if (v.demo) return demoStore().tributeBlocks.filter((b) => b.page_id === pageId).sort((a, b) => a.position - b.position);
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("tribute_blocks").select("*").eq("page_id", pageId).order("position");
+  if (error) fail("tribute blocks", error);
+  return data as TributeBlock[];
+}
+
+export async function getSharedAlbums(v: Viewer): Promise<SharedAlbum[]> {
+  if (!canRead(v, "family_history")) return [];
+  if (v.demo) return demoStore().albums;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("shared_albums").select("*").order("created_at");
+  if (error) fail("shared albums", error);
+  return data as SharedAlbum[];
 }

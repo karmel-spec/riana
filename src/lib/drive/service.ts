@@ -4,7 +4,8 @@ import type { Viewer } from "../session";
 import { driveClient, serviceAccountEmail } from "./client";
 import { fakeDriveClient } from "./fake";
 import { FOLDERS } from "./manifest";
-import { planSync, resolveFolders, type Existing, type FolderStatus, type SyncReport } from "./sync";
+import { enrichTakenAt, planSync, resolveFolders, type Existing, type FolderStatus, type KnownHashes, type SyncReport } from "./sync";
+import { hashKey } from "./photo-dates";
 import type { DriveClient } from "./types";
 import type { Section } from "../types";
 
@@ -13,6 +14,7 @@ export type ImportedFileRow = {
   md5: string | null; drive_modified_at: string | null; web_view_link: string | null; target_section: Section; target_note: string | null;
   media_kind: string; sensitivity: "normal" | "admin_only" | "excluded"; manifest_rule: string | null; duplicate_of: string | null;
   review_status: "pending" | "approved" | "rejected"; first_imported_at: string; last_synced_at: string;
+  taken_at?: string | null;
 };
 export type SyncRunRow = { id: string; mode: string; started_at: string; finished_at: string | null; ok: boolean | null; summary: Record<string, number>; error: string | null };
 
@@ -57,19 +59,27 @@ export async function lastFolderStatus(v: Viewer): Promise<FolderStatus[] | null
   return data.map((d) => ({ key: d.key, name: d.name, driveFolderId: d.drive_folder_id || null, readable: !!d.readable, error: d.last_error ?? undefined }));
 }
 
-async function existingMap(v: Viewer): Promise<Existing> {
+async function existingMap(v: Viewer): Promise<{ existing: Existing; known: KnownHashes }> {
   const rows = await listImportedFiles(v);
-  return new Map(rows.map((r) => [r.drive_file_id, { md5: r.md5, modifiedTime: r.drive_modified_at }]));
+  const existing: Existing = new Map(rows.map((r) => [r.drive_file_id, { md5: r.md5, modifiedTime: r.drive_modified_at }]));
+  // Photos already imported, by content, so a Takeout re-export under a new name is flagged as a duplicate.
+  const known: KnownHashes = new Map();
+  for (const r of rows) if ((r.media_kind === "image" || r.media_kind === "video") && r.md5 && !r.duplicate_of && !known.has(hashKey(r.md5, r.size_bytes))) known.set(hashKey(r.md5, r.size_bytes), r.drive_file_id);
+  return { existing, known };
 }
 
 export async function dryRun(v: Viewer): Promise<SyncReport> {
-  const report = await planSync(clientFor(v), await existingMap(v));
+  const { existing, known } = await existingMap(v);
+  const report = await planSync(clientFor(v), existing, known);
   await recordRun(v, "dry_run", report, null);
   return report;
 }
 
 export async function applySync(v: Viewer): Promise<SyncReport> {
-  const report = await planSync(clientFor(v), await existingMap(v));
+  const drive = clientFor(v);
+  const { existing, known } = await existingMap(v);
+  const report = await planSync(drive, existing, known);
+  await enrichTakenAt(drive, report);
   report.mode = "apply";
   let error: string | null = null;
   try {
@@ -84,7 +94,7 @@ export async function applySync(v: Viewer): Promise<SyncReport> {
         s.files.push({
           id: crypto.randomUUID(), drive_file_id: e.driveFileId, drive_folder_key: e.folderKey, name: e.name, mime_type: e.mimeType, size_bytes: e.size,
           md5: e.md5, drive_modified_at: e.modifiedTime, web_view_link: e.webViewLink, target_section: e.target, target_note: e.note, media_kind: e.media,
-          sensitivity: e.sensitivity, manifest_rule: e.rule, duplicate_of: dup, review_status: "pending", first_imported_at: now, last_synced_at: now,
+          sensitivity: e.sensitivity, manifest_rule: e.rule, duplicate_of: dup, review_status: "pending", first_imported_at: now, last_synced_at: now, taken_at: e.takenAt,
         });
       }
     } else {
@@ -94,7 +104,7 @@ export async function applySync(v: Viewer): Promise<SyncReport> {
         if (e.action === "exclude") continue;
         const { error: err } = await supabase.rpc("drive_upsert_file", {
           p_drive_file_id: e.driveFileId, p_folder_key: e.folderKey, p_name: e.name, p_mime: e.mimeType, p_size: e.size, p_md5: e.md5,
-          p_modified: e.modifiedTime, p_link: e.webViewLink, p_target: e.target, p_media: e.media, p_sensitivity: e.sensitivity, p_rule: e.rule, p_note: e.note,
+          p_modified: e.modifiedTime, p_link: e.webViewLink, p_target: e.target, p_media: e.media, p_sensitivity: e.sensitivity, p_rule: e.rule, p_note: e.note, p_taken_at: e.takenAt,
         });
         if (err) throw new Error(`${e.name}: ${err.message}`);
       }
@@ -115,6 +125,11 @@ async function recordRun(v: Viewer, mode: "dry_run" | "apply", report: SyncRepor
   }
   const supabase = await createClient();
   await supabase.from("drive_sync_runs").insert({ mode, started_by: v.id, finished_at: new Date().toISOString(), ok: !error, summary, report: slim, error });
+}
+
+/** Demo only: the fake pointer rows, with no viewer check (used by the public tribute route). */
+export function demoImportedFiles(): ImportedFileRow[] {
+  return demo().files;
 }
 
 export async function listImportedFiles(v: Viewer): Promise<ImportedFileRow[]> {

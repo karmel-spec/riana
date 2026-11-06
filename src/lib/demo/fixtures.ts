@@ -5,7 +5,7 @@
 // =============================================================================
 import type {
   Bill, CalendarEvent, ContactGroup, FinalWish, LabResult, LegalDocument, Loan,
-  NotificationCampaign, NotificationList, Person, RianaUpdate, UrgentQuestion,
+  NotificationCampaign, NotificationList, Person, RianaUpdate, SharedAlbum, UrgentQuestion,
   AuditEntry,
 } from "../types";
 
@@ -15,7 +15,7 @@ export function uid(kind: string, n: number): string {
     q: "a1", e: "a2", l: "a3", g: "a4", p: "a5", nl: "a6", nc: "a7",
     b: "a8", lab: "a9", w: "aa", r: "ab", loan: "ac",
     prov: "ad", med: "ae", cond: "af", vn: "b0", va: "b1", acct: "b2",
-    lp: "bc", veh: "bd", vi: "be", prop: "b3", ins: "b4", tax: "b5", dig: "b6", hh: "b7", tsi: "b8", epv: "b9", epr: "ba", pc: "bb",
+    lp: "bc", veh: "bd", vi: "be", pl: "bf", tp: "c0", tb: "c1", alb: "c2", prop: "b3", ins: "b4", tax: "b5", dig: "b6", hh: "b7", tsi: "b8", epv: "b9", epr: "ba", pc: "bb",
   };
   const hex = n.toString(16).padStart(12, "0");
   return `000000${prefix[kind] ?? "ff"}-0000-4000-8000-${hex}`;
@@ -44,7 +44,7 @@ export const urgentQuestions: UrgentQuestion[] = [
 
 export const calendarEvents: CalendarEvent[] = [
   { id: uid("e", 1), section: "health_diana", title: "Cardiology follow-up", kind: "appointment", about: "diana", starts_at: day(7, 10, 30), all_day: false, location: "Sample Heart Clinic", driver: "Karmel", notes: "Bring medication list.", source: "app" },
-  { id: uid("e", 2), section: "health_rich", title: "VA C&P exam", kind: "appointment", about: "rich", starts_at: day(13, 13), all_day: false, location: "VA clinic (sample)", driver: "Heather", notes: "Bring claim packet.", source: "riana" },
+  { id: uid("e", 2), section: "health_rich", title: "VA C&P exam", kind: "appointment", about: "rich", starts_at: "2026-11-06T13:00:00-07:00", all_day: false, location: "VA clinic (sample)", driver: "Heather", notes: "Bring claim packet. (Date from Update Brief #2 §3f.)", source: "riana" },
   { id: uid("e", 3), section: "taxes", title: "Property tax, second half due", kind: "deadline", about: "household", starts_at: day(25, 9), all_day: true, location: null, driver: null, notes: "Tumwater rentals (sample).", source: "app" },
   { id: uid("e", 4), section: "calendar", title: "Family video call", kind: "family", about: "both", starts_at: day(3, 18), all_day: false, location: "Video call", driver: null, notes: null, source: "app" },
   { id: uid("e", 5), section: "insurance", title: "Auto policy renewal", kind: "renewal", about: "both", starts_at: day(40, 9), all_day: true, location: null, driver: null, notes: null, source: "app" },
@@ -88,6 +88,8 @@ export const people: Person[] = [
   P(7, { full_name: "Bishop Sample", relationship: "Bishop", connected_to: "both", email: "bishop@example.com", phone: "(555) 010-0401", city: "Lake Havasu City", region: "AZ", closeness: 3, last_contact_on: day(-21), preferred_method: "phone", notify_first: true, confirmed: true, notes: "Coordinates the service and the luncheon.", group_ids: [uid("g", 4)] }),
   P(8, { full_name: "Relief Society President (sample)", relationship: "Relief Society", connected_to: "diana", email: null, phone: "(555) 010-0402", city: "Lake Havasu City", region: "AZ", closeness: 3, last_contact_on: null, preferred_method: "text", notify_first: false, confirmed: false, notes: null, group_ids: [uid("g", 4)] }),
   P(9, { full_name: "Elders Quorum President (sample)", relationship: "Elders quorum", connected_to: "rich", email: null, phone: "(555) 010-0403", city: "Lake Havasu City", region: "AZ", closeness: 3, last_contact_on: null, preferred_method: "text", notify_first: false, confirmed: false, notes: null, group_ids: [uid("g", 4)] }),
+  P(17, { full_name: "Sample Memorial Park", relationship: "Cemetery · prepaid plots", connected_to: "both", email: null, phone: "(555) 010-0601", city: "Lake Havasu City", region: "AZ", closeness: 5, last_contact_on: null, preferred_method: "phone", notify_first: false, confirmed: true, notes: "[Sample] Prepaid plot contract is in the binder. Call them first after a death.", group_ids: [uid("g", 10)] }),
+  P(18, { full_name: "Sample Funeral Home", relationship: "Funeral home", connected_to: "both", email: "care@example.com", phone: "(555) 010-0602", city: "Lake Havasu City", region: "AZ", closeness: 5, last_contact_on: null, preferred_method: "phone", notify_first: false, confirmed: false, notes: null, group_ids: [uid("g", 10)] }),
   P(10, { full_name: "Next-Door Neighbor (sample)", relationship: "Neighbor", connected_to: "both", email: null, phone: "(555) 010-0501", city: "Lake Havasu City", region: "AZ", closeness: 2, last_contact_on: day(-3), preferred_method: "in_person", notify_first: true, confirmed: true, notes: "Has a spare key.", group_ids: [uid("g", 7)] }),
   P(11, { full_name: "Former Neighbor (sample)", relationship: "Old neighbor", connected_to: "both", email: "neighbor@example.com", phone: null, city: "Tumwater", region: "WA", closeness: 4, last_contact_on: day(-200), preferred_method: "mail", notify_first: false, confirmed: false, notes: "Christmas cards.", group_ids: [uid("g", 8)] }),
   P(12, { full_name: "Army Buddy (sample)", relationship: "Served together", connected_to: "rich", email: null, phone: "(555) 010-0601", city: "Sample Town", region: "TX", closeness: 3, last_contact_on: day(-90), preferred_method: "phone", notify_first: false, confirmed: true, notes: null, group_ids: [uid("g", 9), uid("g", 2)] }),
@@ -156,11 +158,11 @@ export const labResults: LabResult[] = [
 ];
 
 export const finalWishes: FinalWish[] = [
-  { id: uid("w", 1), person: "both", topic: "burial_place", wish: "[Sample] Family plot in Washington, beside other family members.", confirmed: false },
-  { id: uid("w", 2), person: "both", topic: "service", wish: "[Sample] A simple LDS chapel service followed by a family luncheon.", confirmed: true },
-  { id: uid("w", 3), person: "diana", topic: "music", wish: "[Sample] A favorite hymn sung by the grandchildren.", confirmed: false },
-  { id: uid("w", 4), person: "rich", topic: "military_honors", wish: "[Sample] Military honors at the graveside, if possible.", confirmed: true },
-  { id: uid("w", 5), person: "both", topic: "obituary", wish: "[Sample] Keep it short; include the grandchildren's names.", confirmed: false },
+  { id: uid("w", 1), person: "both", topic: "burial_place", wish: "[Sample] Prepaid plots at Sample Memorial Park, side by side.", confirmed: true, contact_person_id: uid("p", 17), detail: "[Sample] Block 000, Lots 1 & 2. The real block and lot numbers are in the binder, not here." },
+  { id: uid("w", 2), person: "both", topic: "service", wish: "[Sample] A simple LDS chapel service followed by a family luncheon.", confirmed: true, contact_person_id: uid("p", 7), detail: null },
+  { id: uid("w", 3), person: "diana", topic: "music", wish: "[Sample] A favorite hymn sung by the grandchildren.", confirmed: false, contact_person_id: null, detail: null },
+  { id: uid("w", 4), person: "rich", topic: "military_honors", wish: "[Sample] Military honors at the graveside, if possible.", confirmed: true, contact_person_id: null, detail: "[Sample] DD-214 copy is in the VA folder." },
+  { id: uid("w", 5), person: "both", topic: "obituary", wish: "[Sample] Keep it short; include the grandchildren's names.", confirmed: false, contact_person_id: uid("p", 18), detail: null },
 ];
 
 export const loans: Loan[] = [
@@ -180,8 +182,20 @@ export const loanPayments: LoanPayment[] = [
 ];
 
 export const rianaUpdates: RianaUpdate[] = [
-  { id: uid("r", 1), kind: "lab_result", summary: "New A1C result for Diana: 6.1 %", received_at: day(0, 7, 42), review_status: "pending" },
-  { id: uid("r", 2), kind: "bill", summary: "Payment failed: Sample Electric Co., $142.18", received_at: day(-1, 9, 5), review_status: "pending" },
+  { id: uid("r", 1), kind: "lab_result", summary: "New A1C result for Diana: 6.1 %", received_at: day(0, 7, 42), review_status: "pending", payload: {} },
+  { id: uid("r", 2), kind: "bill", summary: "Payment failed: Sample Electric Co., $142.18", received_at: day(-1, 9, 5), review_status: "pending", payload: {} },
+  // Who-to-Notify additions proposed from the binder (FAKE names; the real list is pasted in at runtime and reviewed here).
+  { id: uid("r", 3), kind: "contact", summary: "Add to Who to Notify: Sample Attorney (attorney, 2021 will)", received_at: day(-1, 10, 15), review_status: "pending", external_ref: "binder-notify-01",
+    payload: { full_name: "Sample Attorney", relationship: "Attorney (2021 will)", connected_to: "both", phone: "(555) 010-0701", email: "attorney@example.com", city: "Lake Havasu City", region: "AZ", is_professional: true, notify_first: false, preferred_method: "phone" } },
+  { id: uid("r", 4), kind: "contact", summary: "Add to Who to Notify: Sample CPA, Example & Co", received_at: day(-1, 10, 16), review_status: "pending", external_ref: "binder-notify-02",
+    payload: { full_name: "Sample CPA", relationship: "CPA, Example & Co", connected_to: "both", phone: "(555) 010-0702", is_professional: true, notify_first: false } },
+  { id: uid("r", 5), kind: "contact", summary: "Add to Who to Notify: Sample Old Friend (Rich's Navy buddy)", received_at: day(-1, 10, 17), review_status: "pending", external_ref: "binder-notify-03",
+    payload: { full_name: "Sample Old Friend", relationship: "Navy buddy", connected_to: "rich", phone: "(555) 010-0801", city: "Sample City", region: "OR", notify_first: true, preferred_method: "phone" } },
+];
+
+/** Shared album links are references only; the app never copies the photos. FAKE link. */
+export const sharedAlbums: SharedAlbum[] = [
+  { id: uid("alb", 1), title: "[Sample] Family reunion 2019", url: "https://photos.app.goo.gl/SAMPLEfake0000001", provider: "google_photos", note: "Shared by a cousin (sample).", added_by_name: "Karmel", source: "app", created_at: day(-20, 12) },
 ];
 
 export const auditEntries: AuditEntry[] = [
@@ -203,23 +217,40 @@ export const providers: Provider[] = [
   { id: uid("prov", 4), patient: "rich", name: "Dr. Placeholder Ortho", specialty: "Orthopedics", practice: "Sample Orthopedic Group", phone: "(555) 010-0902", portal_name: null, is_va: false, notes: "Knee." },
 ];
 
+const MED = (n: number, patient: "rich" | "diana", name: string, extra: Partial<Medication>): Medication => ({
+  id: uid("med", n), patient, name, dose: null, schedule: null, purpose: null, prescriber_id: null, started_on: null, stopped_on: null, active: true, notes: null,
+  frequency_kind: "daily", prn_for: null, max_per_day: null, source_document: "[Sample] Medication list from last visit", source_file_id: null, source_date: day(-35), source: "app", ...extra,
+});
 export const medications: Medication[] = [
-  { id: uid("med", 1), patient: "diana", name: "Metformin (sample)", dose: "500 mg", schedule: "Twice daily with meals", purpose: "Blood sugar", prescriber_id: uid("prov", 1), started_on: "2024-02-01", stopped_on: null, active: true, notes: null, source: "app" },
-  { id: uid("med", 2), patient: "diana", name: "Lisinopril (sample)", dose: "10 mg", schedule: "Every morning", purpose: "Blood pressure", prescriber_id: uid("prov", 2), started_on: "2022-06-15", stopped_on: null, active: true, notes: null, source: "app" },
-  { id: uid("med", 3), patient: "diana", name: "Vitamin D (sample)", dose: "2000 IU", schedule: "Daily", purpose: "Supplement", prescriber_id: null, started_on: null, stopped_on: null, active: true, notes: "Over the counter.", source: "app" },
-  { id: uid("med", 4), patient: "rich", name: "Atorvastatin (sample)", dose: "20 mg", schedule: "Every evening", purpose: "Cholesterol", prescriber_id: uid("prov", 3), started_on: "2021-09-01", stopped_on: null, active: true, notes: null, source: "app" },
-  { id: uid("med", 5), patient: "rich", name: "Meloxicam (sample)", dose: "7.5 mg", schedule: "Daily as needed", purpose: "Knee pain", prescriber_id: uid("prov", 4), started_on: "2025-03-10", stopped_on: null, active: true, notes: "Dose lowered Nov 2026.", source: "app" },
-  { id: uid("med", 6), patient: "rich", name: "Old blood pressure pill (sample)", dose: "5 mg", schedule: "Daily", purpose: "Blood pressure", prescriber_id: uid("prov", 3), started_on: "2019-01-01", stopped_on: "2023-04-01", active: false, notes: "Replaced.", source: "app" },
+  // Diana: no daily medications, five as-needed (PRN) — all FAKE names.
+  MED(1, "diana", "Sample pain reliever A", { dose: "500 mg", frequency_kind: "prn", prn_for: "[Sample] nerve pain flare", max_per_day: "3 tablets", purpose: "Pain", prescriber_id: uid("prov", 1) }),
+  MED(2, "diana", "Sample anti-nausea", { dose: "4 mg", frequency_kind: "prn", prn_for: "[Sample] nausea", max_per_day: "2 tablets", prescriber_id: uid("prov", 1) }),
+  MED(3, "diana", "Sample sleep aid", { dose: "5 mg", frequency_kind: "prn", prn_for: "[Sample] sleeplessness", max_per_day: "1 tablet at bedtime", prescriber_id: uid("prov", 1) }),
+  MED(4, "diana", "Sample muscle relaxant", { dose: "10 mg", frequency_kind: "prn", prn_for: "[Sample] back spasm", max_per_day: "2 tablets", prescriber_id: uid("prov", 2) }),
+  MED(5, "diana", "Sample antacid", { dose: "20 mg", frequency_kind: "prn", prn_for: "[Sample] heartburn", max_per_day: "1 tablet", notes: "Over the counter.", source_document: "[Sample] Told to Karmel by phone", source_date: day(-10) }),
+  MED(6, "rich", "Atorvastatin (sample)", { dose: "20 mg", schedule: "Every evening", purpose: "Cholesterol", prescriber_id: uid("prov", 3), started_on: "2021-09-01", source_document: "[Sample] VA medication list", source_date: day(-60) }),
+  MED(7, "rich", "Meloxicam (sample)", { dose: "7.5 mg", schedule: "Daily as needed", frequency_kind: "prn", prn_for: "[Sample] knee pain", max_per_day: "1 tablet", prescriber_id: uid("prov", 4), started_on: "2025-03-10", notes: "Dose lowered Nov 2026.", source_document: "[Sample] Ortho visit note", source_date: day(-20) }),
+  MED(8, "rich", "Old blood pressure pill (sample)", { dose: "5 mg", schedule: "Daily", purpose: "Blood pressure", prescriber_id: uid("prov", 3), started_on: "2019-01-01", stopped_on: "2023-04-01", active: false, notes: "Replaced." }),
 ];
 
+const HC = (n: number, patient: "rich" | "diana", kind: HealthCondition["kind"], name: string, extra: Partial<HealthCondition> = {}): HealthCondition => ({
+  id: uid("cond", n), patient, kind, name, detail: null, since: null, reaction: null, severity: null, status: "active",
+  source_document: "[Sample] Clinic summary", source_file_id: null, source_date: day(-35), ...extra,
+});
 export const healthConditions: HealthCondition[] = [
-  { id: uid("cond", 1), patient: "diana", kind: "condition", name: "Type 2 diabetes (sample)", detail: "Managed with medication and diet.", since: "2024-01-01" },
-  { id: uid("cond", 2), patient: "diana", kind: "condition", name: "High blood pressure (sample)", detail: null, since: "2022-01-01" },
-  { id: uid("cond", 3), patient: "diana", kind: "allergy", name: "Penicillin (sample)", detail: "Rash.", since: null },
-  { id: uid("cond", 4), patient: "diana", kind: "coverage", name: "Medicare Part A & B + supplement (sample)", detail: "Cards in the blue folder.", since: null },
-  { id: uid("cond", 5), patient: "rich", kind: "condition", name: "Knee osteoarthritis (sample)", detail: "Service-connected.", since: "2015-01-01" },
-  { id: uid("cond", 6), patient: "rich", kind: "allergy", name: "No known allergies", detail: null, since: null },
-  { id: uid("cond", 7), patient: "rich", kind: "coverage", name: "VA health care + Medicare (sample)", detail: "VA is primary for service-connected care.", since: null },
+  // Diana — FAKE conditions with onset dates and sources
+  HC(1, "diana", "condition", "[Sample] Nerve pain condition", { since: "2024-03-01", detail: "Flares a few times a month; managed with PRN medication.", severity: "severe" }),
+  HC(2, "diana", "condition", "[Sample] Liver injury from a medication", { since: "2026-05-01", detail: "Resolved after the medication was stopped; liver labs monitored.", status: "monitoring", source_document: "[Sample] Hospital discharge summary", source_date: "2026-05-20" }),
+  HC(3, "diana", "condition", "[Sample] Bone-density condition", { since: "2022-01-01", severity: "severe", detail: "Fall precautions at home." }),
+  HC(4, "diana", "condition", "[Sample] Anxiety / stress condition", { since: "2020-01-01", detail: "Followed by primary care." }),
+  HC(5, "diana", "sensitivity", "[Sample] Common pain reliever", { reaction: "Stomach bleeding risk", severity: "moderate", source_document: "[Sample] Pharmacy record" }),
+  HC(6, "diana", "sensitivity", "[Sample] Mineral supplement", { reaction: "Kidney stones", severity: "mild" }),
+  HC(7, "diana", "sensitivity", "[Sample] Nerve medication", { reaction: "Caused the liver injury", severity: "severe", source_document: "[Sample] Hospital discharge summary", source_date: "2026-05-20" }),
+  HC(8, "diana", "allergy", "Penicillin (sample)", { reaction: "Rash", severity: "moderate" }),
+  HC(9, "diana", "coverage", "Medicare Part A & B + supplement (sample)", { detail: "Cards in the blue folder.", source_document: null, source_date: null }),
+  HC(10, "rich", "condition", "Knee osteoarthritis (sample)", { since: "2015-01-01", detail: "Service-connected.", source_document: "[Sample] VA rating decision", source_date: "2023-05-01" }),
+  HC(11, "rich", "allergy", "No known allergies", { source_document: "[Sample] VA medication list", source_date: day(-60) }),
+  HC(12, "rich", "coverage", "VA health care + Medicare (sample)", { detail: "VA is primary for service-connected care.", source_document: null, source_date: null }),
 ];
 
 export const visitNotes: VisitNote[] = [
@@ -229,10 +260,16 @@ export const visitNotes: VisitNote[] = [
   { id: uid("vn", 4), patient: "rich", visit_on: day(-60), provider_id: uid("prov", 3), summary: "[Sample] Annual VA visit. Labs fine. Updated claim paperwork.", follow_up: null, author_name: "Riana", source: "riana", created_at: day(-60, 15) },
 ];
 
+const VA = (n: number, kind: VaClaim["kind"], title: string, status: string, event_on: string | null, extra: Partial<VaClaim> = {}): VaClaim => ({
+  id: uid("va", n), kind, title, status, filed_on: null, decided_on: null, event_on, rating_pct: null, next_step: null, summary: null, notes: null, imported_file_id: null, source: "app", ...extra,
+});
 export const vaClaims: VaClaim[] = [
-  { id: uid("va", 1), kind: "rating_decision", title: "Current combined rating", status: "70% (sample)", filed_on: null, decided_on: "2023-05-01", rating_pct: 70, next_step: null, notes: "Letter in the VA folder.", source: "app" },
-  { id: uid("va", 2), kind: "claim", title: "Increase for knee condition (sample)", status: "Under review", filed_on: day(-90), decided_on: null, rating_pct: null, next_step: "C&P exam scheduled.", notes: null, source: "app" },
-  { id: uid("va", 3), kind: "cp_exam", title: "C&P exam — knee", status: "Scheduled", filed_on: null, decided_on: null, rating_pct: null, next_step: `Attend exam on ${new Date(`${day(13)}T12:00:00`).toLocaleDateString("en-US", { month: "long", day: "numeric" })}. Bring claim packet.`, notes: null, source: "riana" },
+  VA(1, "rating_decision", "Combined rating", "70% (sample)", "2023-05-01", { decided_on: "2023-05-01", rating_pct: 70, notes: "Letter in the VA folder.", summary: "[Sample] Rating decision letter." }),
+  VA(2, "letter", "VA claim letter", "Received", "2023-08-22", { summary: "[Sample] Acknowledgement of the increase claim; evidence requested.", source: "import" }),
+  VA(3, "claim", "Increase for knee condition (sample)", "Under review", "2026-02-10", { filed_on: "2026-02-10", next_step: "C&P exam scheduled." }),
+  VA(4, "letter", "VA claim letter", "Received", "2026-03-03", { summary: "[Sample] Claim received; exam to be scheduled.", source: "import" }),
+  VA(5, "letter", "VA claim letter", "Received", "2026-07-23", { summary: "[Sample] Exam scheduling notice.", source: "import" }),
+  VA(6, "cp_exam", "C&P exam — knee", "Scheduled", "2026-11-06", { next_step: "Attend the exam on November 6. Bring the claim packet.", source: "riana" }),
 ];
 
 export const accounts: Account[] = [
@@ -385,4 +422,23 @@ export const vehicleImprovements: VehicleImprovement[] = [
   VI(4, "2021-03-15", null, "[Sample] Upholstery and headliner", 3100, null),
   VI(5, "2023-10-10", null, "[Sample] Wiring harness and gauges", 1900, null),
   VI(6, null, "summer 2025", "[Sample] New tires and alignment", 1200, "Sample Tire Co."),
+];
+
+// --- Media library (FAKE) ----------------------------------------------------------------
+import type { Playlist, TributeBlock, TributePage } from "../types";
+
+export const playlists: Playlist[] = [
+  { id: uid("pl", 1), slug: "sing-along", title: "Rich's Sing-Along", description: "The songs Dad sings along to. Tracks arrive from the Sing-A-Long folder.", track_ids: [] },
+];
+
+export const tributePages: TributePage[] = [
+  { id: uid("tp", 1), slug: "sample-tribute", title: "[Sample] A life well lived", subtitle: "[Sample] 1940 – 2040", intro: "[Sample] A page the family can build together: photos, songs, stories and the service details, kept private until it is ready.",
+    obituary: "[Sample] Obituary text goes here. Short, warm, and in the family's own words.", service: { when: "[Sample] Saturday at 11:00 AM", where: "[Sample] Ward chapel", address: "[Sample] 123 Example St", notes: "Luncheon to follow." },
+    status: "draft", share_token: null, published_at: null, shared_list_ids: [] },
+];
+
+export const tributeBlocks: TributeBlock[] = [
+  { id: uid("tb", 1), page_id: uid("tp", 1), position: 1, kind: "heading", text: "[Sample] In loving memory", media_item_id: null, media_item_ids: [] },
+  { id: uid("tb", 2), page_id: uid("tp", 1), position: 2, kind: "text", text: "[Sample] A few words from the family about who he was and what he loved.", media_item_id: null, media_item_ids: [] },
+  { id: uid("tb", 3), page_id: uid("tp", 1), position: 3, kind: "service", text: null, media_item_id: null, media_item_ids: [] },
 ];

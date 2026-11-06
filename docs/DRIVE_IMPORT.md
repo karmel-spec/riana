@@ -42,3 +42,15 @@ The binder reads documents from Google Drive through its own **service account**
 ## Until the key exists
 
 Without `GOOGLE_SERVICE_ACCOUNT_JSON`, the import screen runs against a stand-in Drive with made-up file names so the flow can be seen and tested. The banner at the top of the page says which mode it's in.
+
+## Photos (Google Takeout) and shared albums
+
+Google Photos has no API that lets an app read a whole library, so photos reach the binder two ways:
+
+1. **Takeout → Drive, every 2 months.** At [takeout.google.com](https://takeout.google.com) choose *Google Photos* only, delivery method *Add to Drive*, frequency *Every 2 months for 1 year*. Takeout writes a folder into Drive; move or share it so it sits under **Web App Import → Photos (Takeout)** (the folder the manifest expects). Each sync then:
+   - imports every photo and video it finds (`photo-takeout` rule),
+   - **skips duplicates by content hash** even when the file name changed (a re-export or a "Copy of…"),
+   - reads the **date the photo was taken** from EXIF (as Drive reports it), else from the Takeout sidecar `.json` next to the file, and uses it to place the photo on the Family History timeline. The sidecars themselves are never imported.
+2. **Shared album links.** In Google Photos, open an album → Share → *Create link*, then paste it under **Family History → Shared albums → Add album link**. The app stores the link as a reference only; the photos stay in the album.
+
+Both go through the usual review: imported files wait in **Admin → Drive import** until approved, then **Family History → Sync media** adds them to the archive.

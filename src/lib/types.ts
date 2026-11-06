@@ -144,6 +144,22 @@ export type FinalWish = {
   topic: string;
   wish: string;
   confirmed: boolean;
+  /** A person to call about this wish (memorial park, funeral home). */
+  contact_person_id: string | null;
+  /** Specifics kept with the wish (plot numbers, contract reference). */
+  detail: string | null;
+};
+
+/** A link to an album that lives elsewhere (Google Photos share link). Saved as a reference only. */
+export type SharedAlbum = {
+  id: string;
+  title: string;
+  url: string;
+  provider: "google_photos" | "icloud" | "other";
+  note: string | null;
+  added_by_name: string | null;
+  source: Source;
+  created_at: string;
 };
 
 export type RianaUpdate = {
@@ -154,6 +170,8 @@ export type RianaUpdate = {
   review_status: "pending" | "approved" | "rejected";
   /** Set by the agent that sent it, so a retry is recognized as the same update. */
   external_ref?: string | null;
+  /** What approval would create (shown in the inbox before anyone approves). */
+  payload?: Record<string, unknown>;
 };
 
 /** An agent key for the Riana endpoints (hash never leaves the database). */
@@ -236,16 +254,28 @@ export type Medication = {
   stopped_on: string | null;
   active: boolean;
   notes: string | null;
+  frequency_kind: "daily" | "prn" | "weekly" | "other";
+  prn_for: string | null;
+  max_per_day: string | null;
+  source_document: string | null;
+  source_file_id: string | null;
+  source_date: string | null;
   source: Source;
 };
 
 export type HealthCondition = {
   id: string;
   patient: "rich" | "diana";
-  kind: "condition" | "allergy" | "coverage";
+  kind: "condition" | "allergy" | "sensitivity" | "coverage";
   name: string;
   detail: string | null;
   since: string | null;
+  reaction: string | null;
+  severity: "mild" | "moderate" | "severe" | "life_threatening" | null;
+  status: "active" | "resolved" | "monitoring";
+  source_document: string | null;
+  source_file_id: string | null;
+  source_date: string | null;
 };
 
 export type VisitNote = {
@@ -262,14 +292,17 @@ export type VisitNote = {
 
 export type VaClaim = {
   id: string;
-  kind: "claim" | "appeal" | "cp_exam" | "rating_decision";
+  kind: "claim" | "appeal" | "cp_exam" | "rating_decision" | "letter" | "evidence" | "note";
   title: string;
   status: string;
   filed_on: string | null;
   decided_on: string | null;
+  event_on: string | null;
   rating_pct: number | null;
   next_step: string | null;
+  summary: string | null;
   notes: string | null;
+  imported_file_id: string | null;
   source: Source;
 };
 
@@ -430,4 +463,51 @@ export type VehicleImprovement = {
   vendor: string | null;
   imported_file_id: string | null;
   source: Source;
+};
+
+export type MediaItem = {
+  id: string;
+  kind: "photo" | "video" | "audio_story" | "video_story";
+  title: string | null;
+  caption: string | null;
+  story: string | null;
+  taken_on: string | null;
+  decade: number | null;
+  event_name: string | null;
+  people_tags: string[];
+  category: "memory" | "church" | "music" | "event" | "document" | "other" | null;
+  imported_file_id: string | null;
+  poster_file_id: string | null;
+  duration_seconds: number | null;
+  mime_type: string | null;
+  transcript: string | null;
+  recorded_by: string | null;
+  review_status: "pending" | "approved" | "rejected";
+  source: Source;
+};
+
+export type Playlist = { id: string; slug: string; title: string; description: string | null; track_ids: string[] };
+
+export type TributePage = {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle: string | null;
+  intro: string | null;
+  obituary: string | null;
+  service: { when?: string; where?: string; address?: string; notes?: string; livestream_url?: string };
+  status: "draft" | "published" | "unpublished";
+  share_token: string | null;
+  published_at: string | null;
+  shared_list_ids: string[];
+};
+
+export type TributeBlock = {
+  id: string;
+  page_id: string;
+  position: number;
+  kind: "heading" | "text" | "media" | "gallery" | "story" | "service";
+  text: string | null;
+  media_item_id: string | null;
+  media_item_ids: string[];
 };

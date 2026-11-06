@@ -59,7 +59,7 @@ select test.ok(test.rows('select * from public.urgent_questions') = 0, 'super ad
 reset role; select test.act(:K, 'aal2'); set role authenticated;
 select test.ok(test.rows('select * from public.urgent_questions') = 5, 'super admin with 2FA sees all questions');
 select test.ok(test.rows('select * from public.bills') = 7, 'super admin with 2FA sees bills');
-select test.ok(test.rows('select * from public.riana_updates') = 2, 'super admin sees the Riana inbox');
+select test.ok(test.rows('select * from public.riana_updates') = 5, 'super admin sees the Riana inbox');
 select test.ok(test.rows('select * from public.audit_log') > 0, 'super admin can read the audit log');
 select test.ok(test.fails('delete from public.audit_log'), 'even a super admin cannot delete audit entries');
 select test.ok(test.fails('update public.change_history set op = ''INSERT'''), 'even a super admin cannot edit change history');
@@ -209,7 +209,7 @@ select test.ok(test.fails($$insert into public.riana_updates (kind, summary, pay
 reset role;
 
 select test.act(:K, 'aal2'); set role authenticated;
-select test.ok(test.rows('select * from public.riana_updates') = 3, 'the update is in the inbox, once');
+select test.ok(test.rows('select * from public.riana_updates') = 6, 'the update is in the inbox, once');
 select test.ok((select review_status from public.riana_updates where id = current_setting('test.upd')::uuid) = 'pending', 'it waits as pending');
 select test.ok((select source from public.riana_updates where id = current_setting('test.upd')::uuid) = 'riana', 'it is stamped via Riana');
 select test.ok(exists (select 1 from public.audit_log where entity = 'riana_updates' and entity_id = current_setting('test.upd')::uuid and via = 'riana' and action = 'create'), 'receipt is in the audit log via Riana');
@@ -405,3 +405,75 @@ select set_config('request.jwt.claims', '', false); set role anon;
 select test.ok(test.rows('select * from public.riana_doc_sources') <= 0, 'anon cannot see the doc list');
 reset role;
 \echo 'Riana Drive sync tests passed.'
+
+-- Media library & tribute pages ---------------------------------------------------
+select test.act(:K, 'aal2'); set role authenticated;
+insert into public.media_items (id, kind, title, review_status) values ('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'audio_story', 'Test song', 'approved');
+insert into public.playlist_tracks (playlist_id, media_item_id, position) select id, 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 1 from public.playlists where slug = 'sing-along';
+insert into public.tribute_pages (id, slug, title) values ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'test-page', 'Test tribute');
+insert into public.tribute_blocks (page_id, position, kind, media_item_id) values ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 1, 'media', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc');
+select test.ok(public.tribute_public('test-page', 'x') is null, 'a draft tribute is not visible by link');
+select set_config('test.tok', public.tribute_set_status('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'published'), false);
+select test.ok(length(current_setting('test.tok')) = 48, 'publishing mints a 48-hex token');
+reset role;
+set role anon;
+select test.ok(public.tribute_public('test-page', 'wrong') is null, 'wrong token sees nothing');
+select test.ok((public.tribute_public('test-page', current_setting('test.tok')) ->> 'title') = 'Test tribute', 'the share link shows the published page');
+select test.ok(jsonb_array_length(public.tribute_public('test-page', current_setting('test.tok')) -> 'media') = 1, 'and its media pointers');
+select test.ok(test.rows('select * from public.tribute_pages') <= 0 and test.rows('select * from public.media_items') <= 0, 'anon still cannot read the tables directly');
+reset role;
+select test.ok(exists (select 1 from public.audit_log where entity = 'tribute_pages' and action = 'view' and actor is null), 'a share-link view is logged');
+select test.act(:K, 'aal2'); set role authenticated;
+select public.tribute_set_status('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'unpublished');
+reset role; set role anon;
+select test.ok(public.tribute_public('test-page', current_setting('test.tok')) is null, 'unpublishing kills the link');
+reset role;
+select test.act(:GK, 'aal1'); set role authenticated;
+select test.ok(test.rows('select * from public.playlists') = 1 and test.rows('select * from public.media_items') = 1, 'a grandchild can see the playlist and approved media');
+select test.ok(test.rows('select * from public.tribute_pages') = 0, 'a grandchild cannot see tribute drafts');
+select test.ok(test.fails($$select public.tribute_set_status('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'published')$$), 'a grandchild cannot publish');
+reset role;
+\echo 'Media library tests passed.'
+
+-- Health structuring & VA timeline --------------------------------------------------
+select test.act(:DI, 'aal2'); set role authenticated;
+select test.ok((select count(*) from public.medications where patient = 'diana' and active and frequency_kind = 'daily') = 0 and (select count(*) from public.medications where patient = 'diana' and active and frequency_kind = 'prn') = 5, 'Diana: no daily meds, five PRN');
+select test.ok((select count(*) from public.medications where patient = 'diana' and (source_document is null or source_date is null)) = 0, 'every medication carries a source and a date');
+select test.ok((select count(*) from public.health_conditions where patient = 'diana' and kind = 'condition' and since is null) = 0, 'every condition has an onset date');
+select test.ok((select count(*) from public.health_conditions where patient = 'diana' and kind in ('allergy', 'sensitivity') and reaction is null) = 0, 'every allergy/sensitivity records its reaction');
+select test.ok(test.fails($$insert into public.medications (patient, name, frequency_kind) values ('diana', 'x', 'sometimes')$$), 'unknown frequency kind is rejected');
+reset role;
+select test.act(:RICH, 'aal2'); set role authenticated;
+select test.ok((select count(*) from public.va_claim_timeline where kind = 'letter') = 3, 'the three VA claim letters are on the timeline');
+select test.ok((select string_agg(timeline_on::text, ',' order by timeline_on) from public.va_claim_timeline where kind = 'letter') = '2023-08-22,2026-03-03,2026-07-23', 'letters are ordered by date');
+select test.ok(exists (select 1 from public.calendar_events where about = 'rich' and starts_at::date = '2026-11-06' and title ilike '%C&P%'), 'the Nov 6, 2026 C&P exam is on the calendar');
+reset role;
+select test.act(:DI, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.va_claim_timeline') = 0, 'Diana does not see Rich''s VA timeline');
+reset role;
+\echo 'Health structuring tests passed.'
+
+-- Who-to-Notify review queue, shared albums, photo dates ---------------------------
+select test.act(:K, 'aal2'); set role authenticated;
+select test.ok((select count(*) from public.riana_updates where kind = 'contact' and review_status = 'pending') = 3, 'three proposed contacts wait in the inbox');
+select test.ok(not exists (select 1 from public.people where full_name = 'Sample Attorney'), 'a proposed contact is not in People before approval');
+select public.riana_apply((select id from public.riana_updates where external_ref = 'binder-notify-01'));
+select test.ok((select source::text from public.people where full_name = 'Sample Attorney') = 'riana', 'approving creates the person, stamped via Riana');
+select test.ok((select confirmed from public.people where full_name = 'Sample Attorney') = false, 'the new person still needs confirming');
+select test.ok((select is_professional from public.people where full_name = 'Sample Attorney') = true, 'professional flag carried over');
+select test.ok((select applied_table from public.riana_updates where external_ref = 'binder-notify-01') = 'people', 'the update records what it created');
+select test.ok(test.fails($$select public.riana_apply((select id from public.riana_updates where external_ref = 'binder-notify-01'))$$), 'an update cannot be applied twice');
+select test.ok(test.fails($$insert into public.riana_updates (kind, summary, payload) values ('password', 'x', '{}')$$), 'unknown kinds are rejected');
+select test.ok(test.fails($$insert into public.shared_albums (title, url) values ('x', 'http://insecure.example')$$), 'album links must be https');
+select test.ok((select count(*) from public.shared_albums) = 1, 'the sample album link is there');
+select test.ok((select contact_person_id from public.final_wishes where topic = 'burial_place') is not null, 'the burial wish points at the memorial park contact');
+insert into public.drive_folders (key, drive_folder_id, name, sensitivity) values ('photos_takeout', 'folder-photos', 'Photos (Takeout)', 'normal');
+select public.drive_upsert_file('t-photo-1', 'photos_takeout', 'IMG_9.jpg', 'image/jpeg', 10, 'hash-9', now(), null, 'family_history', 'image', 'normal', 'photo-takeout', 'Photos', '2019-07-04T15:20:00'::timestamptz);
+select test.ok((select taken_at::date::text from public.imported_files where drive_file_id = 't-photo-1') = '2019-07-04', 'photo keeps its taken date');
+select test.ok(public.drive_upsert_file('t-photo-2', 'photos_takeout', 'Copy of IMG_9.jpg', 'image/jpeg', 10, 'hash-9', now(), null, 'family_history', 'image', 'normal', 'photo-takeout', 'Photos', null) = 'duplicate', 'a renamed photo with the same bytes is a duplicate');
+reset role;
+select test.act(:DAV, 'aal2'); set role authenticated;
+select test.ok(test.fails($$select public.riana_apply((select id from public.riana_updates where external_ref = 'binder-notify-02'))$$), 'family cannot approve proposed contacts');
+select test.ok(test.rows('select * from public.shared_albums') = 1, 'family can see shared album links');
+reset role;
+\echo 'Notify / photos tests passed.'

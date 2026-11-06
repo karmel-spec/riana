@@ -3,8 +3,9 @@
 // account at all. Names mirror the brief's manifest; contents don't exist.
 import { FOLDERS } from "./manifest.ts";
 import { FOLDER_MIME, GDOC_MIME, type DriveClient, type DriveFile } from "./types.ts";
+import { rangeResponse, toneWav } from "../media/range.ts";
 
-type Entry = { folder: string; name: string; mime: string; size: number; md5: string; modified?: string; link?: string };
+type Entry = { folder: string; name: string; mime: string; size: number; md5: string; modified?: string; link?: string; taken?: string; content?: string };
 
 const h = (s: string) => Array.from(s).reduce((a, c) => ((a * 31 + c.charCodeAt(0)) >>> 0), 7).toString(16).padStart(8, "0").repeat(4);
 const f = (folder: string, name: string, mime: string, size: number, opts: Partial<Entry> = {}): Entry => ({ folder, name, mime, size, md5: opts.md5 ?? h(name + size), ...opts });
@@ -42,6 +43,14 @@ export const FAKE_FILES: Entry[] = [
   ...[2019, 2020, 2021, 2022, 2023, 2024, 2025].map((y) => f("taxes", `${y} Greene Federal Tax Return.pdf`, "application/pdf", 1_200_000 + y)),
   // Legal
   f("legal", "2021 Will (draft, unsigned).pdf", "application/pdf", 500_000), f("legal", "TOD deed 2908 Solitude (draft).pdf", "application/pdf", 300_000),
+  // Photos (Takeout) — a fake export: one photo with EXIF, one dated only by its sidecar, one undated, one renamed duplicate, one video
+  f("photos_takeout", "IMG_0001.jpg", "image/jpeg", 3_100_000, { md5: "photo-0001", taken: "2019:07:04 15:20:00", modified: "2026-10-30T09:00:00Z" }),
+  f("photos_takeout", "IMG_0001.jpg.json", "application/json", 900, { content: JSON.stringify({ title: "IMG_0001.jpg", photoTakenTime: { timestamp: "1562253600" } }) }),
+  f("photos_takeout", "IMG_0002.jpg", "image/jpeg", 2_800_000, { md5: "photo-0002", modified: "2026-10-30T09:00:00Z" }),
+  f("photos_takeout", "IMG_0002.jpg.supplemental-metadata.json", "application/json", 950, { content: JSON.stringify({ title: "IMG_0002.jpg", photoTakenTime: { timestamp: "1104580800" } }) }),
+  f("photos_takeout", "IMG_0003.heic", "image/heic", 1_900_000, { md5: "photo-0003", modified: "2026-10-30T09:00:00Z" }),
+  f("photos_takeout", "Copy of IMG_0001.jpg", "image/jpeg", 3_100_000, { md5: "photo-0001", modified: "2026-10-30T09:05:00Z" }),   // same bytes, new name
+  f("photos_takeout", "MVI_0004.mp4", "video/mp4", 18_000_000, { md5: "clip-0004", taken: "2024:12:25 10:02:11", modified: "2026-10-30T09:00:00Z" }),
   // Widow book (admin-only)
   f("widow_book", "Widow Book chapter 1.docx", DOCX, 30_000), f("widow_book", "Widow Book sensitive A.pdf", "application/pdf", 80_000),
 ];
@@ -82,13 +91,13 @@ export function fakeDriveClient(opts: { unreadable?: string[] } = {}): DriveClie
     async list(folderId) {
       const key = keyFor(folderId);
       if (!key || unreadable.has(key)) throw new Error("Drive files: 404 Not Found");
-      // Only subfolders that "exist" in the fake Drive; Photos (Takeout) is created later by item 9.
-      const sub: DriveFile[] = FOLDERS.filter((x) => x.parentKey === key && x.key !== "photos_takeout").map((x) => ({
+      const sub: DriveFile[] = FOLDERS.filter((x) => x.parentKey === key).map((x) => ({
         id: idFor(x.key), name: x.name, mimeType: FOLDER_MIME, size: null, md5Checksum: null, modifiedTime: "2026-11-01T00:00:00Z", webViewLink: null, parents: [folderId],
       }));
       const files: DriveFile[] = FAKE_FILES.filter((e) => e.folder === key).map((e, i) => ({
         id: `fake-${key}-${i}`, name: e.name, mimeType: e.mime, size: e.size, md5Checksum: e.md5,
         modifiedTime: e.modified ?? "2026-10-15T12:00:00Z", webViewLink: `https://drive.google.com/file/d/fake-${key}-${i}/view`, parents: [folderId],
+        takenTime: e.taken ?? null,
       }));
       return [...sub, ...files];
     },
@@ -102,8 +111,22 @@ export function fakeDriveClient(opts: { unreadable?: string[] } = {}): DriveClie
       if (fileId === FAKE_BINDER_DOC_ID) return FAKE_BINDER_DOC;
       throw new Error("Drive files: 404 Not Found");
     },
-    async stream(fileId) {
-      const name = FAKE_FILES[Number(fileId.split("-").pop())]?.name ?? "Sample file";
+    async stream(fileId, range) {
+      const key = fileId.replace(/^fake-/, "").replace(/-\d+$/, "");
+      const idx = Number(fileId.split("-").pop());
+      const entry = FAKE_FILES.filter((e) => e.folder === key)[idx];
+      const name = entry?.name ?? "Sample file";
+      if (entry?.content !== undefined) return new Response(entry.content, { status: 200, headers: { "content-type": entry.mime } });
+      if (entry && /^audio\//.test(entry.mime)) {
+        // Each fake song is a different short tone so the playlist audibly advances.
+        const hz = 330 + ((name.length * 37) % 220);
+        return rangeResponse(toneWav(3, hz), range, "audio/wav");
+      }
+      if (entry && /^image\//.test(entry.mime)) {
+        const hue = (name.length * 47) % 360;
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600"><rect width="600" height="600" fill="hsl(${hue} 30% 88%)"/><text x="300" y="300" font-family="sans-serif" font-size="28" text-anchor="middle" fill="#2f5141">Sample photo</text><text x="300" y="340" font-family="sans-serif" font-size="18" text-anchor="middle" fill="#2f5141">${name.replace(/[<>&]/g, "")}</text></svg>`;
+        return new Response(svg, { status: 200, headers: { "content-type": "image/svg+xml", "accept-ranges": "bytes" } });
+      }
       return new Response(tinyPdf(`SAMPLE DOCUMENT (fake) - ${name.replace(/[()\\]/g, "")}`), { status: 200, headers: { "content-type": "application/pdf", "accept-ranges": "bytes" } });
     },
   };

@@ -81,7 +81,8 @@ export const RULES: ManifestRule[] = [
   { id: "legal-any", folders: ["legal"], match: /./, target: "legal", note: "Legal & Estate → documents", media: "pdf" },
   { id: "widow-book", folders: ["widow_book"], match: /./, target: "legal", note: "2022 Widow Book (admin-only)", media: "document", sensitivity: "admin_only" },
   { id: "va-any", folders: ["va"], match: /./, target: "health_rich", note: "VA benefits", media: "pdf" },
-  { id: "photo-takeout", folders: ["photos_takeout"], match: /\.(jpe?g|png|heic|gif|webp|mp4|mov)$/i, target: H, note: "Photos → timeline (EXIF date)", media: "image", dedupe: true },
+  { id: "photo-sidecar", folders: ["photos_takeout"], match: /\.json$/i, target: H, note: "Takeout metadata sidecar: read for the photo's date, not imported", media: "other", sensitivity: "excluded" },
+  { id: "photo-takeout", folders: ["photos_takeout"], match: /\.(jpe?g|png|heic|gif|webp|mp4|mov)$/i, target: H, note: "Photos → timeline (EXIF date)", dedupe: true },
 ];
 
 export function mediaKindFor(name: string, mime?: string | null): MediaKind {

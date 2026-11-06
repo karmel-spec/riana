@@ -3,6 +3,7 @@
 import { FOLDERS, matchFile, type ManifestFolder } from "./manifest.ts";
 import { FOLDER_MIME, type DriveClient, type DriveFile } from "./types.ts";
 import type { Section } from "../types.ts";
+import { exifToIso, hashKey, isSidecarFor, sidecarTakenAt } from "./photo-dates.ts";
 
 export type PlanEntry = {
   driveFileId: string;
@@ -19,6 +20,8 @@ export type PlanEntry = {
   media: string;
   sensitivity: "normal" | "admin_only" | "excluded";
   rule: string | null;
+  /** When the photo was taken (EXIF, else Takeout sidecar, else null). */
+  takenAt: string | null;
   action: "create" | "update" | "unchanged" | "duplicate" | "exclude" | "unmatched";
   duplicateOf?: string;
 };
@@ -34,6 +37,8 @@ export type SyncReport = {
 
 /** Existing rows, keyed by drive file id, for idempotency decisions. */
 export type Existing = Map<string, { md5: string | null; modifiedTime: string | null }>;
+/** Content already imported (md5|size → drive file id), so a re-export under a new name is a duplicate, not a new photo. */
+export type KnownHashes = Map<string, string>;
 
 /** Resolve folder ids: explicit ids from the manifest, subfolders by name under their parent. */
 export async function resolveFolders(drive: DriveClient): Promise<{ status: FolderStatus[]; ids: Map<string, string> }> {
@@ -69,10 +74,10 @@ export async function resolveFolders(drive: DriveClient): Promise<{ status: Fold
   return { status, ids };
 }
 
-export async function planSync(drive: DriveClient, existing: Existing): Promise<SyncReport> {
+export async function planSync(drive: DriveClient, existing: Existing, known: KnownHashes = new Map()): Promise<SyncReport> {
   const { status, ids } = await resolveFolders(drive);
   const entries: PlanEntry[] = [];
-  const seenByContent = new Map<string, string>();   // md5|size|lower(name) → first drive file id
+  const seenByContent = new Map<string, string>(known);   // md5|size[|lower(name)] → first drive file id
 
   for (const folder of FOLDERS) {
     const id = ids.get(folder.key);
@@ -99,6 +104,7 @@ function classify(folder: ManifestFolder, file: DriveFile, existing: Existing, s
     driveFileId: file.id, folderKey: folder.key, folderName: folder.name, name: file.name, mimeType: file.mimeType,
     size: file.size, md5: file.md5Checksum, modifiedTime: file.modifiedTime, webViewLink: file.webViewLink,
     target: m.target, note: m.note, media: m.media, sensitivity: m.sensitivity, rule: m.rule?.id ?? null,
+    takenAt: m.media === "image" || m.media === "video" ? exifToIso(file.takenTime) : null,
   };
   if (m.sensitivity === "excluded") return { ...base, action: "exclude" };
   const prev = existing.get(file.id);
@@ -107,10 +113,32 @@ function classify(folder: ManifestFolder, file: DriveFile, existing: Existing, s
     return { ...base, action: same ? "unchanged" : "update" };
   }
   if (m.dedupe && file.md5Checksum) {
-    const key = `${file.md5Checksum}|${file.size}|${file.name.toLowerCase()}`;
+    // Photos dedupe on content alone (Takeout re-exports and "Copy of" rename files); other files also need the same name.
+    const key = m.media === "image" || m.media === "video" ? hashKey(file.md5Checksum, file.size) : `${hashKey(file.md5Checksum, file.size)}|${file.name.toLowerCase()}`;
     const first = seen.get(key);
     if (first) return { ...base, action: "duplicate", duplicateOf: first };
     seen.set(key, file.id);
   }
   return { ...base, action: m.rule ? "create" : "unmatched" };
+}
+
+/**
+ * Fill in takenAt for photos that have no EXIF date, from their Takeout sidecar JSON.
+ * Reads only the tiny .json files, and only for photos that are about to be created.
+ */
+export async function enrichTakenAt(drive: DriveClient, report: SyncReport): Promise<number> {
+  const sidecars = report.entries.filter((e) => e.rule === "photo-sidecar");
+  if (sidecars.length === 0) return 0;
+  let filled = 0;
+  for (const e of report.entries) {
+    if ((e.media !== "image" && e.media !== "video") || e.takenAt || (e.action !== "create" && e.action !== "duplicate")) continue;
+    const sc = sidecars.find((s) => s.folderKey === e.folderKey && isSidecarFor(e.name, s.name));
+    if (!sc) continue;
+    try {
+      const res = await drive.stream(sc.driveFileId);
+      const at = sidecarTakenAt(await res.text());
+      if (at) { e.takenAt = at; filled++; }
+    } catch { /* a missing sidecar just means no date */ }
+  }
+  return filled;
 }
