@@ -44,6 +44,10 @@ export async function signInWithPassword(_prev: { error: string }, form: FormDat
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email: email.data.toLowerCase(), password: password.data });
   if (error) {
+    console.error("[auth] password sign-in:", error.message);
+    // The account exists but its email was never confirmed (e.g. created by hand in Supabase).
+    if (/not confirmed/i.test(error.message)) return { error: "This email hasn’t been confirmed yet. Ask Karmel or Heather to confirm it in Supabase (Authentication → Users), then try again." };
+    if (/rate limit|too many/i.test(error.message)) return { error: "Too many attempts. Wait a minute and try again." };
     // Same message for wrong password and unknown email: don't reveal who's on the list.
     return { error: "That email and password don’t match. Ask Karmel or Heather if you need a new password." };
   }

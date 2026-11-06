@@ -8,4 +8,4 @@
  * Set this back to false (or delete the file and its two uses) to restore
  * the sign-in screen.
  */
-export const OPEN_DOOR = true;
+export const OPEN_DOOR = false;
