@@ -42,7 +42,7 @@ export const FOLDERS: ManifestFolder[] = [
   { key: "diana_history", name: "History & Keepsakes - Diana's Drive", driveFolderId: "1uHl9xudE_5NlYK2eBgvqfgE6kw_opzeu", sensitivity: "normal", defaultTarget: "family_history" },
   { key: "singalong", name: "Rich_Greene_Sing-A-Long/MP3_Files", driveFolderId: "1vQiNtIOpbmV9Z9uckrEuR3G-MdxBUeXx", sensitivity: "normal", defaultTarget: "family_history", defaultNote: "Media → Rich's Sing-Along" },
   { key: "va", name: "VA & CHAMPVA", driveFolderId: "1wsEaDmDNhR2qoR726-xo0xFoymvGHnqj", sensitivity: "normal", defaultTarget: "health_rich", defaultNote: "VA benefits" },
-  { key: "taxes", name: "Taxes", driveFolderId: "1OahQfWFWlOnhiM3AVs6SqWxi2mg9PcMH", sensitivity: "admin_only", defaultTarget: "taxes", notes: "Contains SSNs and bank details: masked on display, super admins only" },
+  { key: "taxes", name: "Taxes", driveFolderId: "1ptf78Ps6_GYOhV9wAxPM1IDiADZXh6Wn", sensitivity: "admin_only", defaultTarget: "taxes", notes: "Contains SSNs and bank details: masked on display, super admins only" },
   { key: "legal", name: "Legal Docs", driveFolderId: "1C7nytouvRz1C2Lv52QJUi1y0rSeoN3D_", sensitivity: "normal", defaultTarget: "legal" },
   { key: "widow_book", name: "2022 Widow Book", driveFolderId: "19vZ3XcQhF2e1WjzuAJRf-Ghh6nQdOEEq", sensitivity: "admin_only", defaultTarget: "legal", notes: "Four sensitive files: whole folder admin-only until an admin releases individual files" },
   { key: "photos_takeout", name: "Photos (Takeout)", driveFolderId: null, parentKey: "root", sensitivity: "normal", defaultTarget: "family_history", defaultNote: "Photos → timeline", notes: "Created by the recurring Google Takeout export (item 9)" },
