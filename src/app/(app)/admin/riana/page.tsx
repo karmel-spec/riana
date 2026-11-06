@@ -4,12 +4,16 @@ import { Empty, PageHeader } from "@/components/ui";
 import { fmtDate, fmtTime } from "@/lib/format";
 import { NAV } from "@/lib/nav";
 import { ReviewButtons } from "./review-buttons";
+import { DocSyncPanel } from "./doc-sync-panel";
+import { driveSetup } from "@/lib/drive/service";
+import { listDocSources } from "@/lib/riana/doc-sync";
 
 export const metadata = { title: "Updates from Riana" };
 
 export default async function RianaPage() {
   const v = await requireSuperAdmin();
-  const [pending, keys] = await Promise.all([data.getRianaPending(v), data.getRianaKeys(v)]);
+  const [pending, keys, docs] = await Promise.all([data.getRianaPending(v), data.getRianaKeys(v), listDocSources(v)]);
+  const setup = driveSetup(v);
   const sectionLabel = (s: string) => NAV.find((n) => n.section === s)?.label ?? s;
   return (
     <>
@@ -22,13 +26,14 @@ export default async function RianaPage() {
               <div>
                 <span className="pill bg-plum-tint text-plum">{u.kind.replace("_", " ")}</span>
                 <div className="mt-1 text-[1.1rem] font-semibold">{u.summary}</div>
-                <div className="text-[0.9rem] text-ink-soft">Received {fmtDate(u.received_at)} at {fmtTime(u.received_at)}</div>
+                <div className="text-[0.9rem] text-ink-soft">Received {fmtDate(u.received_at)} at {fmtTime(u.received_at)}{u.external_ref?.startsWith("gdoc:") ? " · from the Binder doc" : ""}</div>
               </div>
               <ReviewButtons id={u.id} />
             </li>
           ))}
         </ul>
       )}
+      <DocSyncPanel setup={setup} sources={docs} />
       <section className="card mt-8">
         <h2 className="text-[1.2rem] font-semibold">Agent keys</h2>
         <p className="mt-1 text-ink-soft">Each assistant gets its own key. Every key can send updates here. What a key may <em>read</em> through the export is chosen per key, and nothing lets an agent read logins, documents, or family history. Mint, revoke, and change read access from the SQL editor; see <code>docs/RIANA_INBOUND.md</code>.</p>
@@ -54,7 +59,7 @@ export default async function RianaPage() {
       <section className="card mt-8">
         <h2 className="text-[1.2rem] font-semibold">How Riana connects</h2>
         <ol className="mt-2 list-decimal space-y-1 pl-5 text-ink-soft">
-          <li><strong>Phase 1 — Drive sync.</strong> The app reads the Greene Family Binder Google Doc and the Legal Docs folder (read-only) and proposes changes here.</li>
+          <li><strong>Phase 1 — Drive sync (ready).</strong> The app reads the Greene Family Binder Google Doc (above) and proposes each new line here. The Legal Docs folder and the other shared folders are handled by <strong>Drive import</strong>, which files documents for review.</li>
           <li><strong>Phase 2 — Inbound endpoint (ready).</strong> Riana, a Grok or Claude assistant, or you pasting their output, posts structured updates to <code>/api/riana/inbound</code> with a key. Each one is logged and waits here for approval. Keys are minted and revoked by a super admin; see <code>docs/RIANA_INBOUND.md</code>.</li>
           <li><strong>Phase 3 — Outbound export (ready).</strong> <code>GET /api/riana/export</code> returns the latest data for the sections a key has been granted, so Riana&rsquo;s Monday update uses what is actually in the binder. Every export is in the audit log.</li>
         </ol>

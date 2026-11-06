@@ -2,7 +2,7 @@
 // the dry-run report and the admin screen can be exercised with no Google
 // account at all. Names mirror the brief's manifest; contents don't exist.
 import { FOLDERS } from "./manifest.ts";
-import { FOLDER_MIME, type DriveClient, type DriveFile } from "./types.ts";
+import { FOLDER_MIME, GDOC_MIME, type DriveClient, type DriveFile } from "./types.ts";
 
 type Entry = { folder: string; name: string; mime: string; size: number; md5: string; modified?: string; link?: string };
 
@@ -46,6 +46,28 @@ export const FAKE_FILES: Entry[] = [
   f("widow_book", "Widow Book chapter 1.docx", DOCX, 30_000), f("widow_book", "Widow Book sensitive A.pdf", "application/pdf", 80_000),
 ];
 
+/** The stand-in "Greene Family Binder" Google Doc, in the shape Riana's notes tend to take. */
+export const FAKE_BINDER_DOC_ID = "fake-doc-greene-family-binder";
+export const FAKE_BINDER_DOC = `Greene Family Binder - Riana's working notes (SAMPLE)
+
+APPOINTMENTS
+- Dad cardiology follow-up Nov 12 at 10:30 with Dr. Sample; Karmel driving.
+- Mom eye exam 11/20, Sample Vision, bring the old glasses.
+
+Lab results
+- Diana A1C 6.1 % on 2026-11-03 (was 6.4 in July).
+
+Bills
+- Sample Electric Co. autopay failed again, $142.18 due 11/15.
+
+Questions for Mom and Dad
+- Where is the original signed healthcare power of attorney kept?
+- Do you still want the service at the chapel in town?
+
+Notes
+- Rich would like the hymn recording added to the family history page.
+`;
+
 export function fakeDriveClient(opts: { unreadable?: string[] } = {}): DriveClient {
   const unreadable = new Set(opts.unreadable ?? ["widow_book"]);  // one folder "not shared yet", to show the check working
   const idFor = (key: string) => FOLDERS.find((x) => x.key === key)?.driveFolderId ?? `fake-folder-${key}`;
@@ -69,6 +91,16 @@ export function fakeDriveClient(opts: { unreadable?: string[] } = {}): DriveClie
         modifiedTime: e.modified ?? "2026-10-15T12:00:00Z", webViewLink: `https://drive.google.com/file/d/fake-${key}-${i}/view`, parents: [folderId],
       }));
       return [...sub, ...files];
+    },
+    async getFile(fileId) {
+      if (fileId === FAKE_BINDER_DOC_ID) {
+        return { id: fileId, name: "Greene Family Binder (sample)", mimeType: GDOC_MIME, size: null, md5Checksum: null, modifiedTime: "2026-11-03T15:00:00Z", webViewLink: null, parents: [] };
+      }
+      throw new Error("Drive files: 404 Not Found");
+    },
+    async exportText(fileId) {
+      if (fileId === FAKE_BINDER_DOC_ID) return FAKE_BINDER_DOC;
+      throw new Error("Drive files: 404 Not Found");
     },
     async stream(fileId) {
       const name = FAKE_FILES[Number(fileId.split("-").pop())]?.name ?? "Sample file";

@@ -17,6 +17,12 @@ export interface DriveClient {
   list(folderId: string): Promise<DriveFile[]>;
   /** Range-capable download for streaming (used by the media proxy, item 7). */
   stream(fileId: string, range?: string): Promise<Response>;
+  /** One file's metadata (any file the service account can see). */
+  getFile(fileId: string): Promise<DriveFile>;
+  /** A Google Doc's text (Drive "export" as text/plain); a plain text file is read as is. */
+  exportText(fileId: string): Promise<string>;
 }
+
+export const GDOC_MIME = "application/vnd.google-apps.document";
 
 export const FOLDER_MIME = "application/vnd.google-apps.folder";
