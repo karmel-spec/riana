@@ -1,4 +1,5 @@
 import "server-only";
+import { OPEN_DOOR } from "./open-door";
 
 /**
  * Demo mode serves the FAKE fixtures with a role switcher and no login.
@@ -6,6 +7,7 @@ import "server-only";
  * configured, so a real deployment can never fall into it by accident.
  */
 export function isDemo(): boolean {
+  if (OPEN_DOOR) return true; // temporary no-login preview, see open-door.ts
   return process.env.GREENE_DEMO === "1" && !process.env.NEXT_PUBLIC_SUPABASE_URL;
 }
 

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { OPEN_DOOR } from "./lib/open-door";
 
 /**
  * Runs before every page: refreshes the Supabase session cookie and sends
@@ -9,7 +10,8 @@ import { createServerClient } from "@supabase/ssr";
  */
 export async function proxy(request: NextRequest) {
   const demo = process.env.GREENE_DEMO === "1" && !process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (demo) return NextResponse.next();
+  // OPEN_DOOR: temporary no-login preview (src/lib/open-door.ts).
+  if (OPEN_DOOR || demo) return NextResponse.next();
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
