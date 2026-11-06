@@ -27,7 +27,7 @@ type Store = {
   wishes: FinalWish[]; loans: Loan[]; riana: RianaUpdate[]; audit: AuditEntry[];
 };
 // Bump when Store gains a key, so a dev server that kept the old object rebuilds it.
-const STORE_VERSION = 9;
+const STORE_VERSION = 10;
 const g = globalThis as unknown as { __greeneDemo?: Store; __greeneDemoV?: number };
 export function demoStore(): Store {
   if (g.__greeneDemoV !== STORE_VERSION) { g.__greeneDemo = undefined; g.__greeneDemoV = STORE_VERSION; }
@@ -257,9 +257,10 @@ export async function getAllLabs(v: Viewer, p: Patient): Promise<LabResult[]> {
 
 export async function getVaClaims(v: Viewer): Promise<VaClaim[]> {
   if (!canRead(v, "health_rich")) return [];
-  if (v.demo) return demoStore().vaClaims;
+  const key = (c: VaClaim) => c.event_on ?? c.decided_on ?? c.filed_on ?? "";
+  if (v.demo) return [...demoStore().vaClaims].sort((a, b) => key(a).localeCompare(key(b)));
   const supabase = await createClient();
-  const { data, error } = await supabase.from("va_claims").select("*").order("created_at");
+  const { data, error } = await supabase.from("va_claim_timeline").select("*").order("timeline_on");
   if (error) fail("VA claims", error);
   return data as VaClaim[];
 }

@@ -44,7 +44,7 @@ export const urgentQuestions: UrgentQuestion[] = [
 
 export const calendarEvents: CalendarEvent[] = [
   { id: uid("e", 1), section: "health_diana", title: "Cardiology follow-up", kind: "appointment", about: "diana", starts_at: day(7, 10, 30), all_day: false, location: "Sample Heart Clinic", driver: "Karmel", notes: "Bring medication list.", source: "app" },
-  { id: uid("e", 2), section: "health_rich", title: "VA C&P exam", kind: "appointment", about: "rich", starts_at: day(13, 13), all_day: false, location: "VA clinic (sample)", driver: "Heather", notes: "Bring claim packet.", source: "riana" },
+  { id: uid("e", 2), section: "health_rich", title: "VA C&P exam", kind: "appointment", about: "rich", starts_at: "2026-11-06T13:00:00-07:00", all_day: false, location: "VA clinic (sample)", driver: "Heather", notes: "Bring claim packet. (Date from Update Brief #2 §3f.)", source: "riana" },
   { id: uid("e", 3), section: "taxes", title: "Property tax, second half due", kind: "deadline", about: "household", starts_at: day(25, 9), all_day: true, location: null, driver: null, notes: "Tumwater rentals (sample).", source: "app" },
   { id: uid("e", 4), section: "calendar", title: "Family video call", kind: "family", about: "both", starts_at: day(3, 18), all_day: false, location: "Video call", driver: null, notes: null, source: "app" },
   { id: uid("e", 5), section: "insurance", title: "Auto policy renewal", kind: "renewal", about: "both", starts_at: day(40, 9), all_day: true, location: null, driver: null, notes: null, source: "app" },
@@ -203,23 +203,40 @@ export const providers: Provider[] = [
   { id: uid("prov", 4), patient: "rich", name: "Dr. Placeholder Ortho", specialty: "Orthopedics", practice: "Sample Orthopedic Group", phone: "(555) 010-0902", portal_name: null, is_va: false, notes: "Knee." },
 ];
 
+const MED = (n: number, patient: "rich" | "diana", name: string, extra: Partial<Medication>): Medication => ({
+  id: uid("med", n), patient, name, dose: null, schedule: null, purpose: null, prescriber_id: null, started_on: null, stopped_on: null, active: true, notes: null,
+  frequency_kind: "daily", prn_for: null, max_per_day: null, source_document: "[Sample] Medication list from last visit", source_file_id: null, source_date: day(-35), source: "app", ...extra,
+});
 export const medications: Medication[] = [
-  { id: uid("med", 1), patient: "diana", name: "Metformin (sample)", dose: "500 mg", schedule: "Twice daily with meals", purpose: "Blood sugar", prescriber_id: uid("prov", 1), started_on: "2024-02-01", stopped_on: null, active: true, notes: null, source: "app" },
-  { id: uid("med", 2), patient: "diana", name: "Lisinopril (sample)", dose: "10 mg", schedule: "Every morning", purpose: "Blood pressure", prescriber_id: uid("prov", 2), started_on: "2022-06-15", stopped_on: null, active: true, notes: null, source: "app" },
-  { id: uid("med", 3), patient: "diana", name: "Vitamin D (sample)", dose: "2000 IU", schedule: "Daily", purpose: "Supplement", prescriber_id: null, started_on: null, stopped_on: null, active: true, notes: "Over the counter.", source: "app" },
-  { id: uid("med", 4), patient: "rich", name: "Atorvastatin (sample)", dose: "20 mg", schedule: "Every evening", purpose: "Cholesterol", prescriber_id: uid("prov", 3), started_on: "2021-09-01", stopped_on: null, active: true, notes: null, source: "app" },
-  { id: uid("med", 5), patient: "rich", name: "Meloxicam (sample)", dose: "7.5 mg", schedule: "Daily as needed", purpose: "Knee pain", prescriber_id: uid("prov", 4), started_on: "2025-03-10", stopped_on: null, active: true, notes: "Dose lowered Nov 2026.", source: "app" },
-  { id: uid("med", 6), patient: "rich", name: "Old blood pressure pill (sample)", dose: "5 mg", schedule: "Daily", purpose: "Blood pressure", prescriber_id: uid("prov", 3), started_on: "2019-01-01", stopped_on: "2023-04-01", active: false, notes: "Replaced.", source: "app" },
+  // Diana: no daily medications, five as-needed (PRN) — all FAKE names.
+  MED(1, "diana", "Sample pain reliever A", { dose: "500 mg", frequency_kind: "prn", prn_for: "[Sample] nerve pain flare", max_per_day: "3 tablets", purpose: "Pain", prescriber_id: uid("prov", 1) }),
+  MED(2, "diana", "Sample anti-nausea", { dose: "4 mg", frequency_kind: "prn", prn_for: "[Sample] nausea", max_per_day: "2 tablets", prescriber_id: uid("prov", 1) }),
+  MED(3, "diana", "Sample sleep aid", { dose: "5 mg", frequency_kind: "prn", prn_for: "[Sample] sleeplessness", max_per_day: "1 tablet at bedtime", prescriber_id: uid("prov", 1) }),
+  MED(4, "diana", "Sample muscle relaxant", { dose: "10 mg", frequency_kind: "prn", prn_for: "[Sample] back spasm", max_per_day: "2 tablets", prescriber_id: uid("prov", 2) }),
+  MED(5, "diana", "Sample antacid", { dose: "20 mg", frequency_kind: "prn", prn_for: "[Sample] heartburn", max_per_day: "1 tablet", notes: "Over the counter.", source_document: "[Sample] Told to Karmel by phone", source_date: day(-10) }),
+  MED(6, "rich", "Atorvastatin (sample)", { dose: "20 mg", schedule: "Every evening", purpose: "Cholesterol", prescriber_id: uid("prov", 3), started_on: "2021-09-01", source_document: "[Sample] VA medication list", source_date: day(-60) }),
+  MED(7, "rich", "Meloxicam (sample)", { dose: "7.5 mg", schedule: "Daily as needed", frequency_kind: "prn", prn_for: "[Sample] knee pain", max_per_day: "1 tablet", prescriber_id: uid("prov", 4), started_on: "2025-03-10", notes: "Dose lowered Nov 2026.", source_document: "[Sample] Ortho visit note", source_date: day(-20) }),
+  MED(8, "rich", "Old blood pressure pill (sample)", { dose: "5 mg", schedule: "Daily", purpose: "Blood pressure", prescriber_id: uid("prov", 3), started_on: "2019-01-01", stopped_on: "2023-04-01", active: false, notes: "Replaced." }),
 ];
 
+const HC = (n: number, patient: "rich" | "diana", kind: HealthCondition["kind"], name: string, extra: Partial<HealthCondition> = {}): HealthCondition => ({
+  id: uid("cond", n), patient, kind, name, detail: null, since: null, reaction: null, severity: null, status: "active",
+  source_document: "[Sample] Clinic summary", source_file_id: null, source_date: day(-35), ...extra,
+});
 export const healthConditions: HealthCondition[] = [
-  { id: uid("cond", 1), patient: "diana", kind: "condition", name: "Type 2 diabetes (sample)", detail: "Managed with medication and diet.", since: "2024-01-01" },
-  { id: uid("cond", 2), patient: "diana", kind: "condition", name: "High blood pressure (sample)", detail: null, since: "2022-01-01" },
-  { id: uid("cond", 3), patient: "diana", kind: "allergy", name: "Penicillin (sample)", detail: "Rash.", since: null },
-  { id: uid("cond", 4), patient: "diana", kind: "coverage", name: "Medicare Part A & B + supplement (sample)", detail: "Cards in the blue folder.", since: null },
-  { id: uid("cond", 5), patient: "rich", kind: "condition", name: "Knee osteoarthritis (sample)", detail: "Service-connected.", since: "2015-01-01" },
-  { id: uid("cond", 6), patient: "rich", kind: "allergy", name: "No known allergies", detail: null, since: null },
-  { id: uid("cond", 7), patient: "rich", kind: "coverage", name: "VA health care + Medicare (sample)", detail: "VA is primary for service-connected care.", since: null },
+  // Diana — FAKE conditions with onset dates and sources
+  HC(1, "diana", "condition", "[Sample] Nerve pain condition", { since: "2024-03-01", detail: "Flares a few times a month; managed with PRN medication.", severity: "severe" }),
+  HC(2, "diana", "condition", "[Sample] Liver injury from a medication", { since: "2026-05-01", detail: "Resolved after the medication was stopped; liver labs monitored.", status: "monitoring", source_document: "[Sample] Hospital discharge summary", source_date: "2026-05-20" }),
+  HC(3, "diana", "condition", "[Sample] Bone-density condition", { since: "2022-01-01", severity: "severe", detail: "Fall precautions at home." }),
+  HC(4, "diana", "condition", "[Sample] Anxiety / stress condition", { since: "2020-01-01", detail: "Followed by primary care." }),
+  HC(5, "diana", "sensitivity", "[Sample] Common pain reliever", { reaction: "Stomach bleeding risk", severity: "moderate", source_document: "[Sample] Pharmacy record" }),
+  HC(6, "diana", "sensitivity", "[Sample] Mineral supplement", { reaction: "Kidney stones", severity: "mild" }),
+  HC(7, "diana", "sensitivity", "[Sample] Nerve medication", { reaction: "Caused the liver injury", severity: "severe", source_document: "[Sample] Hospital discharge summary", source_date: "2026-05-20" }),
+  HC(8, "diana", "allergy", "Penicillin (sample)", { reaction: "Rash", severity: "moderate" }),
+  HC(9, "diana", "coverage", "Medicare Part A & B + supplement (sample)", { detail: "Cards in the blue folder.", source_document: null, source_date: null }),
+  HC(10, "rich", "condition", "Knee osteoarthritis (sample)", { since: "2015-01-01", detail: "Service-connected.", source_document: "[Sample] VA rating decision", source_date: "2023-05-01" }),
+  HC(11, "rich", "allergy", "No known allergies", { source_document: "[Sample] VA medication list", source_date: day(-60) }),
+  HC(12, "rich", "coverage", "VA health care + Medicare (sample)", { detail: "VA is primary for service-connected care.", source_document: null, source_date: null }),
 ];
 
 export const visitNotes: VisitNote[] = [
@@ -229,10 +246,16 @@ export const visitNotes: VisitNote[] = [
   { id: uid("vn", 4), patient: "rich", visit_on: day(-60), provider_id: uid("prov", 3), summary: "[Sample] Annual VA visit. Labs fine. Updated claim paperwork.", follow_up: null, author_name: "Riana", source: "riana", created_at: day(-60, 15) },
 ];
 
+const VA = (n: number, kind: VaClaim["kind"], title: string, status: string, event_on: string | null, extra: Partial<VaClaim> = {}): VaClaim => ({
+  id: uid("va", n), kind, title, status, filed_on: null, decided_on: null, event_on, rating_pct: null, next_step: null, summary: null, notes: null, imported_file_id: null, source: "app", ...extra,
+});
 export const vaClaims: VaClaim[] = [
-  { id: uid("va", 1), kind: "rating_decision", title: "Current combined rating", status: "70% (sample)", filed_on: null, decided_on: "2023-05-01", rating_pct: 70, next_step: null, notes: "Letter in the VA folder.", source: "app" },
-  { id: uid("va", 2), kind: "claim", title: "Increase for knee condition (sample)", status: "Under review", filed_on: day(-90), decided_on: null, rating_pct: null, next_step: "C&P exam scheduled.", notes: null, source: "app" },
-  { id: uid("va", 3), kind: "cp_exam", title: "C&P exam — knee", status: "Scheduled", filed_on: null, decided_on: null, rating_pct: null, next_step: `Attend exam on ${new Date(`${day(13)}T12:00:00`).toLocaleDateString("en-US", { month: "long", day: "numeric" })}. Bring claim packet.`, notes: null, source: "riana" },
+  VA(1, "rating_decision", "Combined rating", "70% (sample)", "2023-05-01", { decided_on: "2023-05-01", rating_pct: 70, notes: "Letter in the VA folder.", summary: "[Sample] Rating decision letter." }),
+  VA(2, "letter", "VA claim letter", "Received", "2023-08-22", { summary: "[Sample] Acknowledgement of the increase claim; evidence requested.", source: "import" }),
+  VA(3, "claim", "Increase for knee condition (sample)", "Under review", "2026-02-10", { filed_on: "2026-02-10", next_step: "C&P exam scheduled." }),
+  VA(4, "letter", "VA claim letter", "Received", "2026-03-03", { summary: "[Sample] Claim received; exam to be scheduled.", source: "import" }),
+  VA(5, "letter", "VA claim letter", "Received", "2026-07-23", { summary: "[Sample] Exam scheduling notice.", source: "import" }),
+  VA(6, "cp_exam", "C&P exam — knee", "Scheduled", "2026-11-06", { next_step: "Attend the exam on November 6. Bring the claim packet.", source: "riana" }),
 ];
 
 export const accounts: Account[] = [

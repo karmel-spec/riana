@@ -10,7 +10,7 @@ insert into public.urgent_questions (id, question, topic, asked_of, owner_name, 
 
 insert into public.calendar_events (id, section, title, kind, about, starts_at, all_day, location, driver, notes, source) values
   ('000000a2-0000-4000-8000-000000000001', 'health_diana', 'Cardiology follow-up', 'appointment', 'diana', '2026-11-13T10:30:00-07:00', false, 'Sample Heart Clinic', 'Karmel', 'Bring medication list.', 'app'),
-  ('000000a2-0000-4000-8000-000000000002', 'health_rich', 'VA C&P exam', 'appointment', 'rich', '2026-11-19T13:00:00-07:00', false, 'VA clinic (sample)', 'Heather', 'Bring claim packet.', 'riana'),
+  ('000000a2-0000-4000-8000-000000000002', 'health_rich', 'VA C&P exam', 'appointment', 'rich', '2026-11-06T13:00:00-07:00', false, 'VA clinic (sample)', 'Heather', 'Bring claim packet. (Date from Update Brief #2 §3f.)', 'riana'),
   ('000000a2-0000-4000-8000-000000000003', 'taxes', 'Property tax, second half due', 'deadline', 'household', '2026-12-01T09:00:00-07:00', true, null, null, 'Tumwater rentals (sample).', 'app'),
   ('000000a2-0000-4000-8000-000000000004', 'calendar', 'Family video call', 'family', 'both', '2026-11-09T18:00:00-07:00', false, 'Video call', null, null, 'app'),
   ('000000a2-0000-4000-8000-000000000005', 'insurance', 'Auto policy renewal', 'renewal', 'both', '2026-12-16T09:00:00-07:00', true, null, null, null, 'app'),
@@ -228,22 +228,29 @@ insert into public.providers (id, patient, name, specialty, practice, phone, por
   ('000000ad-0000-4000-8000-000000000003', 'rich', 'VA Primary Care Team (sample)', 'Primary care', 'VA clinic', '(555) 010-0901', 'My HealtheVet (sample)', true, null),
   ('000000ad-0000-4000-8000-000000000004', 'rich', 'Dr. Placeholder Ortho', 'Orthopedics', 'Sample Orthopedic Group', '(555) 010-0902', null, false, 'Knee.');
 
-insert into public.medications (id, patient, name, dose, schedule, purpose, prescriber_id, started_on, stopped_on, active, notes, source) values
-  ('000000ae-0000-4000-8000-000000000001', 'diana', 'Metformin (sample)', '500 mg', 'Twice daily with meals', 'Blood sugar', '000000ad-0000-4000-8000-000000000001', '2024-02-01', null, true, null, 'app'),
-  ('000000ae-0000-4000-8000-000000000002', 'diana', 'Lisinopril (sample)', '10 mg', 'Every morning', 'Blood pressure', '000000ad-0000-4000-8000-000000000002', '2022-06-15', null, true, null, 'app'),
-  ('000000ae-0000-4000-8000-000000000003', 'diana', 'Vitamin D (sample)', '2000 IU', 'Daily', 'Supplement', null, null, null, true, 'Over the counter.', 'app'),
-  ('000000ae-0000-4000-8000-000000000004', 'rich', 'Atorvastatin (sample)', '20 mg', 'Every evening', 'Cholesterol', '000000ad-0000-4000-8000-000000000003', '2021-09-01', null, true, null, 'app'),
-  ('000000ae-0000-4000-8000-000000000005', 'rich', 'Meloxicam (sample)', '7.5 mg', 'Daily as needed', 'Knee pain', '000000ad-0000-4000-8000-000000000004', '2025-03-10', null, true, 'Dose lowered Nov 2026.', 'app'),
-  ('000000ae-0000-4000-8000-000000000006', 'rich', 'Old blood pressure pill (sample)', '5 mg', 'Daily', 'Blood pressure', '000000ad-0000-4000-8000-000000000003', '2019-01-01', '2023-04-01', false, 'Replaced.', 'app');
+insert into public.medications (id, patient, name, dose, schedule, purpose, prescriber_id, started_on, stopped_on, active, notes, frequency_kind, prn_for, max_per_day, source_document, source_date, source) values
+  ('000000ae-0000-4000-8000-000000000001', 'diana', 'Sample pain reliever A', '500 mg', null, 'Pain', '000000ad-0000-4000-8000-000000000001', null, null, true, null, 'prn', '[Sample] nerve pain flare', '3 tablets', '[Sample] Medication list from last visit', '2026-10-02', 'app'),
+  ('000000ae-0000-4000-8000-000000000002', 'diana', 'Sample anti-nausea', '4 mg', null, null, '000000ad-0000-4000-8000-000000000001', null, null, true, null, 'prn', '[Sample] nausea', '2 tablets', '[Sample] Medication list from last visit', '2026-10-02', 'app'),
+  ('000000ae-0000-4000-8000-000000000003', 'diana', 'Sample sleep aid', '5 mg', null, null, '000000ad-0000-4000-8000-000000000001', null, null, true, null, 'prn', '[Sample] sleeplessness', '1 tablet at bedtime', '[Sample] Medication list from last visit', '2026-10-02', 'app'),
+  ('000000ae-0000-4000-8000-000000000004', 'diana', 'Sample muscle relaxant', '10 mg', null, null, '000000ad-0000-4000-8000-000000000002', null, null, true, null, 'prn', '[Sample] back spasm', '2 tablets', '[Sample] Medication list from last visit', '2026-10-02', 'app'),
+  ('000000ae-0000-4000-8000-000000000005', 'diana', 'Sample antacid', '20 mg', null, null, null, null, null, true, 'Over the counter.', 'prn', '[Sample] heartburn', '1 tablet', '[Sample] Told to Karmel by phone', '2026-10-27', 'app'),
+  ('000000ae-0000-4000-8000-000000000006', 'rich', 'Atorvastatin (sample)', '20 mg', 'Every evening', 'Cholesterol', '000000ad-0000-4000-8000-000000000003', '2021-09-01', null, true, null, 'daily', null, null, '[Sample] VA medication list', '2026-09-07', 'app'),
+  ('000000ae-0000-4000-8000-000000000007', 'rich', 'Meloxicam (sample)', '7.5 mg', 'Daily as needed', null, '000000ad-0000-4000-8000-000000000004', '2025-03-10', null, true, 'Dose lowered Nov 2026.', 'prn', '[Sample] knee pain', '1 tablet', '[Sample] Ortho visit note', '2026-10-17', 'app'),
+  ('000000ae-0000-4000-8000-000000000008', 'rich', 'Old blood pressure pill (sample)', '5 mg', 'Daily', 'Blood pressure', '000000ad-0000-4000-8000-000000000003', '2019-01-01', '2023-04-01', false, 'Replaced.', 'daily', null, null, '[Sample] Medication list from last visit', '2026-10-02', 'app');
 
-insert into public.health_conditions (id, patient, kind, name, detail, since) values
-  ('000000af-0000-4000-8000-000000000001', 'diana', 'condition', 'Type 2 diabetes (sample)', 'Managed with medication and diet.', '2024-01-01'),
-  ('000000af-0000-4000-8000-000000000002', 'diana', 'condition', 'High blood pressure (sample)', null, '2022-01-01'),
-  ('000000af-0000-4000-8000-000000000003', 'diana', 'allergy', 'Penicillin (sample)', 'Rash.', null),
-  ('000000af-0000-4000-8000-000000000004', 'diana', 'coverage', 'Medicare Part A & B + supplement (sample)', 'Cards in the blue folder.', null),
-  ('000000af-0000-4000-8000-000000000005', 'rich', 'condition', 'Knee osteoarthritis (sample)', 'Service-connected.', '2015-01-01'),
-  ('000000af-0000-4000-8000-000000000006', 'rich', 'allergy', 'No known allergies', null, null),
-  ('000000af-0000-4000-8000-000000000007', 'rich', 'coverage', 'VA health care + Medicare (sample)', 'VA is primary for service-connected care.', null);
+insert into public.health_conditions (id, patient, kind, name, detail, since, reaction, severity, status, source_document, source_date) values
+  ('000000af-0000-4000-8000-000000000001', 'diana', 'condition', '[Sample] Nerve pain condition', 'Flares a few times a month; managed with PRN medication.', '2024-03-01', null, 'severe', 'active', '[Sample] Clinic summary', '2026-10-02'),
+  ('000000af-0000-4000-8000-000000000002', 'diana', 'condition', '[Sample] Liver injury from a medication', 'Resolved after the medication was stopped; liver labs monitored.', '2026-05-01', null, null, 'monitoring', '[Sample] Hospital discharge summary', '2026-05-20'),
+  ('000000af-0000-4000-8000-000000000003', 'diana', 'condition', '[Sample] Bone-density condition', 'Fall precautions at home.', '2022-01-01', null, 'severe', 'active', '[Sample] Clinic summary', '2026-10-02'),
+  ('000000af-0000-4000-8000-000000000004', 'diana', 'condition', '[Sample] Anxiety / stress condition', 'Followed by primary care.', '2020-01-01', null, null, 'active', '[Sample] Clinic summary', '2026-10-02'),
+  ('000000af-0000-4000-8000-000000000005', 'diana', 'sensitivity', '[Sample] Common pain reliever', null, null, 'Stomach bleeding risk', 'moderate', 'active', '[Sample] Pharmacy record', '2026-10-02'),
+  ('000000af-0000-4000-8000-000000000006', 'diana', 'sensitivity', '[Sample] Mineral supplement', null, null, 'Kidney stones', 'mild', 'active', '[Sample] Clinic summary', '2026-10-02'),
+  ('000000af-0000-4000-8000-000000000007', 'diana', 'sensitivity', '[Sample] Nerve medication', null, null, 'Caused the liver injury', 'severe', 'active', '[Sample] Hospital discharge summary', '2026-05-20'),
+  ('000000af-0000-4000-8000-000000000008', 'diana', 'allergy', 'Penicillin (sample)', null, null, 'Rash', 'moderate', 'active', '[Sample] Clinic summary', '2026-10-02'),
+  ('000000af-0000-4000-8000-000000000009', 'diana', 'coverage', 'Medicare Part A & B + supplement (sample)', 'Cards in the blue folder.', null, null, null, 'active', null, null),
+  ('000000af-0000-4000-8000-00000000000a', 'rich', 'condition', 'Knee osteoarthritis (sample)', 'Service-connected.', '2015-01-01', null, null, 'active', '[Sample] VA rating decision', '2023-05-01'),
+  ('000000af-0000-4000-8000-00000000000b', 'rich', 'allergy', 'No known allergies', null, null, null, null, 'active', '[Sample] VA medication list', '2026-09-07'),
+  ('000000af-0000-4000-8000-00000000000c', 'rich', 'coverage', 'VA health care + Medicare (sample)', 'VA is primary for service-connected care.', null, null, null, 'active', null, null);
 
 insert into public.visit_notes (id, patient, visit_on, provider_id, summary, follow_up, author_name, source) values
   ('000000b0-0000-4000-8000-000000000001', 'diana', '2026-10-02', '000000ad-0000-4000-8000-000000000001', '[Sample] Routine check. Blood pressure good. Ordered A1C.', 'Repeat labs in 3 months.', 'Karmel', 'app'),
@@ -251,10 +258,13 @@ insert into public.visit_notes (id, patient, visit_on, provider_id, summary, fol
   ('000000b0-0000-4000-8000-000000000003', 'rich', '2026-10-17', '000000ad-0000-4000-8000-000000000004', '[Sample] Knee still sore after walking. Discussed injection option.', 'Decide on injection at next visit.', 'Heather', 'app'),
   ('000000b0-0000-4000-8000-000000000004', 'rich', '2026-09-07', '000000ad-0000-4000-8000-000000000003', '[Sample] Annual VA visit. Labs fine. Updated claim paperwork.', null, 'Riana', 'riana');
 
-insert into public.va_claims (id, kind, title, status, filed_on, decided_on, rating_pct, next_step, notes, source) values
-  ('000000b1-0000-4000-8000-000000000001', 'rating_decision', 'Current combined rating', '70% (sample)', null, '2023-05-01', 70, null, 'Letter in the VA folder.', 'app'),
-  ('000000b1-0000-4000-8000-000000000002', 'claim', 'Increase for knee condition (sample)', 'Under review', '2026-08-08', null, null, 'C&P exam scheduled.', null, 'app'),
-  ('000000b1-0000-4000-8000-000000000003', 'cp_exam', 'C&P exam — knee', 'Scheduled', null, null, null, 'Attend exam on November 19. Bring claim packet.', null, 'riana');
+insert into public.va_claims (id, kind, title, status, filed_on, decided_on, event_on, rating_pct, next_step, summary, notes, source) values
+  ('000000b1-0000-4000-8000-000000000001', 'rating_decision', 'Combined rating', '70% (sample)', null, '2023-05-01', '2023-05-01', 70, null, '[Sample] Rating decision letter.', 'Letter in the VA folder.', 'app'),
+  ('000000b1-0000-4000-8000-000000000002', 'letter', 'VA claim letter', 'Received', null, null, '2023-08-22', null, null, '[Sample] Acknowledgement of the increase claim; evidence requested.', null, 'import'),
+  ('000000b1-0000-4000-8000-000000000003', 'claim', 'Increase for knee condition (sample)', 'Under review', '2026-02-10', null, '2026-02-10', null, 'C&P exam scheduled.', null, null, 'app'),
+  ('000000b1-0000-4000-8000-000000000004', 'letter', 'VA claim letter', 'Received', null, null, '2026-03-03', null, null, '[Sample] Claim received; exam to be scheduled.', null, 'import'),
+  ('000000b1-0000-4000-8000-000000000005', 'letter', 'VA claim letter', 'Received', null, null, '2026-07-23', null, null, '[Sample] Exam scheduling notice.', null, 'import'),
+  ('000000b1-0000-4000-8000-000000000006', 'cp_exam', 'C&P exam — knee', 'Scheduled', null, null, '2026-11-06', null, 'Attend the exam on November 6. Bring the claim packet.', null, null, 'riana');
 
 insert into public.accounts (id, institution, kind, purpose, last4, held_by, beneficiary_notes, notes, source) values
   ('000000b2-0000-4000-8000-000000000001', 'Sample Credit Union', 'checking', 'Everyday bills and autopay', '1234', 'both', '[Sample] POD to the children equally.', null, 'app'),
