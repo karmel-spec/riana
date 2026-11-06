@@ -236,16 +236,28 @@ export type Medication = {
   stopped_on: string | null;
   active: boolean;
   notes: string | null;
+  frequency_kind: "daily" | "prn" | "weekly" | "other";
+  prn_for: string | null;
+  max_per_day: string | null;
+  source_document: string | null;
+  source_file_id: string | null;
+  source_date: string | null;
   source: Source;
 };
 
 export type HealthCondition = {
   id: string;
   patient: "rich" | "diana";
-  kind: "condition" | "allergy" | "coverage";
+  kind: "condition" | "allergy" | "sensitivity" | "coverage";
   name: string;
   detail: string | null;
   since: string | null;
+  reaction: string | null;
+  severity: "mild" | "moderate" | "severe" | "life_threatening" | null;
+  status: "active" | "resolved" | "monitoring";
+  source_document: string | null;
+  source_file_id: string | null;
+  source_date: string | null;
 };
 
 export type VisitNote = {
@@ -262,14 +274,17 @@ export type VisitNote = {
 
 export type VaClaim = {
   id: string;
-  kind: "claim" | "appeal" | "cp_exam" | "rating_decision";
+  kind: "claim" | "appeal" | "cp_exam" | "rating_decision" | "letter" | "evidence" | "note";
   title: string;
   status: string;
   filed_on: string | null;
   decided_on: string | null;
+  event_on: string | null;
   rating_pct: number | null;
   next_step: string | null;
+  summary: string | null;
   notes: string | null;
+  imported_file_id: string | null;
   source: Source;
 };
 

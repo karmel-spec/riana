@@ -400,3 +400,21 @@ select test.ok(test.rows('select * from public.tribute_pages') = 0, 'a grandchil
 select test.ok(test.fails($$select public.tribute_set_status('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'published')$$), 'a grandchild cannot publish');
 reset role;
 \echo 'Media library tests passed.'
+
+-- Health structuring & VA timeline --------------------------------------------------
+select test.act(:DI, 'aal2'); set role authenticated;
+select test.ok((select count(*) from public.medications where patient = 'diana' and active and frequency_kind = 'daily') = 0 and (select count(*) from public.medications where patient = 'diana' and active and frequency_kind = 'prn') = 5, 'Diana: no daily meds, five PRN');
+select test.ok((select count(*) from public.medications where patient = 'diana' and (source_document is null or source_date is null)) = 0, 'every medication carries a source and a date');
+select test.ok((select count(*) from public.health_conditions where patient = 'diana' and kind = 'condition' and since is null) = 0, 'every condition has an onset date');
+select test.ok((select count(*) from public.health_conditions where patient = 'diana' and kind in ('allergy', 'sensitivity') and reaction is null) = 0, 'every allergy/sensitivity records its reaction');
+select test.ok(test.fails($$insert into public.medications (patient, name, frequency_kind) values ('diana', 'x', 'sometimes')$$), 'unknown frequency kind is rejected');
+reset role;
+select test.act(:RICH, 'aal2'); set role authenticated;
+select test.ok((select count(*) from public.va_claim_timeline where kind = 'letter') = 3, 'the three VA claim letters are on the timeline');
+select test.ok((select string_agg(timeline_on::text, ',' order by timeline_on) from public.va_claim_timeline where kind = 'letter') = '2023-08-22,2026-03-03,2026-07-23', 'letters are ordered by date');
+select test.ok(exists (select 1 from public.calendar_events where about = 'rich' and starts_at::date = '2026-11-06' and title ilike '%C&P%'), 'the Nov 6, 2026 C&P exam is on the calendar');
+reset role;
+select test.act(:DI, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.va_claim_timeline') = 0, 'Diana does not see Rich''s VA timeline');
+reset role;
+\echo 'Health structuring tests passed.'

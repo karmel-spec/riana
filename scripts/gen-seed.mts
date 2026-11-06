@@ -46,10 +46,10 @@ out += insert("tax_records", f.taxRecords.map((x) => pick(x, "id", "tax_year", "
 out += insert("tax_source_items", f.taxSourceItems.map((x) => pick(x, "id", "tax_year", "label", "provider", "where_to_find", "portal_url", "vault_item", "received", "received_on", "notes")));
 out += insert("riana_updates", f.rianaUpdates.map((x) => ({ ...pick(x, "id", "kind", "summary", "received_at", "review_status"), payload: "{}" })));
 out += insert("providers", f.providers.map((x) => pick(x, "id", "patient", "name", "specialty", "practice", "phone", "portal_name", "is_va", "notes")));
-out += insert("medications", f.medications.map((x) => pick(x, "id", "patient", "name", "dose", "schedule", "purpose", "prescriber_id", "started_on", "stopped_on", "active", "notes", "source")));
-out += insert("health_conditions", f.healthConditions.map((x) => pick(x, "id", "patient", "kind", "name", "detail", "since")));
+out += insert("medications", f.medications.map((x) => pick(x, "id", "patient", "name", "dose", "schedule", "purpose", "prescriber_id", "started_on", "stopped_on", "active", "notes", "frequency_kind", "prn_for", "max_per_day", "source_document", "source_date", "source")));
+out += insert("health_conditions", f.healthConditions.map((x) => pick(x, "id", "patient", "kind", "name", "detail", "since", "reaction", "severity", "status", "source_document", "source_date")));
 out += insert("visit_notes", f.visitNotes.map((x) => pick(x, "id", "patient", "visit_on", "provider_id", "summary", "follow_up", "author_name", "source")));
-out += insert("va_claims", f.vaClaims.map((x) => pick(x, "id", "kind", "title", "status", "filed_on", "decided_on", "rating_pct", "next_step", "notes", "source")));
+out += insert("va_claims", f.vaClaims.map((x) => pick(x, "id", "kind", "title", "status", "filed_on", "decided_on", "event_on", "rating_pct", "next_step", "summary", "notes", "source")));
 out += insert("accounts", f.accounts.map((x) => pick(x, "id", "institution", "kind", "purpose", "last4", "held_by", "beneficiary_notes", "notes", "source")));
 out += insert("digital_accounts", f.digitalAccounts.map((x) => pick(x, "id", "service", "website", "owner", "category", "purpose", "vault_name", "vault_item", "status", "after_death", "notes", "source")));
 out += insert("household_items", f.householdItems.map((x) => pick(x, "id", "kind", "name", "details", "source")));
