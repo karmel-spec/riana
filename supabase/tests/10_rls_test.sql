@@ -41,6 +41,11 @@ grant execute on function test.act(uuid, text) to anon, authenticated;
 \set ATT '''77777777-7777-4777-8777-777777777777'''
 \set OLD '''88888888-8888-4888-8888-888888888888'''
 
+-- These tests describe the rules with 2-step verification REQUIRED (the
+-- production setting once everyone has an authenticator). Migration
+-- 20261106000013 ships the switch off, so turn it on for the run.
+update app.settings set value = 'true'::jsonb where key = 'mfa_required';
+
 -- Anonymous visitors -------------------------------------------------------
 set role anon;
 select test.ok(test.rows('select * from public.urgent_questions') <= 0, 'anon cannot read urgent questions');
@@ -371,6 +376,35 @@ select test.act(:DAV, 'aal2'); set role authenticated;
 select test.ok(test.rows('select * from public.vehicles') = 0, 'family cannot see vehicles');
 reset role;
 \echo 'Vehicles tests passed.'
+
+-- Riana Drive sync (Binder doc) ---------------------------------------------------
+select test.act(:K, 'aal2'); set role authenticated;
+insert into public.riana_doc_sources (name, drive_file_id) values ('Greene Family Binder', '1abcDEFghiJKLmnoPQRstuVWXyz0123456789');
+select test.ok(test.rows('select * from public.riana_doc_sources') = 1, 'super admin can register a Binder doc');
+select test.ok(test.fails($$insert into public.riana_doc_sources (name, drive_file_id) values ('dup', '1abcDEFghiJKLmnoPQRstuVWXyz0123456789')$$), 'the same doc cannot be registered twice');
+select test.ok(test.fails($$insert into public.riana_doc_sources (name, drive_file_id) values ('short', 'abc')$$), 'a bad file id is refused');
+-- The sync inserts proposals as the signed-in super admin with a gdoc: ref.
+insert into public.riana_updates (kind, summary, payload, external_ref, source)
+values ('appointment', 'APPOINTMENTS: Dad cardiology follow-up Nov 12', '{"heading":"APPOINTMENTS","line":"Dad cardiology follow-up Nov 12"}', 'gdoc:1abcDEFghiJKLmnoPQRstuVWXyz0123456789:0123456789abc', 'riana');
+select test.ok(test.fails($$insert into public.riana_updates (kind, summary, payload, external_ref, source) values ('note', 'again', '{}', 'gdoc:1abcDEFghiJKLmnoPQRstuVWXyz0123456789:0123456789abc', 'riana')$$), 'the same doc line is never proposed twice');
+select test.ok((select review_status from public.riana_updates where external_ref like 'gdoc:%') = 'pending', 'a doc line waits as pending');
+select test.ok(exists (select 1 from public.audit_log a join public.riana_updates u on u.id = a.entity_id where u.external_ref like 'gdoc:%' and a.via = 'riana' and a.action = 'create'), 'a doc proposal is audited via Riana');
+insert into public.drive_sync_runs (mode, started_by, finished_at, ok, summary) values ('riana_doc', :K, now(), true, '{"docs":1,"proposed":1}');
+select test.ok(test.rows($$select * from public.drive_sync_runs where mode = 'riana_doc'$$) = 1, 'a doc sync run is recorded');
+update public.riana_doc_sources set last_synced_at = now(), last_proposed = 1 where drive_file_id = '1abcDEFghiJKLmnoPQRstuVWXyz0123456789';
+select test.ok((select last_proposed from public.riana_doc_sources) = 1, 'the doc remembers its last sync');
+reset role;
+select test.act(:DAV, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.riana_doc_sources') = 0, 'family cannot see the doc list');
+select test.ok(test.fails($$insert into public.riana_doc_sources (name, drive_file_id) values ('x', '1abcDEFghiJKLmnoPQRstuVWXyz0123456780')$$), 'family cannot register a doc');
+reset role;
+select test.act(:RICH, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.riana_doc_sources') = 0, 'a parent cannot see the doc list');
+reset role;
+select set_config('request.jwt.claims', '', false); set role anon;
+select test.ok(test.rows('select * from public.riana_doc_sources') <= 0, 'anon cannot see the doc list');
+reset role;
+\echo 'Riana Drive sync tests passed.'
 
 -- Media library & tribute pages ---------------------------------------------------
 select test.act(:K, 'aal2'); set role authenticated;

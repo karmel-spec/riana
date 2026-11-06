@@ -7,7 +7,7 @@ import { createSign } from "node:crypto";
  * plain REST calls. The service account sees only folders explicitly shared
  * with it (Viewer), never anyone's personal Drive.
  */
-import { FOLDER_MIME, type DriveClient, type DriveFile } from "./types.ts";
+import { FOLDER_MIME, GDOC_MIME, type DriveClient, type DriveFile } from "./types.ts";
 export type { DriveClient, DriveFile } from "./types.ts";
 export { FOLDER_MIME } from "./types.ts";
 
@@ -100,6 +100,24 @@ export function realDriveClient(sa: SA): DriveClient {
       return fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&supportsAllDrives=true`, {
         headers: { authorization: `Bearer ${token}`, ...(range ? { range } : {}) },
       });
+    },
+    async getFile(fileId) {
+      return norm(await api(`files/${fileId}`, { fields: FIELDS }));
+    },
+    async exportText(fileId) {
+      const token = await accessToken(sa);
+      const meta = await api(`files/${fileId}`, { fields: "id,mimeType" });
+      const url = meta.mimeType === GDOC_MIME
+        ? `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=text%2Fplain`
+        : `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&supportsAllDrives=true`;
+      if (meta.mimeType !== GDOC_MIME && !/^text\//.test(String(meta.mimeType))) {
+        throw new Error("Only Google Docs and plain-text files can be read as notes");
+      }
+      const res = await fetch(url, { headers: { authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error(`Drive export: ${res.status} ${res.statusText}`);
+      const text = await res.text();
+      if (text.length > 2_000_000) throw new Error("Document is too large to read (over 2 MB of text)");
+      return text;
     },
   };
 }
