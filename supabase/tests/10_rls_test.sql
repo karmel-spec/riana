@@ -269,7 +269,7 @@ select test.act(:K, 'aal2'); set role authenticated;
 select test.ok(test.rows('select * from public.estate_plan_versions') = 1 and test.rows('select * from public.estate_provisions') = 10, 'super admin sees the plan and its provisions');
 select test.ok(test.rows('select * from public.plan_conflicts where status <> ''resolved''') >= 5, 'at least the five brief conflicts are open questions');
 select test.ok((select count(*) from public.plan_conflicts where owner_name is not null) = (select count(*) from public.plan_conflicts), 'every open question has an owner');
-select test.ok((select count(*) from public.loans where monthly_payment is not null and first_payment_on is not null) = 2, 'both StarLar notes carry payment terms');
+select test.ok((select count(*) from public.loans where direction = 'owed_to_estate' and monthly_payment is not null and first_payment_on is not null) = 2, 'both StarLar notes carry payment terms');
 select test.ok(test.fails($$insert into public.plan_conflicts (title, status) values ('x', 'maybe')$$), 'unknown conflict status is rejected');
 reset role;
 select test.act(:ATT, 'aal2'); set role authenticated;
@@ -280,3 +280,17 @@ select test.act(:DAV, 'aal2'); set role authenticated;
 select test.ok(test.rows('select * from public.plan_conflicts') = 0 or exists (select 1 from public.user_section_access where user_id = :DAV::uuid and section = 'legal' and break_glass), 'family without Legal sees no plan (unless break-glass is active)');
 reset role;
 \echo 'Estate plan tests passed.'
+
+-- Loans ledger ----------------------------------------------------------------
+select test.act(:K, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.loans where direction = ''owed_to_estate''') >= 5, 'the three family loans and the two StarLar notes exist');
+select test.ok((select status from public.loans where counterparty = 'StarLar') = 'unclassified', 'the $20k StarLar item is unclassified (gift or loan)');
+select test.ok((select appraisal_value from public.loans where appraisal_on = '2026-09-10') = 485000, 'the rental loan carries its AVM appraisal');
+select test.ok((select simple_balance from public.loan_balances b join public.loans l on l.id = b.loan_id where l.counterparty like 'Ryan%') = 35000, 'balance = principal minus recorded payments');
+select test.ok((select count(*) from public.loans l where l.direction = 'owed_to_estate' and l.status <> 'unclassified' and (l.legal_document_id is not null or l.imported_file_id is not null)) >= 3, 'signed/proposed loans link to a document');
+select test.ok(test.fails($$insert into public.loan_payments (loan_id, paid_on, amount) select id, now(), -5 from public.loans limit 1$$), 'negative payments are rejected');
+reset role;
+select test.act(:DAV, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.loans') = 0 and test.rows('select * from public.loan_payments') = 0 and test.rows('select * from public.loan_balances') = 0, 'family cannot see loans, payments or balances');
+reset role;
+\echo 'Loans ledger tests passed.'
