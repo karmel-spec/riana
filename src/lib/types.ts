@@ -388,3 +388,35 @@ export type PlanConflict = {
   due_on: string | null;
   sort_order: number;
 };
+
+export type Vehicle = {
+  id: string;
+  year: number | null;
+  make: string;
+  model: string | null;
+  nickname: string | null;
+  engine: string | null;
+  vin_last4: string | null;
+  estimated_value: number | null;
+  valuation_on: string | null;
+  valuation_source: string | null;
+  title_location: string | null;
+  owner: Subject;
+  insurance_policy_id: string | null;
+  estate_provision_id: string | null;
+  specs_file_id: string | null;
+  notes: string | null;
+  source: Source;
+};
+
+export type VehicleImprovement = {
+  id: string;
+  vehicle_id: string;
+  done_on: string | null;
+  done_on_approx: string | null;
+  description: string;
+  cost: number | null;
+  vendor: string | null;
+  imported_file_id: string | null;
+  source: Source;
+};

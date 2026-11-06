@@ -305,3 +305,20 @@ select test.ok(not test.fails($$insert into public.digital_accounts (service, va
 select test.ok((select count(*) filter (where status = 'found') from public.digital_accounts) > 0 and (select count(*) filter (where status = 'to_find') from public.digital_accounts) > 0, 'progress has both found and to-find rows');
 reset role;
 \echo 'Accounts directory tests passed.'
+
+-- Vehicles --------------------------------------------------------------------------
+select test.act(:K, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.vehicles') = 3, 'super admin sees the vehicles');
+select test.ok((select estimated_value from public.vehicles where nickname = 'Vickie') = 50000 and (select engine from public.vehicles where nickname = 'Vickie') = '350 Chevy V8', 'Vickie has her value and engine');
+select test.ok((select count(*) from public.vehicle_improvements vi join public.vehicles v on v.id = vi.vehicle_id where v.nickname = 'Vickie') = 6, 'Vickie has an improvements list');
+select test.ok((select count(*) from public.vehicles where insurance_policy_id is not null and estate_provision_id is not null) = 2, 'both classics link to the policy and the plan');
+select test.ok(test.fails($$insert into public.vehicles (make, vin_last4) values ('x', '1HGCM82633A004352')$$), 'a full VIN is rejected');
+reset role;
+select test.act(:RICH, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.vehicles') = 3, 'a parent can read the vehicles (properties)');
+select test.ok(test.fails($$insert into public.vehicle_improvements (vehicle_id, description) select id, 'x' from public.vehicles limit 1$$), 'a parent cannot add improvements (read-only on properties)');
+reset role;
+select test.act(:DAV, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.vehicles') = 0, 'family cannot see vehicles');
+reset role;
+\echo 'Vehicles tests passed.'

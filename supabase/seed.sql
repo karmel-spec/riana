@@ -296,4 +296,17 @@ insert into public.household_items (id, kind, name, details, source) values
   ('000000b7-0000-4000-8000-000000000008', 'other', 'Home safe', '[Sample] In the master closet. Combination is in 1Password under "Greene – Home safe". Holds titles, the POA originals and passports.', 'app'),
   ('000000b7-0000-4000-8000-000000000009', 'other', 'Spare keys', '[Sample] Next-door neighbor has a house key. Garage code is in 1Password.', 'app');
 
+insert into public.vehicles (id, year, make, model, nickname, engine, vin_last4, estimated_value, valuation_on, valuation_source, title_location, owner, insurance_policy_id, estate_provision_id, notes, source) values
+  ('000000bd-0000-4000-8000-000000000001', 1934, 'Ford', 'Victoria', 'Vickie', '350 Chevy V8', null, 50000, '2026-10-01', 'Family estimate (sample)', '[Sample] Home safe', 'rich', '000000b4-0000-4000-8000-000000000002', '000000ba-0000-4000-8000-000000000003', 'Specs and the improvements list come from the ''Vickie Specs'' and ''34 Vickie Improvements'' documents once imported.', 'app'),
+  ('000000bd-0000-4000-8000-000000000002', 1956, 'Chevrolet', '[Sample] Bel Air', 'the ''56', '[Sample] 265 V8', null, 100000, '2026-10-01', 'Family estimate (sample)', '[Sample] Home safe', 'rich', '000000b4-0000-4000-8000-000000000002', '000000ba-0000-4000-8000-000000000003', null, 'app'),
+  ('000000bd-0000-4000-8000-000000000003', 2019, '[Sample] Sedan', null, 'the everyday car', null, null, 14000, '2026-06-01', '[Sample] Online estimate', '[Sample] Home safe', 'both', '000000b4-0000-4000-8000-000000000001', null, 'Spare key on the hook by the garage door.', 'app');
+
+insert into public.vehicle_improvements (id, vehicle_id, done_on, done_on_approx, description, cost, vendor, source) values
+  ('000000be-0000-4000-8000-000000000001', '000000bd-0000-4000-8000-000000000001', '2016-05-01', null, '[Sample] Engine rebuild and new intake', 6800, 'Sample Speed Shop', 'import'),
+  ('000000be-0000-4000-8000-000000000002', '000000bd-0000-4000-8000-000000000001', '2017-08-01', null, '[Sample] Disc brake conversion', 2400, 'Sample Speed Shop', 'import'),
+  ('000000be-0000-4000-8000-000000000003', '000000bd-0000-4000-8000-000000000001', null, '2019', '[Sample] Paint and body', 9500, 'Sample Body Works', 'import'),
+  ('000000be-0000-4000-8000-000000000004', '000000bd-0000-4000-8000-000000000001', '2021-03-15', null, '[Sample] Upholstery and headliner', 3100, null, 'import'),
+  ('000000be-0000-4000-8000-000000000005', '000000bd-0000-4000-8000-000000000001', '2023-10-10', null, '[Sample] Wiring harness and gauges', 1900, null, 'import'),
+  ('000000be-0000-4000-8000-000000000006', '000000bd-0000-4000-8000-000000000001', null, 'summer 2025', '[Sample] New tires and alignment', 1200, 'Sample Tire Co.', 'import');
+
 commit;
