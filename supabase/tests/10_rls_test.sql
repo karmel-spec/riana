@@ -371,3 +371,32 @@ select test.act(:DAV, 'aal2'); set role authenticated;
 select test.ok(test.rows('select * from public.vehicles') = 0, 'family cannot see vehicles');
 reset role;
 \echo 'Vehicles tests passed.'
+
+-- Media library & tribute pages ---------------------------------------------------
+select test.act(:K, 'aal2'); set role authenticated;
+insert into public.media_items (id, kind, title, review_status) values ('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'audio_story', 'Test song', 'approved');
+insert into public.playlist_tracks (playlist_id, media_item_id, position) select id, 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 1 from public.playlists where slug = 'sing-along';
+insert into public.tribute_pages (id, slug, title) values ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'test-page', 'Test tribute');
+insert into public.tribute_blocks (page_id, position, kind, media_item_id) values ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 1, 'media', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc');
+select test.ok(public.tribute_public('test-page', 'x') is null, 'a draft tribute is not visible by link');
+select set_config('test.tok', public.tribute_set_status('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'published'), false);
+select test.ok(length(current_setting('test.tok')) = 48, 'publishing mints a 48-hex token');
+reset role;
+set role anon;
+select test.ok(public.tribute_public('test-page', 'wrong') is null, 'wrong token sees nothing');
+select test.ok((public.tribute_public('test-page', current_setting('test.tok')) ->> 'title') = 'Test tribute', 'the share link shows the published page');
+select test.ok(jsonb_array_length(public.tribute_public('test-page', current_setting('test.tok')) -> 'media') = 1, 'and its media pointers');
+select test.ok(test.rows('select * from public.tribute_pages') <= 0 and test.rows('select * from public.media_items') <= 0, 'anon still cannot read the tables directly');
+reset role;
+select test.ok(exists (select 1 from public.audit_log where entity = 'tribute_pages' and action = 'view' and actor is null), 'a share-link view is logged');
+select test.act(:K, 'aal2'); set role authenticated;
+select public.tribute_set_status('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'unpublished');
+reset role; set role anon;
+select test.ok(public.tribute_public('test-page', current_setting('test.tok')) is null, 'unpublishing kills the link');
+reset role;
+select test.act(:GK, 'aal1'); set role authenticated;
+select test.ok(test.rows('select * from public.playlists') = 1 and test.rows('select * from public.media_items') = 1, 'a grandchild can see the playlist and approved media');
+select test.ok(test.rows('select * from public.tribute_pages') = 0, 'a grandchild cannot see tribute drafts');
+select test.ok(test.fails($$select public.tribute_set_status('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'published')$$), 'a grandchild cannot publish');
+reset role;
+\echo 'Media library tests passed.'

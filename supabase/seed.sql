@@ -2,19 +2,19 @@
 -- Dates are relative to the day it was generated. Do not hand-edit.
 begin;
 insert into public.urgent_questions (id, question, topic, asked_of, owner_name, priority, status, answer, answered_by, answered_at, due_on, sort_order, source) values
-  ('000000a1-0000-4000-8000-000000000001', 'Where is the original signed healthcare power of attorney kept?', 'legal', 'both', 'Heather', 'high', 'asked', null, null, null, '2026-11-09', 1, 'app'),
-  ('000000a1-0000-4000-8000-000000000002', 'Do you still want Karmel and Heather as co-executors in the new will?', 'legal', 'both', 'Karmel', 'high', 'open', null, null, null, '2026-11-09', 2, 'app'),
-  ('000000a1-0000-4000-8000-000000000003', 'Which hymns would you like sung at your service?', 'final_wishes', 'diana', 'Karmel', 'normal', 'partly_answered', '[Sample] One favorite hymn chosen; still thinking about the closing song.', 'diana', '2026-10-30T15:00:00-07:00', null, 3, 'app'),
+  ('000000a1-0000-4000-8000-000000000001', 'Where is the original signed healthcare power of attorney kept?', 'legal', 'both', 'Heather', 'high', 'asked', null, null, null, '2026-11-10', 1, 'app'),
+  ('000000a1-0000-4000-8000-000000000002', 'Do you still want Karmel and Heather as co-executors in the new will?', 'legal', 'both', 'Karmel', 'high', 'open', null, null, null, '2026-11-10', 2, 'app'),
+  ('000000a1-0000-4000-8000-000000000003', 'Which hymns would you like sung at your service?', 'final_wishes', 'diana', 'Karmel', 'normal', 'partly_answered', '[Sample] One favorite hymn chosen; still thinking about the closing song.', 'diana', '2026-10-31T15:00:00-07:00', null, 3, 'app'),
   ('000000a1-0000-4000-8000-000000000004', 'Who should be called first if Dad goes to the hospital?', 'contacts', 'rich', 'Heather', 'normal', 'open', null, null, null, null, 4, 'riana'),
-  ('000000a1-0000-4000-8000-000000000005', 'Is the classic car going to anyone in particular?', 'household', 'rich', 'Karmel', 'normal', 'answered', '[Sample] Yes — written down in the household section.', 'rich', '2026-10-16T10:00:00-07:00', null, 5, 'app');
+  ('000000a1-0000-4000-8000-000000000005', 'Is the classic car going to anyone in particular?', 'household', 'rich', 'Karmel', 'normal', 'answered', '[Sample] Yes — written down in the household section.', 'rich', '2026-10-17T10:00:00-07:00', null, 5, 'app');
 
 insert into public.calendar_events (id, section, title, kind, about, starts_at, all_day, location, driver, notes, source) values
-  ('000000a2-0000-4000-8000-000000000001', 'health_diana', 'Cardiology follow-up', 'appointment', 'diana', '2026-11-12T10:30:00-07:00', false, 'Sample Heart Clinic', 'Karmel', 'Bring medication list.', 'app'),
-  ('000000a2-0000-4000-8000-000000000002', 'health_rich', 'VA C&P exam', 'appointment', 'rich', '2026-11-18T13:00:00-07:00', false, 'VA clinic (sample)', 'Heather', 'Bring claim packet.', 'riana'),
-  ('000000a2-0000-4000-8000-000000000003', 'taxes', 'Property tax, second half due', 'deadline', 'household', '2026-11-30T09:00:00-07:00', true, null, null, 'Tumwater rentals (sample).', 'app'),
-  ('000000a2-0000-4000-8000-000000000004', 'calendar', 'Family video call', 'family', 'both', '2026-11-08T18:00:00-07:00', false, 'Video call', null, null, 'app'),
-  ('000000a2-0000-4000-8000-000000000005', 'insurance', 'Auto policy renewal', 'renewal', 'both', '2026-12-15T09:00:00-07:00', true, null, null, null, 'app'),
-  ('000000a2-0000-4000-8000-000000000006', 'health_diana', 'Lab draw (fasting)', 'appointment', 'diana', '2026-11-24T08:00:00-07:00', false, 'Sample Lab', 'Rich', null, 'app');
+  ('000000a2-0000-4000-8000-000000000001', 'health_diana', 'Cardiology follow-up', 'appointment', 'diana', '2026-11-13T10:30:00-07:00', false, 'Sample Heart Clinic', 'Karmel', 'Bring medication list.', 'app'),
+  ('000000a2-0000-4000-8000-000000000002', 'health_rich', 'VA C&P exam', 'appointment', 'rich', '2026-11-19T13:00:00-07:00', false, 'VA clinic (sample)', 'Heather', 'Bring claim packet.', 'riana'),
+  ('000000a2-0000-4000-8000-000000000003', 'taxes', 'Property tax, second half due', 'deadline', 'household', '2026-12-01T09:00:00-07:00', true, null, null, 'Tumwater rentals (sample).', 'app'),
+  ('000000a2-0000-4000-8000-000000000004', 'calendar', 'Family video call', 'family', 'both', '2026-11-09T18:00:00-07:00', false, 'Video call', null, null, 'app'),
+  ('000000a2-0000-4000-8000-000000000005', 'insurance', 'Auto policy renewal', 'renewal', 'both', '2026-12-16T09:00:00-07:00', true, null, null, null, 'app'),
+  ('000000a2-0000-4000-8000-000000000006', 'health_diana', 'Lab draw (fasting)', 'appointment', 'diana', '2026-11-25T08:00:00-07:00', false, 'Sample Lab', 'Rich', null, 'app');
 
 insert into public.legal_documents (id, doc_type, title, principal, status, needs_recording, prepared_by, drafted_on, signed_on, recorded_on, original_location, open_issue, notes, sort_order, source) values
   ('000000a3-0000-4000-8000-000000000001', 'will', 'Last will and testament', 'both', 'drafted', false, 'Sample Law Office', '2021-06-01', null, null, null, 'Draft names one executor; family intends co-executors.', '2021 draft, unsigned.', 1, 'app'),
@@ -41,22 +41,22 @@ insert into public.contact_groups (id, name, kind, description) values
   ('000000a4-0000-4000-8000-00000000000a', 'Professionals', 'professional', 'Doctors, attorney, CPA, agents, property manager');
 
 insert into public.people (id, full_name, relationship, connected_to, email, phone, city, region, closeness, last_contact_on, preferred_method, notify_first, confirmed, notes) values
-  ('000000a5-0000-4000-8000-000000000001', 'Sample Son One', 'Son', 'both', 'son1@example.com', '(555) 010-0101', 'Sample City', 'WA', 1, '2026-11-03', 'phone', true, true, null),
-  ('000000a5-0000-4000-8000-000000000002', 'Sample Daughter Two', 'Daughter', 'both', 'dau2@example.com', '(555) 010-0102', 'Sample City', 'UT', 1, '2026-10-31', 'text', true, true, null),
-  ('000000a5-0000-4000-8000-000000000003', 'Ken Example', 'Close friend', 'rich', null, '(555) 010-0201', 'Lake Havasu City', 'AZ', 2, '2026-10-22', 'phone', true, true, 'Coffee every Tuesday.'),
-  ('000000a5-0000-4000-8000-000000000004', 'Pat Placeholder', 'Car club president', 'rich', 'pat@example.com', null, 'Lake Havasu City', 'AZ', 3, '2026-09-26', 'email', false, false, 'Can announce in the club newsletter.'),
-  ('000000a5-0000-4000-8000-000000000005', 'Joan Sampleton', 'Dear friend', 'diana', 'joan@example.com', '(555) 010-0301', 'Olympia', 'WA', 2, '2026-10-27', 'phone', true, true, null),
-  ('000000a5-0000-4000-8000-000000000006', 'Ruth Example', 'Ladies'' group friend', 'diana', null, '(555) 010-0302', 'Lake Havasu City', 'AZ', 3, '2026-10-06', 'phone', false, false, null),
-  ('000000a5-0000-4000-8000-000000000007', 'Bishop Sample', 'Bishop', 'both', 'bishop@example.com', '(555) 010-0401', 'Lake Havasu City', 'AZ', 3, '2026-10-15', 'phone', true, true, 'Coordinates the service and the luncheon.'),
+  ('000000a5-0000-4000-8000-000000000001', 'Sample Son One', 'Son', 'both', 'son1@example.com', '(555) 010-0101', 'Sample City', 'WA', 1, '2026-11-04', 'phone', true, true, null),
+  ('000000a5-0000-4000-8000-000000000002', 'Sample Daughter Two', 'Daughter', 'both', 'dau2@example.com', '(555) 010-0102', 'Sample City', 'UT', 1, '2026-11-01', 'text', true, true, null),
+  ('000000a5-0000-4000-8000-000000000003', 'Ken Example', 'Close friend', 'rich', null, '(555) 010-0201', 'Lake Havasu City', 'AZ', 2, '2026-10-23', 'phone', true, true, 'Coffee every Tuesday.'),
+  ('000000a5-0000-4000-8000-000000000004', 'Pat Placeholder', 'Car club president', 'rich', 'pat@example.com', null, 'Lake Havasu City', 'AZ', 3, '2026-09-27', 'email', false, false, 'Can announce in the club newsletter.'),
+  ('000000a5-0000-4000-8000-000000000005', 'Joan Sampleton', 'Dear friend', 'diana', 'joan@example.com', '(555) 010-0301', 'Olympia', 'WA', 2, '2026-10-28', 'phone', true, true, null),
+  ('000000a5-0000-4000-8000-000000000006', 'Ruth Example', 'Ladies'' group friend', 'diana', null, '(555) 010-0302', 'Lake Havasu City', 'AZ', 3, '2026-10-07', 'phone', false, false, null),
+  ('000000a5-0000-4000-8000-000000000007', 'Bishop Sample', 'Bishop', 'both', 'bishop@example.com', '(555) 010-0401', 'Lake Havasu City', 'AZ', 3, '2026-10-16', 'phone', true, true, 'Coordinates the service and the luncheon.'),
   ('000000a5-0000-4000-8000-000000000008', 'Relief Society President (sample)', 'Relief Society', 'diana', null, '(555) 010-0402', 'Lake Havasu City', 'AZ', 3, null, 'text', false, false, null),
   ('000000a5-0000-4000-8000-000000000009', 'Elders Quorum President (sample)', 'Elders quorum', 'rich', null, '(555) 010-0403', 'Lake Havasu City', 'AZ', 3, null, 'text', false, false, null),
-  ('000000a5-0000-4000-8000-00000000000a', 'Next-Door Neighbor (sample)', 'Neighbor', 'both', null, '(555) 010-0501', 'Lake Havasu City', 'AZ', 2, '2026-11-02', 'in_person', true, true, 'Has a spare key.'),
-  ('000000a5-0000-4000-8000-00000000000b', 'Former Neighbor (sample)', 'Old neighbor', 'both', 'neighbor@example.com', null, 'Tumwater', 'WA', 4, '2026-04-19', 'mail', false, false, 'Christmas cards.'),
-  ('000000a5-0000-4000-8000-00000000000c', 'Army Buddy (sample)', 'Served together', 'rich', null, '(555) 010-0601', 'Sample Town', 'TX', 3, '2026-08-07', 'phone', false, true, null),
+  ('000000a5-0000-4000-8000-00000000000a', 'Next-Door Neighbor (sample)', 'Neighbor', 'both', null, '(555) 010-0501', 'Lake Havasu City', 'AZ', 2, '2026-11-03', 'in_person', true, true, 'Has a spare key.'),
+  ('000000a5-0000-4000-8000-00000000000b', 'Former Neighbor (sample)', 'Old neighbor', 'both', 'neighbor@example.com', null, 'Tumwater', 'WA', 4, '2026-04-20', 'mail', false, false, 'Christmas cards.'),
+  ('000000a5-0000-4000-8000-00000000000c', 'Army Buddy (sample)', 'Served together', 'rich', null, '(555) 010-0601', 'Sample Town', 'TX', 3, '2026-08-08', 'phone', false, true, null),
   ('000000a5-0000-4000-8000-00000000000d', 'Veterans Post Contact (sample)', 'Veterans post', 'rich', 'post@example.com', null, 'Lake Havasu City', 'AZ', 4, null, 'email', false, false, 'Can help arrange military honors.'),
-  ('000000a5-0000-4000-8000-00000000000e', 'Estate Attorney (sample)', 'Attorney', 'both', 'attorney@example.com', '(555) 010-0701', 'Olympia', 'WA', 5, '2026-10-24', 'email', false, true, null),
-  ('000000a5-0000-4000-8000-00000000000f', 'Property Manager (sample)', 'Property manager', 'both', 'pm@example.com', '(555) 010-0702', 'Tumwater', 'WA', 5, '2026-10-28', 'email', false, true, null),
-  ('000000a5-0000-4000-8000-000000000010', 'Family Doctor (sample)', 'Primary care', 'diana', null, '(555) 010-0703', 'Lake Havasu City', 'AZ', 5, '2026-10-01', 'phone', false, true, null);
+  ('000000a5-0000-4000-8000-00000000000e', 'Estate Attorney (sample)', 'Attorney', 'both', 'attorney@example.com', '(555) 010-0701', 'Olympia', 'WA', 5, '2026-10-25', 'email', false, true, null),
+  ('000000a5-0000-4000-8000-00000000000f', 'Property Manager (sample)', 'Property manager', 'both', 'pm@example.com', '(555) 010-0702', 'Tumwater', 'WA', 5, '2026-10-29', 'email', false, true, null),
+  ('000000a5-0000-4000-8000-000000000010', 'Family Doctor (sample)', 'Primary care', 'diana', null, '(555) 010-0703', 'Lake Havasu City', 'AZ', 5, '2026-10-02', 'phone', false, true, null);
 
 insert into public.person_groups (person_id, group_id) values
   ('000000a5-0000-4000-8000-000000000001', '000000a4-0000-4000-8000-000000000001'),
@@ -127,21 +127,21 @@ insert into public.properties (id, name, kind, address, held_by, succession_plan
   ('000000b3-0000-4000-8000-000000000003', 'Rental B · Tumwater', 'rental', '[Sample] 200 Example St SE, Tumwater, WA', 'StarLar (Rich & Diana)', '[Sample] 50/50 to two children via TOD deed, outside the will.', '000000a5-0000-4000-8000-00000000000f', null, 'Easement amendment drafted 2021, unsigned.', 'import');
 
 insert into public.bills (id, payee, category, amount, frequency, next_due_on, autopay, status, notes, source, property_id) values
-  ('000000a8-0000-4000-8000-000000000001', 'Sample Electric Co.', 'Utilities', 142.18, 'monthly', '2026-11-03', true, 'failed', 'Card on file expired (sample).', 'riana', null),
-  ('000000a8-0000-4000-8000-000000000002', 'Mortgage · Rental A', 'Mortgage', 1210, 'monthly', '2026-11-01', true, 'paid', null, 'app', '000000b3-0000-4000-8000-000000000002'),
-  ('000000a8-0000-4000-8000-000000000003', 'HOA · Rental A', 'HOA', 95, 'monthly', '2026-11-15', false, 'upcoming', null, 'app', '000000b3-0000-4000-8000-000000000002'),
-  ('000000a8-0000-4000-8000-000000000004', 'Water & sewer (sample)', 'Utilities', 68.4, 'monthly', '2026-11-17', true, 'upcoming', null, 'app', null),
-  ('000000a8-0000-4000-8000-000000000005', 'Medicare supplement (sample)', 'Insurance', 231, 'monthly', '2026-11-19', true, 'upcoming', null, 'app', null),
-  ('000000a8-0000-4000-8000-000000000006', 'Property tax · WA (sample)', 'Taxes', 1850, 'semiannual', '2026-11-30', false, 'upcoming', null, 'app', '000000b3-0000-4000-8000-000000000003'),
-  ('000000a8-0000-4000-8000-000000000007', 'Phone & internet (sample)', 'Utilities', 119.99, 'monthly', '2026-11-23', true, 'upcoming', null, 'app', null);
+  ('000000a8-0000-4000-8000-000000000001', 'Sample Electric Co.', 'Utilities', 142.18, 'monthly', '2026-11-04', true, 'failed', 'Card on file expired (sample).', 'riana', null),
+  ('000000a8-0000-4000-8000-000000000002', 'Mortgage · Rental A', 'Mortgage', 1210, 'monthly', '2026-11-02', true, 'paid', null, 'app', '000000b3-0000-4000-8000-000000000002'),
+  ('000000a8-0000-4000-8000-000000000003', 'HOA · Rental A', 'HOA', 95, 'monthly', '2026-11-16', false, 'upcoming', null, 'app', '000000b3-0000-4000-8000-000000000002'),
+  ('000000a8-0000-4000-8000-000000000004', 'Water & sewer (sample)', 'Utilities', 68.4, 'monthly', '2026-11-18', true, 'upcoming', null, 'app', null),
+  ('000000a8-0000-4000-8000-000000000005', 'Medicare supplement (sample)', 'Insurance', 231, 'monthly', '2026-11-20', true, 'upcoming', null, 'app', null),
+  ('000000a8-0000-4000-8000-000000000006', 'Property tax · WA (sample)', 'Taxes', 1850, 'semiannual', '2026-12-01', false, 'upcoming', null, 'app', '000000b3-0000-4000-8000-000000000003'),
+  ('000000a8-0000-4000-8000-000000000007', 'Phone & internet (sample)', 'Utilities', 119.99, 'monthly', '2026-11-24', true, 'upcoming', null, 'app', null);
 
 insert into public.lab_results (id, patient, test_name, value, unit, ref_low, ref_high, taken_on, source) values
-  ('000000a9-0000-4000-8000-000000000001', 'diana', 'A1C', 5.2, '%', 4, 5.6, '2024-05-05', 'app'),
-  ('000000a9-0000-4000-8000-000000000002', 'diana', 'A1C', 5.3, '%', 4, 5.6, '2024-11-05', 'app'),
-  ('000000a9-0000-4000-8000-000000000003', 'diana', 'A1C', 5.4, '%', 4, 5.6, '2025-05-05', 'app'),
-  ('000000a9-0000-4000-8000-000000000004', 'diana', 'A1C', 5.5, '%', 4, 5.6, '2025-11-05', 'app'),
-  ('000000a9-0000-4000-8000-000000000005', 'diana', 'A1C', 5.6, '%', 4, 5.6, '2026-05-05', 'app'),
-  ('000000a9-0000-4000-8000-000000000006', 'diana', 'A1C', 6.1, '%', 4, 5.6, '2026-11-05', 'riana');
+  ('000000a9-0000-4000-8000-000000000001', 'diana', 'A1C', 5.2, '%', 4, 5.6, '2024-05-06', 'app'),
+  ('000000a9-0000-4000-8000-000000000002', 'diana', 'A1C', 5.3, '%', 4, 5.6, '2024-11-06', 'app'),
+  ('000000a9-0000-4000-8000-000000000003', 'diana', 'A1C', 5.4, '%', 4, 5.6, '2025-05-06', 'app'),
+  ('000000a9-0000-4000-8000-000000000004', 'diana', 'A1C', 5.5, '%', 4, 5.6, '2025-11-06', 'app'),
+  ('000000a9-0000-4000-8000-000000000005', 'diana', 'A1C', 5.6, '%', 4, 5.6, '2026-05-06', 'app'),
+  ('000000a9-0000-4000-8000-000000000006', 'diana', 'A1C', 6.1, '%', 4, 5.6, '2026-11-06', 'riana');
 
 insert into public.final_wishes (id, person, topic, wish, confirmed) values
   ('000000aa-0000-4000-8000-000000000001', 'both', 'burial_place', '[Sample] Family plot in Washington, beside other family members.', false),
@@ -188,13 +188,13 @@ insert into public.plan_conflicts (id, plan_version_id, provision_id, title, det
   ('000000bb-0000-4000-8000-000000000006', '000000b9-0000-4000-8000-000000000001', '000000ba-0000-4000-8000-000000000007', 'Note 1 terms don''t match its payment', '$250k at 4.75% over 20 years computes to $1,615.56/mo, not $1,655 (about $40/mo apart; $1,655 pays off in ~19 years). Confirm the note''s actual rate, term or payment.', 'Karmel', 'open', null, null, 6);
 
 insert into public.insurance_policies (id, kind, carrier, insured, policy_last4, premium, renews_on, agent_person_id, notes, source) values
-  ('000000b4-0000-4000-8000-000000000001', 'auto', 'Sample Mutual', 'both', '4411', 1180, '2026-12-15', null, 'Two vehicles.', 'app'),
-  ('000000b4-0000-4000-8000-000000000002', 'classic_car', 'Sample Classic Insurers', 'rich', '7720', 420, '2027-03-25', null, 'Agreed value. Limited miles.', 'app'),
-  ('000000b4-0000-4000-8000-000000000003', 'home', 'Sample Mutual', 'both', '3305', 1650, '2027-05-24', null, null, 'app'),
-  ('000000b4-0000-4000-8000-000000000004', 'landlord', 'Sample Mutual', 'both', '9981', 2100, '2027-05-24', null, 'Covers both Tumwater rentals.', 'app'),
-  ('000000b4-0000-4000-8000-000000000005', 'umbrella', 'Sample Mutual', 'both', '1002', 390, '2027-05-24', null, '$1M.', 'app'),
+  ('000000b4-0000-4000-8000-000000000001', 'auto', 'Sample Mutual', 'both', '4411', 1180, '2026-12-16', null, 'Two vehicles.', 'app'),
+  ('000000b4-0000-4000-8000-000000000002', 'classic_car', 'Sample Classic Insurers', 'rich', '7720', 420, '2027-03-26', null, 'Agreed value. Limited miles.', 'app'),
+  ('000000b4-0000-4000-8000-000000000003', 'home', 'Sample Mutual', 'both', '3305', 1650, '2027-05-25', null, null, 'app'),
+  ('000000b4-0000-4000-8000-000000000004', 'landlord', 'Sample Mutual', 'both', '9981', 2100, '2027-05-25', null, 'Covers both Tumwater rentals.', 'app'),
+  ('000000b4-0000-4000-8000-000000000005', 'umbrella', 'Sample Mutual', 'both', '1002', 390, '2027-05-25', null, '$1M.', 'app'),
   ('000000b4-0000-4000-8000-000000000006', 'medicare', 'Medicare', 'both', null, null, null, null, 'Parts A & B. Cards in the blue folder.', 'app'),
-  ('000000b4-0000-4000-8000-000000000007', 'supplemental', 'Sample Health Plan (Medicare Advantage)', 'diana', '5566', 231, '2026-12-30', null, 'Open enrollment each fall.', 'app'),
+  ('000000b4-0000-4000-8000-000000000007', 'supplemental', 'Sample Health Plan (Medicare Advantage)', 'diana', '5566', 231, '2026-12-31', null, 'Open enrollment each fall.', 'app'),
   ('000000b4-0000-4000-8000-000000000008', 'champva', 'CHAMPVA', 'diana', null, null, null, null, 'Secondary to Medicare.', 'app'),
   ('000000b4-0000-4000-8000-000000000009', 'life', 'Sample Life Co.', 'rich', '2290', 95, null, null, '[Sample] Term policy; beneficiary Diana. Check the end date.', 'app');
 
@@ -212,15 +212,15 @@ insert into public.tax_records (id, tax_year, kind, preparer, status, filed_on, 
   ('000000b5-0000-4000-8000-00000000000b', 2026, 'federal', 'Sample Block Advisor', 'Not started', null, 'Gather 1099s in January.', false, null, null, null, null, 'app');
 
 insert into public.tax_source_items (id, tax_year, label, provider, where_to_find, portal_url, vault_item, received, received_on, notes) values
-  ('000000b8-0000-4000-8000-000000000001', 2025, '1099 · Rental A rents', 'Welcome Home (sample portal)', 'Owner portal → Documents → Tax', 'https://example.com/welcome-home', 'Greene – Welcome Home portal', true, '2026-10-06', null),
+  ('000000b8-0000-4000-8000-000000000001', 2025, '1099 · Rental A rents', 'Welcome Home (sample portal)', 'Owner portal → Documents → Tax', 'https://example.com/welcome-home', 'Greene – Welcome Home portal', true, '2026-10-07', null),
   ('000000b8-0000-4000-8000-000000000002', 2025, '1099 · Rental B rents', 'MVP (sample portal)', 'Owner portal → Statements → Year-end', 'https://example.com/mvp', 'Greene – MVP portal', false, null, 'Usually posted late January.'),
   ('000000b8-0000-4000-8000-000000000003', 2025, '1098 · Mortgage interest, Rental A', 'Truist (sample)', 'Online banking → Documents → Tax forms', 'https://example.com/truist', 'Greene – Truist', false, null, null),
   ('000000b8-0000-4000-8000-000000000004', 2025, '1098 · Mortgage interest, Rental B', 'Mr. Cooper (sample)', 'Account → Tax documents', 'https://example.com/mrcooper', 'Greene – Mr. Cooper', false, null, null),
-  ('000000b8-0000-4000-8000-000000000005', 2025, 'SSA-1099 · Social Security', 'SSA.gov (sample)', 'my Social Security → Replacement documents', 'https://example.com/ssa', 'Rich – SSA', true, '2026-09-26', null);
+  ('000000b8-0000-4000-8000-000000000005', 2025, 'SSA-1099 · Social Security', 'SSA.gov (sample)', 'my Social Security → Replacement documents', 'https://example.com/ssa', 'Rich – SSA', true, '2026-09-27', null);
 
 insert into public.riana_updates (id, kind, summary, received_at, review_status, payload) values
-  ('000000ab-0000-4000-8000-000000000001', 'lab_result', 'New A1C result for Diana: 6.1 %', '2026-11-05T07:42:00-07:00', 'pending', '{}'),
-  ('000000ab-0000-4000-8000-000000000002', 'bill', 'Payment failed: Sample Electric Co., $142.18', '2026-11-04T09:05:00-07:00', 'pending', '{}');
+  ('000000ab-0000-4000-8000-000000000001', 'lab_result', 'New A1C result for Diana: 6.1 %', '2026-11-06T07:42:00-07:00', 'pending', '{}'),
+  ('000000ab-0000-4000-8000-000000000002', 'bill', 'Payment failed: Sample Electric Co., $142.18', '2026-11-05T09:05:00-07:00', 'pending', '{}');
 
 insert into public.providers (id, patient, name, specialty, practice, phone, portal_name, is_va, notes) values
   ('000000ad-0000-4000-8000-000000000001', 'diana', 'Dr. Sample Primary', 'Primary care', 'Sample Family Medicine', '(555) 010-0703', 'MyChart (sample)', false, null),
@@ -246,15 +246,15 @@ insert into public.health_conditions (id, patient, kind, name, detail, since) va
   ('000000af-0000-4000-8000-000000000007', 'rich', 'coverage', 'VA health care + Medicare (sample)', 'VA is primary for service-connected care.', null);
 
 insert into public.visit_notes (id, patient, visit_on, provider_id, summary, follow_up, author_name, source) values
-  ('000000b0-0000-4000-8000-000000000001', 'diana', '2026-10-01', '000000ad-0000-4000-8000-000000000001', '[Sample] Routine check. Blood pressure good. Ordered A1C.', 'Repeat labs in 3 months.', 'Karmel', 'app'),
-  ('000000b0-0000-4000-8000-000000000002', 'diana', '2026-05-09', '000000ad-0000-4000-8000-000000000002', '[Sample] Echo normal. Keep current medication.', 'See again in 6 months.', 'Heather', 'app'),
-  ('000000b0-0000-4000-8000-000000000003', 'rich', '2026-10-16', '000000ad-0000-4000-8000-000000000004', '[Sample] Knee still sore after walking. Discussed injection option.', 'Decide on injection at next visit.', 'Heather', 'app'),
-  ('000000b0-0000-4000-8000-000000000004', 'rich', '2026-09-06', '000000ad-0000-4000-8000-000000000003', '[Sample] Annual VA visit. Labs fine. Updated claim paperwork.', null, 'Riana', 'riana');
+  ('000000b0-0000-4000-8000-000000000001', 'diana', '2026-10-02', '000000ad-0000-4000-8000-000000000001', '[Sample] Routine check. Blood pressure good. Ordered A1C.', 'Repeat labs in 3 months.', 'Karmel', 'app'),
+  ('000000b0-0000-4000-8000-000000000002', 'diana', '2026-05-10', '000000ad-0000-4000-8000-000000000002', '[Sample] Echo normal. Keep current medication.', 'See again in 6 months.', 'Heather', 'app'),
+  ('000000b0-0000-4000-8000-000000000003', 'rich', '2026-10-17', '000000ad-0000-4000-8000-000000000004', '[Sample] Knee still sore after walking. Discussed injection option.', 'Decide on injection at next visit.', 'Heather', 'app'),
+  ('000000b0-0000-4000-8000-000000000004', 'rich', '2026-09-07', '000000ad-0000-4000-8000-000000000003', '[Sample] Annual VA visit. Labs fine. Updated claim paperwork.', null, 'Riana', 'riana');
 
 insert into public.va_claims (id, kind, title, status, filed_on, decided_on, rating_pct, next_step, notes, source) values
   ('000000b1-0000-4000-8000-000000000001', 'rating_decision', 'Current combined rating', '70% (sample)', null, '2023-05-01', 70, null, 'Letter in the VA folder.', 'app'),
-  ('000000b1-0000-4000-8000-000000000002', 'claim', 'Increase for knee condition (sample)', 'Under review', '2026-08-07', null, null, 'C&P exam scheduled.', null, 'app'),
-  ('000000b1-0000-4000-8000-000000000003', 'cp_exam', 'C&P exam — knee', 'Scheduled', null, null, null, 'Attend exam on November 18. Bring claim packet.', null, 'riana');
+  ('000000b1-0000-4000-8000-000000000002', 'claim', 'Increase for knee condition (sample)', 'Under review', '2026-08-08', null, null, 'C&P exam scheduled.', null, 'app'),
+  ('000000b1-0000-4000-8000-000000000003', 'cp_exam', 'C&P exam — knee', 'Scheduled', null, null, null, 'Attend exam on November 19. Bring claim packet.', null, 'riana');
 
 insert into public.accounts (id, institution, kind, purpose, last4, held_by, beneficiary_notes, notes, source) values
   ('000000b2-0000-4000-8000-000000000001', 'Sample Credit Union', 'checking', 'Everyday bills and autopay', '1234', 'both', '[Sample] POD to the children equally.', null, 'app'),
@@ -308,5 +308,8 @@ insert into public.vehicle_improvements (id, vehicle_id, done_on, done_on_approx
   ('000000be-0000-4000-8000-000000000004', '000000bd-0000-4000-8000-000000000001', '2021-03-15', null, '[Sample] Upholstery and headliner', 3100, null, 'import'),
   ('000000be-0000-4000-8000-000000000005', '000000bd-0000-4000-8000-000000000001', '2023-10-10', null, '[Sample] Wiring harness and gauges', 1900, null, 'import'),
   ('000000be-0000-4000-8000-000000000006', '000000bd-0000-4000-8000-000000000001', null, 'summer 2025', '[Sample] New tires and alignment', 1200, 'Sample Tire Co.', 'import');
+
+insert into public.playlists (id, slug, title, description) values
+  ('000000bf-0000-4000-8000-000000000001', 'sing-along', 'Rich''s Sing-Along', 'The songs Dad sings along to. Tracks arrive from the Sing-A-Long folder.');
 
 commit;

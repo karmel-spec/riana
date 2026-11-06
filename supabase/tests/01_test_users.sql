@@ -23,3 +23,7 @@ insert into public.user_section_access (user_id, section, level, reason) values
   ('44444444-4444-4444-8444-444444444444', 'health_diana', 'write', 'own records'),
   ('77777777-7777-4777-8777-777777777777', 'legal', 'read', 'estate planning engagement'),
   ('88888888-8888-4888-8888-888888888888', 'taxes', 'read', '2025 return');
+-- The mfa_switch migration ships with 2-step verification OFF so a fresh
+-- project is usable before anyone has an authenticator. The suite tests the
+-- gate, so turn it on here. Production: update app.settings set value='true' where key='mfa_required';
+update app.settings set value = 'true'::jsonb where key = 'mfa_required';

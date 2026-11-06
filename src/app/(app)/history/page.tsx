@@ -1,9 +1,89 @@
-import { requireSection } from "@/lib/session";
-import { ComingSoon } from "@/components/ui";
+import Link from "next/link";
+import { requireSection, canWrite } from "@/lib/session";
+import * as data from "@/lib/data";
+import { ensureDemoMedia } from "@/lib/media/service";
+import { Empty, PageHeader, SectionCard } from "@/components/ui";
+import { fmtDate } from "@/lib/format";
+import { Mic } from "@/components/icons";
+import { VideoPlayer } from "@/components/media/player";
+import { MediaEditor, SyncMediaButton } from "./media-client";
 
 export const metadata = { title: "Family History" };
 
-export default async function Page() {
-  await requireSection("family_history");
-  return <ComingSoon title="Family History" phase="phase 6 (Family history archive)" />;
+export default async function HistoryPage() {
+  const v = await requireSection("family_history");
+  await ensureDemoMedia(v);
+  const [media, playlists] = await Promise.all([data.getMediaItems(v), data.getPlaylists(v)]);
+  const parent = v.role === "parent";
+  const canEdit = canWrite(v, "family_history");
+  const videos = media.filter((m) => m.kind === "video_story" && m.review_status === "approved");
+  const photos = media.filter((m) => m.kind === "photo" && m.review_status === "approved");
+  const audio = media.filter((m) => m.kind === "audio_story" && m.review_status === "approved");
+  const sing = playlists.find((p) => p.slug === "sing-along");
+
+  return (
+    <>
+      <PageHeader eyebrow={parent ? undefined : "Section 16 · Family history"} title={parent ? "Memories" : "Family history archive"}
+        intro={parent ? "Videos, songs and photos from the family. Tap one to watch or listen." : "Videos, audio, photos and stories, streamed from the shared Drive folders. Journals, the timeline and record-a-memory arrive in the next phase."}
+        actions={<>{sing && <Link href="/history/singalong" className="btn-primary">🎵 Rich’s Sing-Along</Link>}{v.role === "super_admin" && <><Link href="/history/tribute" className="btn-secondary">Tribute pages</Link><SyncMediaButton /></>}</>} />
+
+      <section className="mb-6">
+        <h2 className="mb-3 text-[1.4rem] font-semibold">Videos ({videos.length})</h2>
+        {videos.length === 0 ? <Empty>No videos yet. Approve the imported videos under Admin → Drive Import, then “Sync media”.</Empty> : (
+          <div className="grid gap-5 md:grid-cols-2">
+            {videos.map((m) => (
+              <div key={m.id} className="card flex flex-col gap-3">
+                <VideoPlayer src={`/api/files/${m.imported_file_id}`} poster={m.poster_file_id ? `/api/files/${m.poster_file_id}` : null} title={m.title ?? "Video"} />
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className={`font-semibold ${parent ? "text-[1.3rem]" : "text-[1.1rem]"}`}>{m.title ?? "Untitled"}</div>
+                    <div className="text-[0.9rem] text-ink-soft">{[m.category, m.taken_on ? fmtDate(m.taken_on, { year: "numeric" }) : null, m.event_name].filter(Boolean).join(" · ")}</div>
+                    {m.caption && <p className="mt-1 text-[0.95rem]">{m.caption}</p>}
+                  </div>
+                  {canEdit && !parent && <MediaEditor item={m} />}
+                </div>
+                {m.story && <p className="rounded-xl bg-parchment px-4 py-3 text-[0.95rem] italic">{m.story}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <SectionCard title={`Songs & recordings (${audio.length})`} link={sing ? { href: "/history/singalong", label: "Open the playlist" } : undefined}>
+          {audio.length === 0 ? <Empty>No recordings yet.</Empty> : (
+            <ul className="divide-y divide-rule-soft">
+              {audio.slice(0, 8).map((m) => (
+                <li key={m.id} className="flex items-center justify-between gap-2 py-2">
+                  <span className={parent ? "text-[1.15rem]" : ""}>{m.title}</span>
+                  <span className="text-[0.85rem] text-ink-soft">{m.category === "music" ? "Sing-Along" : "Recording"}</span>
+                </li>
+              ))}
+              {audio.length > 8 && <li className="py-2 text-[0.9rem] text-ink-soft">and {audio.length - 8} more</li>}
+            </ul>
+          )}
+        </SectionCard>
+
+        <SectionCard title={`Photos (${photos.length})`}>
+          {photos.length === 0 ? <Empty>No photos yet. The Photos (Takeout) folder feeds this once set up (item 9).</Empty> : (
+            <div className="grid grid-cols-3 gap-2">
+              {photos.slice(0, 9).map((m) => (
+                <a key={m.id} href={`/api/files/${m.imported_file_id}`} target="_blank" rel="noreferrer" className="block aspect-square overflow-hidden rounded-lg bg-parchment">
+                  <img src={`/api/files/${m.imported_file_id}`} alt={m.caption ?? m.title ?? "Family photo"} loading="lazy" className="h-full w-full object-cover" />
+                </a>
+              ))}
+            </div>
+          )}
+        </SectionCard>
+      </div>
+
+      <section className="on-dark mt-6 flex flex-wrap items-center gap-6 rounded-3xl bg-evergreen-mid p-7 text-paper">
+        <div className="flex h-[88px] w-[88px] shrink-0 items-center justify-center rounded-full border-[6px] border-mist bg-paper text-ember"><Mic size={40} /></div>
+        <div className="min-w-[240px] flex-1">
+          <h2 className="text-[1.5rem] font-semibold leading-tight text-paper">Record a memory</h2>
+          <p className="mt-1 text-mist">Recording from the iPad, with transcripts, is the next phase of the archive. The library already has room for transcripts and captions on every item.</p>
+        </div>
+      </section>
+    </>
+  );
 }

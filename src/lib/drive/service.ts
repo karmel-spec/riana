@@ -117,6 +117,11 @@ async function recordRun(v: Viewer, mode: "dry_run" | "apply", report: SyncRepor
   await supabase.from("drive_sync_runs").insert({ mode, started_by: v.id, finished_at: new Date().toISOString(), ok: !error, summary, report: slim, error });
 }
 
+/** Demo only: the fake pointer rows, with no viewer check (used by the public tribute route). */
+export function demoImportedFiles(): ImportedFileRow[] {
+  return demo().files;
+}
+
 export async function listImportedFiles(v: Viewer): Promise<ImportedFileRow[]> {
   if (v.role !== "super_admin") return [];
   if (v.demo) return demo().files;

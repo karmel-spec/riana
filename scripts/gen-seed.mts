@@ -55,5 +55,6 @@ out += insert("digital_accounts", f.digitalAccounts.map((x) => pick(x, "id", "se
 out += insert("household_items", f.householdItems.map((x) => pick(x, "id", "kind", "name", "details", "source")));
 out += insert("vehicles", f.vehicles.map((x) => pick(x, "id", "year", "make", "model", "nickname", "engine", "vin_last4", "estimated_value", "valuation_on", "valuation_source", "title_location", "owner", "insurance_policy_id", "estate_provision_id", "notes", "source")));
 out += insert("vehicle_improvements", f.vehicleImprovements.map((x) => pick(x, "id", "vehicle_id", "done_on", "done_on_approx", "description", "cost", "vendor", "source")));
+out += insert("playlists", f.playlists.map((x) => pick(x, "id", "slug", "title", "description")));
 out += "commit;\n";
 process.stdout.write(out);

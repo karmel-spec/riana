@@ -15,7 +15,7 @@ export function uid(kind: string, n: number): string {
     q: "a1", e: "a2", l: "a3", g: "a4", p: "a5", nl: "a6", nc: "a7",
     b: "a8", lab: "a9", w: "aa", r: "ab", loan: "ac",
     prov: "ad", med: "ae", cond: "af", vn: "b0", va: "b1", acct: "b2",
-    lp: "bc", veh: "bd", vi: "be", prop: "b3", ins: "b4", tax: "b5", dig: "b6", hh: "b7", tsi: "b8", epv: "b9", epr: "ba", pc: "bb",
+    lp: "bc", veh: "bd", vi: "be", pl: "bf", tp: "c0", tb: "c1", prop: "b3", ins: "b4", tax: "b5", dig: "b6", hh: "b7", tsi: "b8", epv: "b9", epr: "ba", pc: "bb",
   };
   const hex = n.toString(16).padStart(12, "0");
   return `000000${prefix[kind] ?? "ff"}-0000-4000-8000-${hex}`;
@@ -385,4 +385,23 @@ export const vehicleImprovements: VehicleImprovement[] = [
   VI(4, "2021-03-15", null, "[Sample] Upholstery and headliner", 3100, null),
   VI(5, "2023-10-10", null, "[Sample] Wiring harness and gauges", 1900, null),
   VI(6, null, "summer 2025", "[Sample] New tires and alignment", 1200, "Sample Tire Co."),
+];
+
+// --- Media library (FAKE) ----------------------------------------------------------------
+import type { Playlist, TributeBlock, TributePage } from "../types";
+
+export const playlists: Playlist[] = [
+  { id: uid("pl", 1), slug: "sing-along", title: "Rich's Sing-Along", description: "The songs Dad sings along to. Tracks arrive from the Sing-A-Long folder.", track_ids: [] },
+];
+
+export const tributePages: TributePage[] = [
+  { id: uid("tp", 1), slug: "sample-tribute", title: "[Sample] A life well lived", subtitle: "[Sample] 1940 – 2040", intro: "[Sample] A page the family can build together: photos, songs, stories and the service details, kept private until it is ready.",
+    obituary: "[Sample] Obituary text goes here. Short, warm, and in the family's own words.", service: { when: "[Sample] Saturday at 11:00 AM", where: "[Sample] Ward chapel", address: "[Sample] 123 Example St", notes: "Luncheon to follow." },
+    status: "draft", share_token: null, published_at: null, shared_list_ids: [] },
+];
+
+export const tributeBlocks: TributeBlock[] = [
+  { id: uid("tb", 1), page_id: uid("tp", 1), position: 1, kind: "heading", text: "[Sample] In loving memory", media_item_id: null, media_item_ids: [] },
+  { id: uid("tb", 2), page_id: uid("tp", 1), position: 2, kind: "text", text: "[Sample] A few words from the family about who he was and what he loved.", media_item_id: null, media_item_ids: [] },
+  { id: uid("tb", 3), page_id: uid("tp", 1), position: 3, kind: "service", text: null, media_item_id: null, media_item_ids: [] },
 ];

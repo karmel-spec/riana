@@ -3,6 +3,7 @@
 // account at all. Names mirror the brief's manifest; contents don't exist.
 import { FOLDERS } from "./manifest.ts";
 import { FOLDER_MIME, type DriveClient, type DriveFile } from "./types.ts";
+import { rangeResponse, toneWav } from "../media/range.ts";
 
 type Entry = { folder: string; name: string; mime: string; size: number; md5: string; modified?: string; link?: string };
 
@@ -70,8 +71,20 @@ export function fakeDriveClient(opts: { unreadable?: string[] } = {}): DriveClie
       }));
       return [...sub, ...files];
     },
-    async stream(fileId) {
-      const name = FAKE_FILES[Number(fileId.split("-").pop())]?.name ?? "Sample file";
+    async stream(fileId, range) {
+      const key = fileId.replace(/^fake-/, "").replace(/-\d+$/, "");
+      const idx = Number(fileId.split("-").pop());
+      const entry = FAKE_FILES.filter((e) => e.folder === key)[idx];
+      const name = entry?.name ?? "Sample file";
+      if (entry && /^audio\//.test(entry.mime)) {
+        // Each fake song is a different short tone so the playlist audibly advances.
+        const hz = 330 + ((name.length * 37) % 220);
+        return rangeResponse(toneWav(3, hz), range, "audio/wav");
+      }
+      if (entry && /^image\//.test(entry.mime)) {
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600"><rect width="600" height="600" fill="#e7eee9"/><text x="300" y="310" font-family="sans-serif" font-size="28" text-anchor="middle" fill="#2f5141">Sample photo</text></svg>`;
+        return new Response(svg, { status: 200, headers: { "content-type": "image/svg+xml", "accept-ranges": "bytes" } });
+      }
       return new Response(tinyPdf(`SAMPLE DOCUMENT (fake) - ${name.replace(/[()\\]/g, "")}`), { status: 200, headers: { "content-type": "application/pdf", "accept-ranges": "bytes" } });
     },
   };
