@@ -32,7 +32,7 @@ export async function proxy(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   const path = request.nextUrl.pathname;
   // /api/riana/ authenticates with its own bearer key (see src/app/api/riana/inbound/route.ts).
-  const isPublic = path.startsWith("/login") || path.startsWith("/auth/") || path.startsWith("/api/riana/");
+  const isPublic = path.startsWith("/login") || path.startsWith("/auth/") || path.startsWith("/api/riana/") || path.startsWith("/tribute/") || path.startsWith("/api/tribute/");
   if (!user && !isPublic) {
     const to = request.nextUrl.clone();
     to.pathname = "/login";

@@ -431,3 +431,50 @@ export type VehicleImprovement = {
   imported_file_id: string | null;
   source: Source;
 };
+
+export type MediaItem = {
+  id: string;
+  kind: "photo" | "video" | "audio_story" | "video_story";
+  title: string | null;
+  caption: string | null;
+  story: string | null;
+  taken_on: string | null;
+  decade: number | null;
+  event_name: string | null;
+  people_tags: string[];
+  category: "memory" | "church" | "music" | "event" | "document" | "other" | null;
+  imported_file_id: string | null;
+  poster_file_id: string | null;
+  duration_seconds: number | null;
+  mime_type: string | null;
+  transcript: string | null;
+  recorded_by: string | null;
+  review_status: "pending" | "approved" | "rejected";
+  source: Source;
+};
+
+export type Playlist = { id: string; slug: string; title: string; description: string | null; track_ids: string[] };
+
+export type TributePage = {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle: string | null;
+  intro: string | null;
+  obituary: string | null;
+  service: { when?: string; where?: string; address?: string; notes?: string; livestream_url?: string };
+  status: "draft" | "published" | "unpublished";
+  share_token: string | null;
+  published_at: string | null;
+  shared_list_ids: string[];
+};
+
+export type TributeBlock = {
+  id: string;
+  page_id: string;
+  position: number;
+  kind: "heading" | "text" | "media" | "gallery" | "story" | "service";
+  text: string | null;
+  media_item_id: string | null;
+  media_item_ids: string[];
+};
