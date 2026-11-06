@@ -150,11 +150,42 @@ insert into public.final_wishes (id, person, topic, wish, confirmed) values
   ('000000aa-0000-4000-8000-000000000004', 'rich', 'military_honors', '[Sample] Military honors at the graveside, if possible.', true),
   ('000000aa-0000-4000-8000-000000000005', 'both', 'obituary', '[Sample] Keep it short; include the grandchildren''s names.', false);
 
-insert into public.loans (id, direction, counterparty, principal, rate_pct, status, note_signed, property_id, balance_note) values
-  ('000000ac-0000-4000-8000-000000000001', 'owed_to_estate', 'Loan A (sample child)', 50000, 5, 'active', true, null, null),
-  ('000000ac-0000-4000-8000-000000000002', 'owed_to_estate', 'Loan B (sample child)', 50000, 5, 'proposed', false, null, null),
-  ('000000ac-0000-4000-8000-000000000003', 'owed_by_estate', 'Sample Mortgage Co.', 185000, 3.25, 'active', true, '000000b3-0000-4000-8000-000000000002', '[Sample] About $120k remaining, 30-year fixed from 2018.'),
-  ('000000ac-0000-4000-8000-000000000004', 'owed_by_estate', 'Sample Mortgage Co.', 210000, 3.5, 'active', true, '000000b3-0000-4000-8000-000000000003', '[Sample] About $150k remaining.');
+insert into public.loans (id, direction, counterparty, principal, rate_pct, status, note_signed, property_id, balance_note, term_months, monthly_payment, first_payment_on, legal_document_id, lender, purpose, appraisal_on, appraisal_value, appraisal_source, gift_or_loan, advance_on_inheritance, started_on) values
+  ('000000ac-0000-4000-8000-000000000001', 'owed_to_estate', 'Ryan & Tracy (sample)', 50000, null, 'active', true, null, 'Note signed 2023. No interest stated on the note.', null, null, null, '000000a3-0000-4000-8000-000000000009', null, '[Sample] Home purchase help', null, null, null, 'loan', 'undecided', '2023-06-01'),
+  ('000000ac-0000-4000-8000-000000000002', 'owed_to_estate', 'David (sample)', 50000, 5, 'proposed', false, null, 'Proposed at 5%. Note drafted, not signed.', null, null, null, '000000a3-0000-4000-8000-00000000000a', null, 'For a casita', null, null, null, 'loan', 'undecided', null),
+  ('000000ac-0000-4000-8000-000000000007', 'owed_to_estate', 'StarLar', 20000, null, 'unclassified', false, null, 'Gift or loan: to be decided. If a loan, StarLar repays it from rents.', null, null, null, null, null, '[Sample] Roof on Rental A', null, null, null, 'undecided', 'no', '2025-02-01'),
+  ('000000ac-0000-4000-8000-000000000005', 'owed_to_estate', 'StarLar · Note 1', 250000, 4.75, 'active', true, null, 'Rents pay this note to Rich & Diana. Unpaid balance at death splits equally among the six children.', 240, 1655, '2021-04-01', '000000a3-0000-4000-8000-000000000009', null, null, null, null, null, 'loan', null, null),
+  ('000000ac-0000-4000-8000-000000000006', 'owed_to_estate', 'StarLar · Note 2', 300000, 6.25, 'active', true, null, 'Rents pay this note to Rich & Diana. Unpaid balance at death splits equally among the six children.', 180, 2575, '2023-03-01', null, null, null, null, null, null, 'loan', null, null),
+  ('000000ac-0000-4000-8000-000000000003', 'owed_by_estate', 'Sample Mortgage Co.', 185000, 3.25, 'active', true, '000000b3-0000-4000-8000-000000000002', '[Sample] 30-year fixed from 2018.', 360, 805.16, '2018-06-01', null, 'Sample Mortgage Co.', null, null, null, null, null, null, '2018-05-01'),
+  ('000000ac-0000-4000-8000-000000000004', 'owed_by_estate', 'Sample Federal Credit Union', 210000, 3.5, 'active', true, '000000b3-0000-4000-8000-000000000003', '[Sample] AVM appraisal on file from the lender.', 360, 943.03, '2019-10-01', null, 'Sample Federal Credit Union', null, '2026-09-10', 485000, 'Lender AVM package (sample)', null, null, '2019-09-01');
+
+insert into public.loan_payments (id, loan_id, paid_on, amount, kind, note) values
+  ('000000bc-0000-4000-8000-000000000001', '000000ac-0000-4000-8000-000000000001', '2024-01-15', 5000, 'payment', '[Sample] First repayment'),
+  ('000000bc-0000-4000-8000-000000000002', '000000ac-0000-4000-8000-000000000001', '2025-01-15', 5000, 'payment', null),
+  ('000000bc-0000-4000-8000-000000000003', '000000ac-0000-4000-8000-000000000001', '2026-01-15', 5000, 'payment', null);
+
+insert into public.estate_plan_versions (id, version_no, title, plan_date, status, summary, source_docs) values
+  ('000000b9-0000-4000-8000-000000000001', 1, '2026 estate plan (in progress)', '2026-10-15', 'current', 'A revocable living trust to hold the Washington rentals, the vehicles and the CDs; StarLar passes to Mike and Karmel; the rents keep paying the parents on two notes; anything unpaid at death is split six ways.', '{"Attorney Strategic Summary Brief","Family Agreement Notes"}');
+
+insert into public.estate_provisions (id, plan_version_id, category, subject, planned, legal_document_id, sort_order, notes) values
+  ('000000ba-0000-4000-8000-000000000001', '000000b9-0000-4000-8000-000000000001', 'asset', 'Revocable living trust', 'Create a revocable living trust to hold the WA rentals, the vehicles, and the Foothills and Glacier CDs.', '000000a3-0000-4000-8000-000000000002', 1, 'Trust not yet drafted.'),
+  ('000000ba-0000-4000-8000-000000000002', '000000b9-0000-4000-8000-000000000001', 'asset', 'WA rentals (StarLar)', 'Title and appreciation go to Mike and Karmel 50/50, held through the trust; outside the six-way split of the will.', '000000a3-0000-4000-8000-000000000006', 2, '2021 TOD deeds conflict with this (see open questions).'),
+  ('000000ba-0000-4000-8000-000000000003', '000000b9-0000-4000-8000-000000000001', 'asset', 'Vehicles (Vickie, ''56 Chevy)', 'Held by the trust.', '000000a3-0000-4000-8000-000000000002', 3, null),
+  ('000000ba-0000-4000-8000-000000000004', '000000b9-0000-4000-8000-000000000001', 'asset', 'Foothills and Glacier CDs', 'Held by the trust.', '000000a3-0000-4000-8000-000000000002', 4, null),
+  ('000000ba-0000-4000-8000-000000000005', '000000b9-0000-4000-8000-000000000001', 'role', 'Successor trustee / executrix', 'Heather.', '000000a3-0000-4000-8000-000000000001', 5, 'The 2021 draft will names one executor; family intends co-executors (Karmel & Heather) — confirm which role each holds.'),
+  ('000000ba-0000-4000-8000-000000000006', '000000b9-0000-4000-8000-000000000001', 'role', 'Co-attorneys-in-fact', 'Mike and Karmel.', '000000a3-0000-4000-8000-000000000003', 6, 'Current signed financial POA (2019) names someone — confirm.'),
+  ('000000ba-0000-4000-8000-000000000007', '000000b9-0000-4000-8000-000000000001', 'term', 'StarLar Note 1', '$1,655/mo · $250k at 4.75% · 20 years · from Apr 2021. Rents pay the parents.', '000000a3-0000-4000-8000-000000000009', 7, null),
+  ('000000ba-0000-4000-8000-000000000008', '000000b9-0000-4000-8000-000000000001', 'term', 'StarLar Note 2', '$2,575/mo · $300k at 6.25% · 15 years · from Mar 2023. Rents pay the parents.', null, 8, 'No signed note on the Legal board yet.'),
+  ('000000ba-0000-4000-8000-000000000009', '000000b9-0000-4000-8000-000000000001', 'term', 'Unpaid note balance at death', 'Split equally among all six children.', null, 9, null),
+  ('000000ba-0000-4000-8000-00000000000a', '000000b9-0000-4000-8000-000000000001', 'term', 'Loans to children ($50k each)', 'Not addressed in the plan.', null, 10, 'Open question.');
+
+insert into public.plan_conflicts (id, plan_version_id, provision_id, title, detail, owner_name, status, resolution, due_on, sort_order) values
+  ('000000bb-0000-4000-8000-000000000001', '000000b9-0000-4000-8000-000000000001', '000000ba-0000-4000-8000-000000000002', 'Equity figure: $480k vs. $540k', 'The attorney''s summary and the family notes give different equity figures for the rentals. Which one does the plan use, and as of what date?', 'Karmel', 'open', null, null, 1),
+  ('000000bb-0000-4000-8000-000000000002', '000000b9-0000-4000-8000-000000000001', '000000ba-0000-4000-8000-000000000009', 'Payout at the first death vs. after both deaths', 'Does the six-way split (and the StarLar transfer) happen when the first parent dies, or only after both?', 'Heather', 'open', null, null, 2),
+  ('000000bb-0000-4000-8000-000000000003', '000000b9-0000-4000-8000-000000000001', null, 'No attorney named yet', 'The 2026 plan has no engaged attorney. Larry Stout drafted the 2021 documents.', 'Karmel', 'open', null, null, 3),
+  ('000000bb-0000-4000-8000-000000000004', '000000b9-0000-4000-8000-000000000001', '000000ba-0000-4000-8000-00000000000a', 'The $50k loans to children aren''t addressed', 'Ryan & Tracy ($50k, signed) and David ($50k, proposed): advances against inheritance, repaid, or forgiven?', 'Heather', 'open', null, null, 4),
+  ('000000bb-0000-4000-8000-000000000005', '000000b9-0000-4000-8000-000000000001', '000000ba-0000-4000-8000-000000000002', '2021 TOD deeds conflict with the trust plan', 'Recorded transfer-on-death deeds (nos. 4857438 and 4857439) would pass the rentals outside the trust. They must be revoked or the plan must change.', 'Karmel', 'with_attorney', null, null, 5),
+  ('000000bb-0000-4000-8000-000000000006', '000000b9-0000-4000-8000-000000000001', '000000ba-0000-4000-8000-000000000007', 'Note 1 terms don''t match its payment', '$250k at 4.75% over 20 years computes to $1,615.56/mo, not $1,655 (about $40/mo apart; $1,655 pays off in ~19 years). Confirm the note''s actual rate, term or payment.', 'Karmel', 'open', null, null, 6);
 
 insert into public.insurance_policies (id, kind, carrier, insured, policy_last4, premium, renews_on, agent_person_id, notes, source) values
   ('000000b4-0000-4000-8000-000000000001', 'auto', 'Sample Mutual', 'both', '4411', 1180, '2026-12-15', null, 'Two vehicles.', 'app'),
@@ -167,13 +198,25 @@ insert into public.insurance_policies (id, kind, carrier, insured, policy_last4,
   ('000000b4-0000-4000-8000-000000000008', 'champva', 'CHAMPVA', 'diana', null, null, null, null, 'Secondary to Medicare.', 'app'),
   ('000000b4-0000-4000-8000-000000000009', 'life', 'Sample Life Co.', 'rich', '2290', 95, null, null, '[Sample] Term policy; beneficiary Diana. Check the end date.', 'app');
 
-insert into public.tax_records (id, tax_year, kind, preparer, status, filed_on, notes, source) values
-  ('000000b5-0000-4000-8000-000000000001', 2025, 'federal', 'Sample CPA, PLLC', 'Filed', '2026-03-20', null, 'app'),
-  ('000000b5-0000-4000-8000-000000000002', 2025, 'state', 'Sample CPA, PLLC', 'Not required (AZ resident, WA rental income reported federally)', null, null, 'app'),
-  ('000000b5-0000-4000-8000-000000000003', 2025, 'property', null, 'Second half due', null, 'Tumwater rentals. Due dates on the calendar.', 'app'),
-  ('000000b5-0000-4000-8000-000000000004', 2026, 'exemption', null, 'Active', null, 'Disabled-veteran exemption on the Lake Havasu home. Renew with the county assessor if asked.', 'app'),
-  ('000000b5-0000-4000-8000-000000000005', 2024, 'federal', 'Sample CPA, PLLC', 'Filed', '2025-04-02', null, 'app'),
-  ('000000b5-0000-4000-8000-000000000006', 2026, 'federal', 'Sample CPA, PLLC', 'Not started', null, 'Gather 1099s in January.', 'app');
+insert into public.tax_records (id, tax_year, kind, preparer, status, filed_on, notes, amended, amended_form, ssn_last4_rich, ssn_last4_diana, refund_bank_last4, source) values
+  ('000000b5-0000-4000-8000-000000000001', 2025, 'federal', 'Sample Block Advisor', 'Filed', '2026-03-20', null, false, null, '1111', '2222', '1234', 'app'),
+  ('000000b5-0000-4000-8000-000000000002', 2025, 'state', 'Sample Block Advisor', 'Not required (AZ resident; WA rental income on the federal return)', null, null, false, null, null, null, null, 'app'),
+  ('000000b5-0000-4000-8000-000000000003', 2025, 'property', 'Sample Block Advisor', 'Second half due', null, 'Tumwater rentals. Due dates on the calendar.', false, null, null, null, null, 'app'),
+  ('000000b5-0000-4000-8000-000000000004', 2026, 'exemption', 'Sample Block Advisor', 'Active', null, 'Disabled-veteran exemption on the Lake Havasu home. Renew with the county assessor if asked.', false, null, null, null, null, 'app'),
+  ('000000b5-0000-4000-8000-000000000005', 2024, 'federal', 'Sample Block Advisor', 'Filed, then amended', '2025-04-02', '[Sample] Amended to correct rental depreciation.', true, '1040-X', '1111', '2222', '1234', 'app'),
+  ('000000b5-0000-4000-8000-000000000006', 2023, 'federal', 'Sample CPA, PLLC', 'Filed', '2024-04-10', null, false, null, '1111', '2222', '1234', 'app'),
+  ('000000b5-0000-4000-8000-000000000007', 2022, 'federal', 'Sample CPA, PLLC', 'Filed', '2023-04-05', null, false, null, '1111', '2222', '1234', 'app'),
+  ('000000b5-0000-4000-8000-000000000008', 2021, 'federal', 'Sample CPA, PLLC', 'Filed', '2022-04-12', null, false, null, '1111', '2222', '1234', 'app'),
+  ('000000b5-0000-4000-8000-000000000009', 2020, 'federal', 'Sample CPA, PLLC', 'Filed', '2021-05-01', null, false, null, '1111', '2222', '1234', 'app'),
+  ('000000b5-0000-4000-8000-00000000000a', 2019, 'federal', 'Sample CPA, PLLC', 'Filed', '2020-07-10', null, false, null, '1111', '2222', '1234', 'app'),
+  ('000000b5-0000-4000-8000-00000000000b', 2026, 'federal', 'Sample Block Advisor', 'Not started', null, 'Gather 1099s in January.', false, null, null, null, null, 'app');
+
+insert into public.tax_source_items (id, tax_year, label, provider, where_to_find, portal_url, vault_item, received, received_on, notes) values
+  ('000000b8-0000-4000-8000-000000000001', 2025, '1099 · Rental A rents', 'Welcome Home (sample portal)', 'Owner portal → Documents → Tax', 'https://example.com/welcome-home', 'Greene – Welcome Home portal', true, '2026-10-06', null),
+  ('000000b8-0000-4000-8000-000000000002', 2025, '1099 · Rental B rents', 'MVP (sample portal)', 'Owner portal → Statements → Year-end', 'https://example.com/mvp', 'Greene – MVP portal', false, null, 'Usually posted late January.'),
+  ('000000b8-0000-4000-8000-000000000003', 2025, '1098 · Mortgage interest, Rental A', 'Truist (sample)', 'Online banking → Documents → Tax forms', 'https://example.com/truist', 'Greene – Truist', false, null, null),
+  ('000000b8-0000-4000-8000-000000000004', 2025, '1098 · Mortgage interest, Rental B', 'Mr. Cooper (sample)', 'Account → Tax documents', 'https://example.com/mrcooper', 'Greene – Mr. Cooper', false, null, null),
+  ('000000b8-0000-4000-8000-000000000005', 2025, 'SSA-1099 · Social Security', 'SSA.gov (sample)', 'my Social Security → Replacement documents', 'https://example.com/ssa', 'Rich – SSA', true, '2026-09-26', null);
 
 insert into public.riana_updates (id, kind, summary, received_at, review_status, payload) values
   ('000000ab-0000-4000-8000-000000000001', 'lab_result', 'New A1C result for Diana: 6.1 %', '2026-11-05T07:42:00-07:00', 'pending', '{}'),
@@ -220,15 +263,27 @@ insert into public.accounts (id, institution, kind, purpose, last4, held_by, ben
   ('000000b2-0000-4000-8000-000000000004', 'Sample Bank', 'checking', 'Rental income and expenses (StarLar)', '3456', 'both', null, 'Property manager deposits here.', 'app'),
   ('000000b2-0000-4000-8000-000000000005', 'Sample Card Co.', 'credit_card', 'Travel and groceries', '7890', 'diana', null, 'Autopay from checking 1234.', 'app');
 
-insert into public.digital_accounts (id, service, owner, purpose, vault_item, after_death, notes, source) values
-  ('000000b6-0000-4000-8000-000000000001', 'Gmail (Rich)', 'rich', 'Main email; Riana reads it', 'Rich – Gmail', 'Keep open 12 months for bills, then close.', null, 'app'),
-  ('000000b6-0000-4000-8000-000000000002', 'Gmail (Diana)', 'diana', 'Main email; Riana reads it', 'Diana – Gmail', 'Keep open 12 months, then close.', null, 'app'),
-  ('000000b6-0000-4000-8000-000000000003', 'Apple ID', 'both', 'iPad, photos, iCloud', 'Greene – Apple ID', 'Download photos first (Legacy Contact set to Karmel).', 'Legacy Contact set up in Settings.', 'app'),
-  ('000000b6-0000-4000-8000-000000000004', 'Facebook', 'diana', 'Family and church friends', 'Diana – Facebook', 'Memorialize.', null, 'app'),
-  ('000000b6-0000-4000-8000-000000000005', 'Sample Credit Union online banking', 'both', 'Bills and transfers', 'Greene – Credit Union', 'Executor contacts the bank; do not log in after death.', 'Account ····1234 and ····5678.', 'app'),
-  ('000000b6-0000-4000-8000-000000000006', 'My HealtheVet (VA)', 'rich', 'VA appointments, prescriptions, claim status', 'Rich – VA login', 'Close.', null, 'app'),
-  ('000000b6-0000-4000-8000-000000000007', 'Google Photos (shared family album)', 'both', 'Scanned photos and documents', 'Greene – Google', 'Transfer ownership to Karmel.', null, 'riana'),
-  ('000000b6-0000-4000-8000-000000000008', 'Streaming (sample)', 'both', 'TV', 'Greene – Streaming', 'Cancel.', 'Billed to card ····7890.', 'app');
+insert into public.digital_accounts (id, service, website, owner, category, purpose, vault_name, vault_item, status, after_death, notes, source) values
+  ('000000b6-0000-4000-8000-000000000001', 'Gmail (Rich)', 'https://mail.google.com', 'rich', 'Email', 'Main email; Riana reads it', 'Greene Family', 'Rich – Gmail (Rich)', 'found', 'Keep open 12 months for bills, then close.', null, 'app'),
+  ('000000b6-0000-4000-8000-000000000002', 'Gmail (Diana)', 'https://mail.google.com', 'diana', 'Email', 'Main email; Riana reads it', 'Greene Family', 'Diana – Gmail (Diana)', 'found', 'Keep open 12 months, then close.', null, 'app'),
+  ('000000b6-0000-4000-8000-000000000003', 'Apple ID', 'https://appleid.apple.com', 'both', 'Devices', 'iPad, photos, iCloud', 'Greene Family', 'Greene – Apple ID', 'found', 'Download photos first (Legacy Contact set to Karmel).', 'Legacy Contact set up in Settings.', 'app'),
+  ('000000b6-0000-4000-8000-000000000004', 'Facebook', 'https://facebook.com', 'diana', 'Social', null, 'Greene Family', 'Diana – Facebook', 'found', 'Memorialize.', null, 'app'),
+  ('000000b6-0000-4000-8000-000000000005', 'Sample Credit Union online banking', 'https://example.com/cu', 'both', 'Banking', 'Bills and transfers', 'Greene Family', 'Greene – Sample Credit Union online banking', 'found', 'Executor contacts the bank; do not log in after death.', 'Account ····1234 and ····5678.', 'app'),
+  ('000000b6-0000-4000-8000-000000000006', 'My HealtheVet (VA)', 'https://www.myhealth.va.gov', 'rich', 'Health', 'VA appointments, prescriptions, claim status', 'Greene Family', 'Rich – My HealtheVet (VA)', 'found', 'Close.', null, 'app'),
+  ('000000b6-0000-4000-8000-000000000007', 'Google Photos (shared family album)', 'https://photos.google.com', 'both', 'Photos', null, 'Greene Family', 'Greene – Google Photos (shared family album)', 'found', 'Transfer ownership to Karmel.', null, 'riana'),
+  ('000000b6-0000-4000-8000-000000000008', 'Streaming (sample)', null, 'both', 'Entertainment', 'TV', 'Greene Family', null, 'to_find', 'Cancel.', 'Billed to card ····7890.', 'app'),
+  ('000000b6-0000-4000-8000-000000000009', 'Sample Brokerage', null, 'rich', 'Investments', 'Rich''s IRA', 'Greene Family', null, 'to_find', null, null, 'app'),
+  ('000000b6-0000-4000-8000-00000000000a', 'Sample Card Co.', null, 'diana', 'Banking', null, 'Greene Family', null, 'to_find', null, null, 'app'),
+  ('000000b6-0000-4000-8000-00000000000b', 'Medicare.gov', 'https://www.medicare.gov', 'both', 'Health', null, 'Greene Family', null, 'to_find', null, null, 'app'),
+  ('000000b6-0000-4000-8000-00000000000c', 'SSA.gov (my Social Security)', 'https://www.ssa.gov', 'rich', 'Government', null, 'Greene Family', 'Rich – SSA.gov (my Social Security)', 'found', null, null, 'app'),
+  ('000000b6-0000-4000-8000-00000000000d', 'SSA.gov (my Social Security)', 'https://www.ssa.gov', 'diana', 'Government', null, 'Greene Family', null, 'to_find', null, null, 'app'),
+  ('000000b6-0000-4000-8000-00000000000e', 'Sample Electric Co.', null, 'both', 'Utilities', 'Autopay', 'Greene Family', 'Greene – Sample Electric Co.', 'found', null, null, 'app'),
+  ('000000b6-0000-4000-8000-00000000000f', 'Water & sewer (sample)', null, 'both', 'Utilities', null, 'Greene Family', null, 'to_find', null, null, 'app'),
+  ('000000b6-0000-4000-8000-000000000010', 'Phone & internet (sample)', null, 'both', 'Utilities', null, 'Greene Family', 'Greene – Phone & internet (sample)', 'found', null, null, 'app'),
+  ('000000b6-0000-4000-8000-000000000011', 'Welcome Home portal (sample)', null, 'both', 'Rentals', 'Rental A statements and 1099', 'Greene Family', 'Greene – Welcome Home portal (sample)', 'found', null, null, 'app'),
+  ('000000b6-0000-4000-8000-000000000012', 'MVP portal (sample)', null, 'both', 'Rentals', 'Rental B statements and 1099', 'Greene Family', null, 'to_find', null, null, 'app'),
+  ('000000b6-0000-4000-8000-000000000013', 'Amazon', null, 'diana', 'Shopping', null, 'Greene Family', null, 'to_find', null, null, 'app'),
+  ('000000b6-0000-4000-8000-000000000014', 'Church membership tools (sample)', null, 'both', 'Church', null, 'Greene Family', 'Greene – Church membership tools (sample)', 'found', null, null, 'app');
 
 insert into public.household_items (id, kind, name, details, source) values
   ('000000b7-0000-4000-8000-000000000001', 'pet', 'Buddy (sample dog)', '[Sample] 9-year-old terrier mix. Vet: Sample Animal Clinic (555) 010-1001. Food: one scoop morning and night. Goes to David if Mom and Dad can''t care for him.', 'app'),
@@ -240,5 +295,18 @@ insert into public.household_items (id, kind, name, details, source) values
   ('000000b7-0000-4000-8000-000000000007', 'service', 'Housekeeper (sample)', '[Sample] Fridays. Has a key. Phone (555) 010-1003.', 'app'),
   ('000000b7-0000-4000-8000-000000000008', 'other', 'Home safe', '[Sample] In the master closet. Combination is in 1Password under "Greene – Home safe". Holds titles, the POA originals and passports.', 'app'),
   ('000000b7-0000-4000-8000-000000000009', 'other', 'Spare keys', '[Sample] Next-door neighbor has a house key. Garage code is in 1Password.', 'app');
+
+insert into public.vehicles (id, year, make, model, nickname, engine, vin_last4, estimated_value, valuation_on, valuation_source, title_location, owner, insurance_policy_id, estate_provision_id, notes, source) values
+  ('000000bd-0000-4000-8000-000000000001', 1934, 'Ford', 'Victoria', 'Vickie', '350 Chevy V8', null, 50000, '2026-10-01', 'Family estimate (sample)', '[Sample] Home safe', 'rich', '000000b4-0000-4000-8000-000000000002', '000000ba-0000-4000-8000-000000000003', 'Specs and the improvements list come from the ''Vickie Specs'' and ''34 Vickie Improvements'' documents once imported.', 'app'),
+  ('000000bd-0000-4000-8000-000000000002', 1956, 'Chevrolet', '[Sample] Bel Air', 'the ''56', '[Sample] 265 V8', null, 100000, '2026-10-01', 'Family estimate (sample)', '[Sample] Home safe', 'rich', '000000b4-0000-4000-8000-000000000002', '000000ba-0000-4000-8000-000000000003', null, 'app'),
+  ('000000bd-0000-4000-8000-000000000003', 2019, '[Sample] Sedan', null, 'the everyday car', null, null, 14000, '2026-06-01', '[Sample] Online estimate', '[Sample] Home safe', 'both', '000000b4-0000-4000-8000-000000000001', null, 'Spare key on the hook by the garage door.', 'app');
+
+insert into public.vehicle_improvements (id, vehicle_id, done_on, done_on_approx, description, cost, vendor, source) values
+  ('000000be-0000-4000-8000-000000000001', '000000bd-0000-4000-8000-000000000001', '2016-05-01', null, '[Sample] Engine rebuild and new intake', 6800, 'Sample Speed Shop', 'import'),
+  ('000000be-0000-4000-8000-000000000002', '000000bd-0000-4000-8000-000000000001', '2017-08-01', null, '[Sample] Disc brake conversion', 2400, 'Sample Speed Shop', 'import'),
+  ('000000be-0000-4000-8000-000000000003', '000000bd-0000-4000-8000-000000000001', null, '2019', '[Sample] Paint and body', 9500, 'Sample Body Works', 'import'),
+  ('000000be-0000-4000-8000-000000000004', '000000bd-0000-4000-8000-000000000001', '2021-03-15', null, '[Sample] Upholstery and headliner', 3100, null, 'import'),
+  ('000000be-0000-4000-8000-000000000005', '000000bd-0000-4000-8000-000000000001', '2023-10-10', null, '[Sample] Wiring harness and gauges', 1900, null, 'import'),
+  ('000000be-0000-4000-8000-000000000006', '000000bd-0000-4000-8000-000000000001', null, 'summer 2025', '[Sample] New tires and alignment', 1200, 'Sample Tire Co.', 'import');
 
 commit;

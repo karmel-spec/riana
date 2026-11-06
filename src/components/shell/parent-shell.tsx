@@ -20,7 +20,10 @@ export async function ParentShell({ children }: { children: React.ReactNode }) {
           <div className="text-right text-[0.85rem] text-mist">
             <div className="font-semibold text-paper">{v.name}</div>
             {!v.demo && (
-              <form action="/logout" method="post"><button className="min-h-0 underline">Sign out</button></form>
+              <div className="flex gap-3 justify-end">
+                <Link href="/account/password" className="text-mist underline">Password</Link>
+                <form action="/logout" method="post"><button className="min-h-0 underline">Sign out</button></form>
+              </div>
             )}
           </div>
         </div>

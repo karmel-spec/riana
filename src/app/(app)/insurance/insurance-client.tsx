@@ -35,25 +35,36 @@ export function PolicyEditor({ policy, agents }: { policy?: InsurancePolicy; age
   );
 }
 
-export function TaxEditor({ record }: { record?: TaxRecord }) {
+export function TaxEditor({ record, cpas = [] }: { record?: TaxRecord; cpas?: { id: string; name: string }[] }) {
   const [open, setOpen] = useState(false);
+  const [amended, setAmended] = useState(record?.amended ?? false);
   const [state, action, pending] = useActionState(saveTaxRecord, null);
   const [last, setLast] = useState(state);
   if (state !== last) { setLast(state); if (state?.ok) setOpen(false); }
   const t = record;
   const thisYear = new Date().getFullYear() - 1;
-  if (!open) return <button type="button" onClick={() => setOpen(true)} className={t ? "btn-secondary px-3 text-[0.9rem]" : "btn-secondary"}>{t ? "Edit" : "+ Add a tax record"}</button>;
+  if (!open) return <button type="button" onClick={() => setOpen(true)} className={t ? "btn-secondary px-3 text-[0.9rem]" : "btn-primary"}>{t ? "Edit" : "+ Add a tax record"}</button>;
   return (
-    <FormDialog title={t ? "Edit tax record" : "Add a tax record"} close={() => setOpen(false)} action={action} pending={pending} error={state && !state.ok ? state.error : undefined}>
+    <FormDialog title={t ? `Edit ${t.tax_year} ${t.kind} record` : "Add a tax record"} close={() => setOpen(false)} action={action} pending={pending} error={state && !state.ok ? state.error : undefined}>
       {t && <input type="hidden" name="id" value={t.id} />}
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id="tx-year" label="Tax year"><input id="tx-year" name="tax_year" type="number" inputMode="numeric" defaultValue={t?.tax_year ?? thisYear} required className="field" /></Field>
         <Field id="tx-kind" label="Type"><select id="tx-kind" name="kind" defaultValue={t?.kind ?? "federal"} className="field"><option value="federal">Federal return</option><option value="state">State return</option><option value="property">Property tax</option><option value="exemption">Exemption</option><option value="other">Other</option></select></Field>
         <Field id="tx-status" label="Status"><input id="tx-status" name="status" defaultValue={t?.status ?? ""} required className="field" placeholder="Filed, Not started, Extension…" /></Field>
         <Field id="tx-filed" label="Filed on"><input id="tx-filed" type="date" name="filed_on" defaultValue={t?.filed_on ?? ""} className="field" /></Field>
-        <Field id="tx-prep" label="Preparer" span><input id="tx-prep" name="preparer" defaultValue={t?.preparer ?? ""} className="field" /></Field>
+        <Field id="tx-prep" label="Preparer"><input id="tx-prep" name="preparer" defaultValue={t?.preparer ?? ""} className="field" /></Field>
+        <Field id="tx-cpa" label="CPA contact"><select id="tx-cpa" name="cpa_person_id" defaultValue={t?.cpa_person_id ?? ""} className="field"><option value="">—</option>{cpas.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></Field>
+        <div className="sm:col-span-2 flex flex-wrap items-center gap-4">
+          <label className="flex min-h-[44px] items-center gap-2 font-semibold"><input type="checkbox" name="amended" checked={amended} onChange={(e) => setAmended(e.target.checked)} className="h-5 w-5 accent-evergreen" /> Amended</label>
+          {amended && <input name="amended_form" defaultValue={t?.amended_form ?? "1040-X"} className="field w-40" aria-label="Amendment form" />}
+        </div>
+        <Field id="tx-ssr" label="Rich SSN (last 4)"><input id="tx-ssr" name="ssn_last4_rich" inputMode="numeric" maxLength={4} defaultValue={t?.ssn_last4_rich ?? ""} className="field font-mono" /></Field>
+        <Field id="tx-ssd" label="Diana SSN (last 4)"><input id="tx-ssd" name="ssn_last4_diana" inputMode="numeric" maxLength={4} defaultValue={t?.ssn_last4_diana ?? ""} className="field font-mono" /></Field>
+        <Field id="tx-bank" label="Refund account (last 4)"><input id="tx-bank" name="refund_bank_last4" inputMode="numeric" maxLength={4} defaultValue={t?.refund_bank_last4 ?? ""} className="field font-mono" /></Field>
+        <Field id="tx-link" label="Drive link (optional)"><input id="tx-link" name="drive_link" type="url" defaultValue={t?.drive_link ?? ""} className="field" /></Field>
         <Field id="tx-notes" label="Notes" span><textarea id="tx-notes" name="notes" rows={2} defaultValue={t?.notes ?? ""} className="field" /></Field>
       </div>
+      <p className="text-[0.85rem] text-ink-soft">Full SSNs and account numbers are refused by the form and by the database.</p>
     </FormDialog>
   );
 }

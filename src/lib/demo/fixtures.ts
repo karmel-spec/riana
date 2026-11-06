@@ -15,7 +15,7 @@ export function uid(kind: string, n: number): string {
     q: "a1", e: "a2", l: "a3", g: "a4", p: "a5", nl: "a6", nc: "a7",
     b: "a8", lab: "a9", w: "aa", r: "ab", loan: "ac",
     prov: "ad", med: "ae", cond: "af", vn: "b0", va: "b1", acct: "b2",
-    prop: "b3", ins: "b4", tax: "b5", dig: "b6", hh: "b7",
+    lp: "bc", veh: "bd", vi: "be", prop: "b3", ins: "b4", tax: "b5", dig: "b6", hh: "b7", tsi: "b8", epv: "b9", epr: "ba", pc: "bb",
   };
   const hex = n.toString(16).padStart(12, "0");
   return `000000${prefix[kind] ?? "ff"}-0000-4000-8000-${hex}`;
@@ -164,10 +164,19 @@ export const finalWishes: FinalWish[] = [
 ];
 
 export const loans: Loan[] = [
-  { id: uid("loan", 1), direction: "owed_to_estate", counterparty: "Loan A (sample child)", principal: 50000, rate_pct: 5, status: "active", note_signed: true },
-  { id: uid("loan", 2), direction: "owed_to_estate", counterparty: "Loan B (sample child)", principal: 50000, rate_pct: 5, status: "proposed", note_signed: false },
-  { id: uid("loan", 3), direction: "owed_by_estate", counterparty: "Sample Mortgage Co.", property_id: uid("prop", 2), principal: 185000, rate_pct: 3.25, status: "active", note_signed: true, balance_note: "[Sample] About $120k remaining, 30-year fixed from 2018." },
-  { id: uid("loan", 4), direction: "owed_by_estate", counterparty: "Sample Mortgage Co.", property_id: uid("prop", 3), principal: 210000, rate_pct: 3.5, status: "active", note_signed: true, balance_note: "[Sample] About $150k remaining." },
+  { id: uid("loan", 1), direction: "owed_to_estate", counterparty: "Ryan & Tracy (sample)", principal: 50000, rate_pct: null, status: "active", note_signed: true, started_on: "2023-06-01", purpose: "[Sample] Home purchase help", legal_document_id: uid("l", 9), advance_on_inheritance: "undecided", gift_or_loan: "loan", balance_note: "Note signed 2023. No interest stated on the note." },
+  { id: uid("loan", 2), direction: "owed_to_estate", counterparty: "David (sample)", principal: 50000, rate_pct: 5, status: "proposed", note_signed: false, purpose: "For a casita", legal_document_id: uid("l", 10), advance_on_inheritance: "undecided", gift_or_loan: "loan", balance_note: "Proposed at 5%. Note drafted, not signed." },
+  { id: uid("loan", 7), direction: "owed_to_estate", counterparty: "StarLar", principal: 20000, rate_pct: null, status: "unclassified", note_signed: false, started_on: "2025-02-01", purpose: "[Sample] Roof on Rental A", gift_or_loan: "undecided", advance_on_inheritance: "no", balance_note: "Gift or loan: to be decided. If a loan, StarLar repays it from rents." },
+  { id: uid("loan", 5), direction: "owed_to_estate", counterparty: "StarLar · Note 1", principal: 250000, rate_pct: 4.75, status: "active", note_signed: true, term_months: 240, monthly_payment: 1655, first_payment_on: "2021-04-01", legal_document_id: uid("l", 9), gift_or_loan: "loan", balance_note: "Rents pay this note to Rich & Diana. Unpaid balance at death splits equally among the six children." },
+  { id: uid("loan", 6), direction: "owed_to_estate", counterparty: "StarLar · Note 2", principal: 300000, rate_pct: 6.25, status: "active", note_signed: true, term_months: 180, monthly_payment: 2575, first_payment_on: "2023-03-01", legal_document_id: null, gift_or_loan: "loan", balance_note: "Rents pay this note to Rich & Diana. Unpaid balance at death splits equally among the six children." },
+  { id: uid("loan", 3), direction: "owed_by_estate", counterparty: "Sample Mortgage Co.", lender: "Sample Mortgage Co.", property_id: uid("prop", 2), principal: 185000, rate_pct: 3.25, status: "active", note_signed: true, started_on: "2018-05-01", term_months: 360, monthly_payment: 805.16, first_payment_on: "2018-06-01", balance_note: "[Sample] 30-year fixed from 2018." },
+  { id: uid("loan", 4), direction: "owed_by_estate", counterparty: "Sample Federal Credit Union", lender: "Sample Federal Credit Union", property_id: uid("prop", 3), principal: 210000, rate_pct: 3.5, status: "active", note_signed: true, started_on: "2019-09-01", term_months: 360, monthly_payment: 943.03, first_payment_on: "2019-10-01", appraisal_on: "2026-09-10", appraisal_value: 485000, appraisal_source: "Lender AVM package (sample)", balance_note: "[Sample] AVM appraisal on file from the lender." },
+];
+
+export const loanPayments: LoanPayment[] = [
+  { id: uid("lp", 1), loan_id: uid("loan", 1), paid_on: "2024-01-15", amount: 5000, kind: "payment", note: "[Sample] First repayment" },
+  { id: uid("lp", 2), loan_id: uid("loan", 1), paid_on: "2025-01-15", amount: 5000, kind: "payment", note: null },
+  { id: uid("lp", 3), loan_id: uid("loan", 1), paid_on: "2026-01-15", amount: 5000, kind: "payment", note: null },
 ];
 
 export const rianaUpdates: RianaUpdate[] = [
@@ -185,7 +194,7 @@ export const auditEntries: AuditEntry[] = [
 ];
 
 // --- Health (FAKE) -------------------------------------------------------------
-import type { Account, HealthCondition, Medication, Provider, VaClaim, VisitNote } from "../types";
+import type { Account, HealthCondition, LoanPayment, Medication, Provider, VaClaim, VisitNote } from "../types";
 
 export const providers: Provider[] = [
   { id: uid("prov", 1), patient: "diana", name: "Dr. Sample Primary", specialty: "Primary care", practice: "Sample Family Medicine", phone: "(555) 010-0703", portal_name: "MyChart (sample)", is_va: false, notes: null },
@@ -235,7 +244,7 @@ export const accounts: Account[] = [
 ];
 
 // --- Properties, insurance, taxes (FAKE) --------------------------------------
-import type { InsurancePolicy, Property, TaxRecord } from "../types";
+import type { InsurancePolicy, Property, TaxRecord, TaxSourceItem } from "../types";
 
 export const properties: Property[] = [
   { id: uid("prop", 1), name: "Home · Lake Havasu City", kind: "residence", address: "[Sample] 123 Example Dr, Lake Havasu City, AZ", held_by: "Rich & Diana", succession_plan: "[Sample] Passes under the will (six-way split).", manager_person_id: null, hoa_name: null, notes: "Paid off. Disabled-veteran property tax exemption applied.", source: "app" },
@@ -255,27 +264,60 @@ export const insurancePolicies: InsurancePolicy[] = [
   { id: uid("ins", 9), kind: "life", carrier: "Sample Life Co.", insured: "rich", policy_last4: "2290", premium: 95, renews_on: null, agent_person_id: null, notes: "[Sample] Term policy; beneficiary Diana. Check the end date.", source: "app" },
 ];
 
+const TR = (n: number, year: number, kind: TaxRecord["kind"], status: string, extra: Partial<TaxRecord> = {}): TaxRecord => ({
+  id: uid("tax", n), tax_year: year, kind, preparer: year <= 2023 ? "Sample CPA, PLLC" : "Sample Block Advisor", status, filed_on: null, notes: null,
+  amended: false, amended_form: null, ssn_last4_rich: "1111", ssn_last4_diana: "2222", refund_bank_last4: "1234", cpa_person_id: null, imported_file_id: null, drive_link: null, source: "app", ...extra,
+});
 export const taxRecords: TaxRecord[] = [
-  { id: uid("tax", 1), tax_year: 2025, kind: "federal", preparer: "Sample CPA, PLLC", status: "Filed", filed_on: "2026-03-20", notes: null, source: "app" },
-  { id: uid("tax", 2), tax_year: 2025, kind: "state", preparer: "Sample CPA, PLLC", status: "Not required (AZ resident, WA rental income reported federally)", filed_on: null, notes: null, source: "app" },
-  { id: uid("tax", 3), tax_year: 2025, kind: "property", preparer: null, status: "Second half due", filed_on: null, notes: "Tumwater rentals. Due dates on the calendar.", source: "app" },
-  { id: uid("tax", 4), tax_year: 2026, kind: "exemption", preparer: null, status: "Active", filed_on: null, notes: "Disabled-veteran exemption on the Lake Havasu home. Renew with the county assessor if asked.", source: "app" },
-  { id: uid("tax", 5), tax_year: 2024, kind: "federal", preparer: "Sample CPA, PLLC", status: "Filed", filed_on: "2025-04-02", notes: null, source: "app" },
-  { id: uid("tax", 6), tax_year: 2026, kind: "federal", preparer: "Sample CPA, PLLC", status: "Not started", filed_on: null, notes: "Gather 1099s in January.", source: "app" },
+  TR(1, 2025, "federal", "Filed", { filed_on: "2026-03-20" }),
+  TR(2, 2025, "state", "Not required (AZ resident; WA rental income on the federal return)", { ssn_last4_rich: null, ssn_last4_diana: null, refund_bank_last4: null }),
+  TR(3, 2025, "property", "Second half due", { notes: "Tumwater rentals. Due dates on the calendar.", ssn_last4_rich: null, ssn_last4_diana: null, refund_bank_last4: null }),
+  TR(4, 2026, "exemption", "Active", { notes: "Disabled-veteran exemption on the Lake Havasu home. Renew with the county assessor if asked.", ssn_last4_rich: null, ssn_last4_diana: null, refund_bank_last4: null }),
+  TR(5, 2024, "federal", "Filed, then amended", { filed_on: "2025-04-02", amended: true, amended_form: "1040-X", notes: "[Sample] Amended to correct rental depreciation." }),
+  TR(6, 2023, "federal", "Filed", { filed_on: "2024-04-10" }),
+  TR(7, 2022, "federal", "Filed", { filed_on: "2023-04-05" }),
+  TR(8, 2021, "federal", "Filed", { filed_on: "2022-04-12" }),
+  TR(9, 2020, "federal", "Filed", { filed_on: "2021-05-01" }),
+  TR(10, 2019, "federal", "Filed", { filed_on: "2020-07-10" }),
+  TR(11, 2026, "federal", "Not started", { notes: "Gather 1099s in January.", ssn_last4_rich: null, ssn_last4_diana: null, refund_bank_last4: null }),
 ];
+
+export const taxSourceItems: TaxSourceItem[] = [
+  { id: uid("tsi", 1), tax_year: 2025, label: "1099 · Rental A rents", provider: "Welcome Home (sample portal)", where_to_find: "Owner portal → Documents → Tax", portal_url: "https://example.com/welcome-home", vault_item: "Greene – Welcome Home portal", received: true, received_on: day(-30), notes: null },
+  { id: uid("tsi", 2), tax_year: 2025, label: "1099 · Rental B rents", provider: "MVP (sample portal)", where_to_find: "Owner portal → Statements → Year-end", portal_url: "https://example.com/mvp", vault_item: "Greene – MVP portal", received: false, received_on: null, notes: "Usually posted late January." },
+  { id: uid("tsi", 3), tax_year: 2025, label: "1098 · Mortgage interest, Rental A", provider: "Truist (sample)", where_to_find: "Online banking → Documents → Tax forms", portal_url: "https://example.com/truist", vault_item: "Greene – Truist", received: false, received_on: null, notes: null },
+  { id: uid("tsi", 4), tax_year: 2025, label: "1098 · Mortgage interest, Rental B", provider: "Mr. Cooper (sample)", where_to_find: "Account → Tax documents", portal_url: "https://example.com/mrcooper", vault_item: "Greene – Mr. Cooper", received: false, received_on: null, notes: null },
+  { id: uid("tsi", 5), tax_year: 2025, label: "SSA-1099 · Social Security", provider: "SSA.gov (sample)", where_to_find: "my Social Security → Replacement documents", portal_url: "https://example.com/ssa", vault_item: "Rich – SSA", received: true, received_on: day(-40), notes: null },
+];
+
 
 // --- Digital accounts & household (FAKE) --------------------------------------
 import type { DigitalAccount, HouseholdItem } from "../types";
 
+const DA = (n: number, service: string, owner: DigitalAccount["owner"], category: string, status: DigitalAccount["status"], extra: Partial<DigitalAccount> = {}): DigitalAccount => ({
+  id: uid("dig", n), service, website: null, owner, category, purpose: null, vault_name: "Greene Family", vault_item: status === "found" ? `${owner === "both" ? "Greene" : owner === "rich" ? "Rich" : "Diana"} – ${service}` : null, status, after_death: null, notes: null, source: "app", ...extra,
+});
 export const digitalAccounts: DigitalAccount[] = [
-  { id: uid("dig", 1), service: "Gmail (Rich)", owner: "rich", purpose: "Main email; Riana reads it", vault_item: "Rich – Gmail", after_death: "Keep open 12 months for bills, then close.", notes: null, source: "app" },
-  { id: uid("dig", 2), service: "Gmail (Diana)", owner: "diana", purpose: "Main email; Riana reads it", vault_item: "Diana – Gmail", after_death: "Keep open 12 months, then close.", notes: null, source: "app" },
-  { id: uid("dig", 3), service: "Apple ID", owner: "both", purpose: "iPad, photos, iCloud", vault_item: "Greene – Apple ID", after_death: "Download photos first (Legacy Contact set to Karmel).", notes: "Legacy Contact set up in Settings.", source: "app" },
-  { id: uid("dig", 4), service: "Facebook", owner: "diana", purpose: "Family and church friends", vault_item: "Diana – Facebook", after_death: "Memorialize.", notes: null, source: "app" },
-  { id: uid("dig", 5), service: "Sample Credit Union online banking", owner: "both", purpose: "Bills and transfers", vault_item: "Greene – Credit Union", after_death: "Executor contacts the bank; do not log in after death.", notes: "Account ····1234 and ····5678.", source: "app" },
-  { id: uid("dig", 6), service: "My HealtheVet (VA)", owner: "rich", purpose: "VA appointments, prescriptions, claim status", vault_item: "Rich – VA login", after_death: "Close.", notes: null, source: "app" },
-  { id: uid("dig", 7), service: "Google Photos (shared family album)", owner: "both", purpose: "Scanned photos and documents", vault_item: "Greene – Google", after_death: "Transfer ownership to Karmel.", notes: null, source: "riana" },
-  { id: uid("dig", 8), service: "Streaming (sample)", owner: "both", purpose: "TV", vault_item: "Greene – Streaming", after_death: "Cancel.", notes: "Billed to card ····7890.", source: "app" },
+  DA(1, "Gmail (Rich)", "rich", "Email", "found", { website: "https://mail.google.com", purpose: "Main email; Riana reads it", after_death: "Keep open 12 months for bills, then close." }),
+  DA(2, "Gmail (Diana)", "diana", "Email", "found", { website: "https://mail.google.com", purpose: "Main email; Riana reads it", after_death: "Keep open 12 months, then close." }),
+  DA(3, "Apple ID", "both", "Devices", "found", { website: "https://appleid.apple.com", purpose: "iPad, photos, iCloud", after_death: "Download photos first (Legacy Contact set to Karmel).", notes: "Legacy Contact set up in Settings." }),
+  DA(4, "Facebook", "diana", "Social", "found", { website: "https://facebook.com", after_death: "Memorialize." }),
+  DA(5, "Sample Credit Union online banking", "both", "Banking", "found", { website: "https://example.com/cu", purpose: "Bills and transfers", after_death: "Executor contacts the bank; do not log in after death.", notes: "Account ····1234 and ····5678." }),
+  DA(6, "My HealtheVet (VA)", "rich", "Health", "found", { website: "https://www.myhealth.va.gov", purpose: "VA appointments, prescriptions, claim status", after_death: "Close." }),
+  DA(7, "Google Photos (shared family album)", "both", "Photos", "found", { website: "https://photos.google.com", after_death: "Transfer ownership to Karmel.", source: "riana" }),
+  DA(8, "Streaming (sample)", "both", "Entertainment", "to_find", { purpose: "TV", after_death: "Cancel.", notes: "Billed to card ····7890." }),
+  DA(9, "Sample Brokerage", "rich", "Investments", "to_find", { purpose: "Rich's IRA" }),
+  DA(10, "Sample Card Co.", "diana", "Banking", "to_find"),
+  DA(11, "Medicare.gov", "both", "Health", "to_find", { website: "https://www.medicare.gov" }),
+  DA(12, "SSA.gov (my Social Security)", "rich", "Government", "found", { website: "https://www.ssa.gov" }),
+  DA(13, "SSA.gov (my Social Security)", "diana", "Government", "to_find", { website: "https://www.ssa.gov" }),
+  DA(14, "Sample Electric Co.", "both", "Utilities", "found", { purpose: "Autopay" }),
+  DA(15, "Water & sewer (sample)", "both", "Utilities", "to_find"),
+  DA(16, "Phone & internet (sample)", "both", "Utilities", "found"),
+  DA(17, "Welcome Home portal (sample)", "both", "Rentals", "found", { purpose: "Rental A statements and 1099" }),
+  DA(18, "MVP portal (sample)", "both", "Rentals", "to_find", { purpose: "Rental B statements and 1099" }),
+  DA(19, "Amazon", "diana", "Shopping", "to_find"),
+  DA(20, "Church membership tools (sample)", "both", "Church", "found"),
 ];
 
 export const householdItems: HouseholdItem[] = [
@@ -288,4 +330,59 @@ export const householdItems: HouseholdItem[] = [
   { id: uid("hh", 7), kind: "service", name: "Housekeeper (sample)", details: "[Sample] Fridays. Has a key. Phone (555) 010-1003.", source: "app" },
   { id: uid("hh", 8), kind: "other", name: "Home safe", details: "[Sample] In the master closet. Combination is in 1Password under \"Greene – Home safe\". Holds titles, the POA originals and passports.", source: "app" },
   { id: uid("hh", 9), kind: "other", name: "Spare keys", details: "[Sample] Next-door neighbor has a house key. Garage code is in 1Password.", source: "app" },
+];
+
+// --- Estate plan (Update Brief #2 §3d: the family's stated plan, no identifiers) -----
+import type { EstatePlanVersion, EstateProvision, PlanConflict } from "../types";
+
+export const estatePlanVersions: EstatePlanVersion[] = [
+  { id: uid("epv", 1), version_no: 1, title: "2026 estate plan (in progress)", plan_date: "2026-10-15", status: "current",
+    source_docs: ["Attorney Strategic Summary Brief", "Family Agreement Notes"],
+    summary: "A revocable living trust to hold the Washington rentals, the vehicles and the CDs; StarLar passes to Mike and Karmel; the rents keep paying the parents on two notes; anything unpaid at death is split six ways." },
+];
+
+const PV = (n: number, category: EstateProvision["category"], subject: string, planned: string, legal_document_id: string | null = null, notes: string | null = null): EstateProvision =>
+  ({ id: uid("epr", n), plan_version_id: uid("epv", 1), category, subject, planned, legal_document_id, sort_order: n, notes });
+export const estateProvisions: EstateProvision[] = [
+  PV(1, "asset", "Revocable living trust", "Create a revocable living trust to hold the WA rentals, the vehicles, and the Foothills and Glacier CDs.", uid("l", 2), "Trust not yet drafted."),
+  PV(2, "asset", "WA rentals (StarLar)", "Title and appreciation go to Mike and Karmel 50/50, held through the trust; outside the six-way split of the will.", uid("l", 6), "2021 TOD deeds conflict with this (see open questions)."),
+  PV(3, "asset", "Vehicles (Vickie, '56 Chevy)", "Held by the trust.", uid("l", 2)),
+  PV(4, "asset", "Foothills and Glacier CDs", "Held by the trust.", uid("l", 2)),
+  PV(5, "role", "Successor trustee / executrix", "Heather.", uid("l", 1), "The 2021 draft will names one executor; family intends co-executors (Karmel & Heather) — confirm which role each holds."),
+  PV(6, "role", "Co-attorneys-in-fact", "Mike and Karmel.", uid("l", 3), "Current signed financial POA (2019) names someone — confirm."),
+  PV(7, "term", "StarLar Note 1", "$1,655/mo · $250k at 4.75% · 20 years · from Apr 2021. Rents pay the parents.", uid("l", 9)),
+  PV(8, "term", "StarLar Note 2", "$2,575/mo · $300k at 6.25% · 15 years · from Mar 2023. Rents pay the parents.", null, "No signed note on the Legal board yet."),
+  PV(9, "term", "Unpaid note balance at death", "Split equally among all six children.", null),
+  PV(10, "term", "Loans to children ($50k each)", "Not addressed in the plan.", null, "Open question."),
+];
+
+const PC = (n: number, title: string, detail: string, owner_name: string, status: PlanConflict["status"], provision_id: string | null = null): PlanConflict =>
+  ({ id: uid("pc", n), plan_version_id: uid("epv", 1), provision_id, title, detail, owner_name, status, resolution: null, due_on: null, sort_order: n });
+export const planConflicts: PlanConflict[] = [
+  PC(1, "Equity figure: $480k vs. $540k", "The attorney's summary and the family notes give different equity figures for the rentals. Which one does the plan use, and as of what date?", "Karmel", "open", uid("epr", 2)),
+  PC(2, "Payout at the first death vs. after both deaths", "Does the six-way split (and the StarLar transfer) happen when the first parent dies, or only after both?", "Heather", "open", uid("epr", 9)),
+  PC(3, "No attorney named yet", "The 2026 plan has no engaged attorney. Larry Stout drafted the 2021 documents.", "Karmel", "open"),
+  PC(4, "The $50k loans to children aren't addressed", "Ryan & Tracy ($50k, signed) and David ($50k, proposed): advances against inheritance, repaid, or forgiven?", "Heather", "open", uid("epr", 10)),
+  PC(5, "2021 TOD deeds conflict with the trust plan", "Recorded transfer-on-death deeds (nos. 4857438 and 4857439) would pass the rentals outside the trust. They must be revoked or the plan must change.", "Karmel", "with_attorney", uid("epr", 2)),
+  PC(6, "Note 1 terms don't match its payment", "$250k at 4.75% over 20 years computes to $1,615.56/mo, not $1,655 (about $40/mo apart; $1,655 pays off in ~19 years). Confirm the note's actual rate, term or payment.", "Karmel", "open", uid("epr", 7)),
+];
+
+// --- Vehicles (Update Brief #2 §3a; values are the brief's estimates, improvements are FAKE) ---
+import type { Vehicle, VehicleImprovement } from "../types";
+
+export const vehicles: Vehicle[] = [
+  { id: uid("veh", 1), year: 1934, make: "Ford", model: "Victoria", nickname: "Vickie", engine: "350 Chevy V8", vin_last4: null, estimated_value: 50000, valuation_on: "2026-10-01", valuation_source: "Family estimate (sample)", title_location: "[Sample] Home safe", owner: "rich", insurance_policy_id: uid("ins", 2), estate_provision_id: uid("epr", 3), specs_file_id: null, notes: "Specs and the improvements list come from the 'Vickie Specs' and '34 Vickie Improvements' documents once imported.", source: "app" },
+  { id: uid("veh", 2), year: 1956, make: "Chevrolet", model: "[Sample] Bel Air", nickname: "the '56", engine: "[Sample] 265 V8", vin_last4: null, estimated_value: 100000, valuation_on: "2026-10-01", valuation_source: "Family estimate (sample)", title_location: "[Sample] Home safe", owner: "rich", insurance_policy_id: uid("ins", 2), estate_provision_id: uid("epr", 3), specs_file_id: null, notes: null, source: "app" },
+  { id: uid("veh", 3), year: 2019, make: "[Sample] Sedan", model: null, nickname: "the everyday car", engine: null, vin_last4: null, estimated_value: 14000, valuation_on: "2026-06-01", valuation_source: "[Sample] Online estimate", title_location: "[Sample] Home safe", owner: "both", insurance_policy_id: uid("ins", 1), estate_provision_id: null, specs_file_id: null, notes: "Spare key on the hook by the garage door.", source: "app" },
+];
+
+const VI = (n: number, done_on: string | null, approx: string | null, description: string, cost: number | null, vendor: string | null = null): VehicleImprovement =>
+  ({ id: uid("vi", n), vehicle_id: uid("veh", 1), done_on, done_on_approx: approx, description, cost, vendor, imported_file_id: null, source: "import" });
+export const vehicleImprovements: VehicleImprovement[] = [
+  VI(1, "2016-05-01", null, "[Sample] Engine rebuild and new intake", 6800, "Sample Speed Shop"),
+  VI(2, "2017-08-01", null, "[Sample] Disc brake conversion", 2400, "Sample Speed Shop"),
+  VI(3, null, "2019", "[Sample] Paint and body", 9500, "Sample Body Works"),
+  VI(4, "2021-03-15", null, "[Sample] Upholstery and headliner", 3100, null),
+  VI(5, "2023-10-10", null, "[Sample] Wiring harness and gauges", 1900, null),
+  VI(6, null, "summer 2025", "[Sample] New tires and alignment", 1200, "Sample Tire Co."),
 ];

@@ -10,7 +10,8 @@
 --     (export) are separate: a key can do either or both.
 --   * Some sections can never be exported, whatever a key is granted:
 --     digital_accounts (vault item names), family_history (documents, journals,
---     media), notify and admin. The check constraint enforces it.
+--     media), taxes (super-admin-only since migration 0007), notify and admin.
+--     The check constraint enforces it.
 --   * riana_export() runs as the function owner, verifies the key, and builds
 --     JSON only for the granted sections. Anything else the agent asked for is
 --     listed under not_permitted. Each call writes ONE audit_log row (action
@@ -23,7 +24,7 @@
 create or replace function app.exportable_sections() returns public.section[]
 language sql immutable set search_path = '' as $$
   select array['urgent_questions', 'calendar', 'contacts', 'health_diana', 'health_rich',
-               'properties', 'accounts', 'bills', 'insurance', 'taxes', 'legal',
+               'properties', 'accounts', 'bills', 'insurance', 'legal',
                'final_wishes', 'household', 'next_steps']::public.section[]
 $$;
 
@@ -158,11 +159,6 @@ language sql stable set search_path = '' as $$
         'id', i.id, 'kind', i.kind, 'carrier', i.carrier, 'insured', i.insured, 'policy_last4', i.policy_last4,
         'premium', i.premium, 'renews_on', i.renews_on, 'agent', ag.full_name, 'agent_phone', ag.phone, 'notes', i.notes) order by i.renews_on nulls last, i.carrier), '[]'::jsonb)
       from public.insurance_policies i left join public.people ag on ag.id = i.agent_person_id)
-    when 'taxes' then (
-      select coalesce(jsonb_agg(jsonb_build_object(
-        'id', t.id, 'tax_year', t.tax_year, 'kind', t.kind, 'preparer', t.preparer, 'status', t.status,
-        'filed_on', t.filed_on, 'notes', t.notes) order by t.tax_year desc, t.kind), '[]'::jsonb)
-      from public.tax_records t)
     when 'legal' then (
       select coalesce(jsonb_agg(jsonb_build_object(
         'id', d.id, 'doc_type', d.doc_type, 'title', d.title, 'principal', d.principal, 'status', d.status,
@@ -226,7 +222,7 @@ begin
     'key_label', k.label,
     'sections', v_out,
     'not_permitted', to_jsonb(v_denied),
-    'never_exported', '["digital_accounts","family_history","documents","notify","admin"]'::jsonb);
+    'never_exported', '["digital_accounts","family_history","documents","taxes","notify","admin"]'::jsonb);
 end $$;
 
 revoke all on function public.riana_export(text, public.section[]),

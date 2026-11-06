@@ -184,10 +184,32 @@ export type Loan = {
   counterparty: string;
   property_id?: string | null;
   balance_note?: string | null;
+  term_months?: number | null;
+  monthly_payment?: number | null;
+  first_payment_on?: string | null;
+  legal_document_id?: string | null;
+  imported_file_id?: string | null;
+  advance_on_inheritance?: "yes" | "no" | "undecided" | null;
   principal: number | null;
   rate_pct: number | null;
-  status: "proposed" | "active" | "paid_off" | "forgiven";
+  status: "proposed" | "unclassified" | "active" | "paid_off" | "forgiven";
   note_signed: boolean;
+  lender?: string | null;
+  purpose?: string | null;
+  appraisal_on?: string | null;
+  appraisal_value?: number | null;
+  appraisal_source?: string | null;
+  gift_or_loan?: "gift" | "loan" | "undecided" | null;
+  started_on?: string | null;
+};
+
+export type LoanPayment = {
+  id: string;
+  loan_id: string;
+  paid_on: string;
+  amount: number;
+  kind: "payment" | "interest_only" | "principal_only" | "forgiveness" | "adjustment";
+  note: string | null;
 };
 
 export type Provider = {
@@ -297,15 +319,40 @@ export type TaxRecord = {
   status: string;
   filed_on: string | null;
   notes: string | null;
+  amended: boolean;
+  amended_form: string | null;
+  ssn_last4_rich: string | null;
+  ssn_last4_diana: string | null;
+  refund_bank_last4: string | null;
+  cpa_person_id: string | null;
+  imported_file_id: string | null;
+  drive_link: string | null;
   source: Source;
+};
+
+export type TaxSourceItem = {
+  id: string;
+  tax_year: number;
+  label: string;
+  provider: string | null;
+  where_to_find: string | null;
+  portal_url: string | null;
+  vault_item: string | null;
+  received: boolean;
+  received_on: string | null;
+  notes: string | null;
 };
 
 export type DigitalAccount = {
   id: string;
   service: string;
+  website: string | null;
   owner: Subject;
+  category: string | null;
   purpose: string | null;
+  vault_name: string;
   vault_item: string | null;
+  status: "found" | "to_find";
   after_death: string | null;
   notes: string | null;
   source: Source;
@@ -316,5 +363,71 @@ export type HouseholdItem = {
   kind: "pet" | "vehicle" | "heirloom" | "service" | "other";
   name: string;
   details: string | null;
+  source: Source;
+};
+
+export type EstatePlanVersion = {
+  id: string;
+  version_no: number;
+  title: string;
+  plan_date: string;
+  status: "draft" | "current" | "superseded";
+  source_docs: string[];
+  summary: string | null;
+};
+
+export type EstateProvision = {
+  id: string;
+  plan_version_id: string;
+  category: "asset" | "role" | "term";
+  subject: string;
+  planned: string;
+  legal_document_id: string | null;
+  sort_order: number;
+  notes: string | null;
+};
+
+export type PlanConflict = {
+  id: string;
+  plan_version_id: string | null;
+  provision_id: string | null;
+  title: string;
+  detail: string | null;
+  owner_name: string | null;
+  status: "open" | "with_attorney" | "decided" | "resolved";
+  resolution: string | null;
+  due_on: string | null;
+  sort_order: number;
+};
+
+export type Vehicle = {
+  id: string;
+  year: number | null;
+  make: string;
+  model: string | null;
+  nickname: string | null;
+  engine: string | null;
+  vin_last4: string | null;
+  estimated_value: number | null;
+  valuation_on: string | null;
+  valuation_source: string | null;
+  title_location: string | null;
+  owner: Subject;
+  insurance_policy_id: string | null;
+  estate_provision_id: string | null;
+  specs_file_id: string | null;
+  notes: string | null;
+  source: Source;
+};
+
+export type VehicleImprovement = {
+  id: string;
+  vehicle_id: string;
+  done_on: string | null;
+  done_on_approx: string | null;
+  description: string;
+  cost: number | null;
+  vendor: string | null;
+  imported_file_id: string | null;
   source: Source;
 };

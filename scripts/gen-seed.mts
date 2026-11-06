@@ -36,9 +36,14 @@ out += insert("properties", f.properties.map((x) => pick(x, "id", "name", "kind"
 out += insert("bills", f.bills.map((x) => ({ ...pick(x, "id", "payee", "category", "amount", "frequency", "next_due_on", "autopay", "status", "notes", "source"), property_id: x.property_id ?? null })));
 out += insert("lab_results", f.labResults.map((x) => pick(x, "id", "patient", "test_name", "value", "unit", "ref_low", "ref_high", "taken_on", "source")));
 out += insert("final_wishes", f.finalWishes.map((x) => pick(x, "id", "person", "topic", "wish", "confirmed")));
-out += insert("loans", f.loans.map((x) => ({ ...pick(x, "id", "direction", "counterparty", "principal", "rate_pct", "status", "note_signed"), property_id: x.property_id ?? null, balance_note: x.balance_note ?? null })));
+out += insert("loans", f.loans.map((x) => ({ ...pick(x, "id", "direction", "counterparty", "principal", "rate_pct", "status", "note_signed"), property_id: x.property_id ?? null, balance_note: x.balance_note ?? null, term_months: x.term_months ?? null, monthly_payment: x.monthly_payment ?? null, first_payment_on: x.first_payment_on ?? null, legal_document_id: x.legal_document_id ?? null, lender: x.lender ?? null, purpose: x.purpose ?? null, appraisal_on: x.appraisal_on ?? null, appraisal_value: x.appraisal_value ?? null, appraisal_source: x.appraisal_source ?? null, gift_or_loan: x.gift_or_loan ?? null, advance_on_inheritance: x.advance_on_inheritance ?? null, started_on: x.started_on ?? null })));
+out += insert("loan_payments", f.loanPayments.map((x) => pick(x, "id", "loan_id", "paid_on", "amount", "kind", "note")));
+out += insert("estate_plan_versions", f.estatePlanVersions.map((x) => ({ ...pick(x, "id", "version_no", "title", "plan_date", "status", "summary"), source_docs: `{${x.source_docs.map((d) => `"${d}"`).join(",")}}` })));
+out += insert("estate_provisions", f.estateProvisions.map((x) => pick(x, "id", "plan_version_id", "category", "subject", "planned", "legal_document_id", "sort_order", "notes")));
+out += insert("plan_conflicts", f.planConflicts.map((x) => pick(x, "id", "plan_version_id", "provision_id", "title", "detail", "owner_name", "status", "resolution", "due_on", "sort_order")));
 out += insert("insurance_policies", f.insurancePolicies.map((x) => pick(x, "id", "kind", "carrier", "insured", "policy_last4", "premium", "renews_on", "agent_person_id", "notes", "source")));
-out += insert("tax_records", f.taxRecords.map((x) => pick(x, "id", "tax_year", "kind", "preparer", "status", "filed_on", "notes", "source")));
+out += insert("tax_records", f.taxRecords.map((x) => pick(x, "id", "tax_year", "kind", "preparer", "status", "filed_on", "notes", "amended", "amended_form", "ssn_last4_rich", "ssn_last4_diana", "refund_bank_last4", "source")));
+out += insert("tax_source_items", f.taxSourceItems.map((x) => pick(x, "id", "tax_year", "label", "provider", "where_to_find", "portal_url", "vault_item", "received", "received_on", "notes")));
 out += insert("riana_updates", f.rianaUpdates.map((x) => ({ ...pick(x, "id", "kind", "summary", "received_at", "review_status"), payload: "{}" })));
 out += insert("providers", f.providers.map((x) => pick(x, "id", "patient", "name", "specialty", "practice", "phone", "portal_name", "is_va", "notes")));
 out += insert("medications", f.medications.map((x) => pick(x, "id", "patient", "name", "dose", "schedule", "purpose", "prescriber_id", "started_on", "stopped_on", "active", "notes", "source")));
@@ -46,7 +51,9 @@ out += insert("health_conditions", f.healthConditions.map((x) => pick(x, "id", "
 out += insert("visit_notes", f.visitNotes.map((x) => pick(x, "id", "patient", "visit_on", "provider_id", "summary", "follow_up", "author_name", "source")));
 out += insert("va_claims", f.vaClaims.map((x) => pick(x, "id", "kind", "title", "status", "filed_on", "decided_on", "rating_pct", "next_step", "notes", "source")));
 out += insert("accounts", f.accounts.map((x) => pick(x, "id", "institution", "kind", "purpose", "last4", "held_by", "beneficiary_notes", "notes", "source")));
-out += insert("digital_accounts", f.digitalAccounts.map((x) => pick(x, "id", "service", "owner", "purpose", "vault_item", "after_death", "notes", "source")));
+out += insert("digital_accounts", f.digitalAccounts.map((x) => pick(x, "id", "service", "website", "owner", "category", "purpose", "vault_name", "vault_item", "status", "after_death", "notes", "source")));
 out += insert("household_items", f.householdItems.map((x) => pick(x, "id", "kind", "name", "details", "source")));
+out += insert("vehicles", f.vehicles.map((x) => pick(x, "id", "year", "make", "model", "nickname", "engine", "vin_last4", "estimated_value", "valuation_on", "valuation_source", "title_location", "owner", "insurance_policy_id", "estate_provision_id", "notes", "source")));
+out += insert("vehicle_improvements", f.vehicleImprovements.map((x) => pick(x, "id", "vehicle_id", "done_on", "done_on_approx", "description", "cost", "vendor", "source")));
 out += "commit;\n";
 process.stdout.write(out);

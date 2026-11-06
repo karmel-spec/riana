@@ -241,6 +241,7 @@ select test.ok(test.fails($$select public.riana_key_set_read_sections(current_se
 reset role; select test.act(:K, 'aal2'); set role authenticated;
 select test.ok(test.fails($$select public.riana_key_set_read_sections(current_setting('test.key2id')::uuid, '{digital_accounts}')$$), 'logins can never be exported');
 select test.ok(test.fails($$select public.riana_key_set_read_sections(current_setting('test.key2id')::uuid, '{family_history}')$$), 'family history can never be exported');
+select test.ok(test.fails($$select public.riana_key_set_read_sections(current_setting('test.key2id')::uuid, '{taxes}')$$), 'tax records can never be exported');
 select public.riana_key_set_read_sections(current_setting('test.key2id')::uuid, '{urgent_questions,calendar,final_wishes,health_diana}');
 select test.ok((select read_sections from public.riana_inbound_keys where id = current_setting('test.key2id')::uuid) = '{urgent_questions,calendar,health_diana,final_wishes}'::public.section[], 'read sections are saved (in binder order)');
 select test.ok((select details -> 'read_sections' from public.audit_log where entity = 'riana_inbound_keys' and entity_id = current_setting('test.key2id')::uuid order by at desc limit 1) ? 'health_diana', 'granting read sections is audited');
@@ -253,7 +254,7 @@ select test.ok(current_setting('test.exp')::jsonb -> 'sections' -> 'health_diana
            and current_setting('test.exp')::jsonb -> 'sections' -> 'health_diana' -> 'medications' is not null, 'export: Diana health includes labs and medications');
 select test.ok(current_setting('test.exp')::jsonb -> 'sections' ? 'health_rich' = false
            and current_setting('test.exp')::jsonb -> 'sections' ? 'legal' = false, 'export: Rich health and legal stay out');
-select test.ok(not exists (select 1 from jsonb_array_elements(current_setting('test.exp')::jsonb -> 'sections' -> 'calendar') e where e ->> 'section' in ('health_rich', 'taxes', 'insurance')), 'export: calendar hides appointments from ungranted sections');
+select test.ok(not exists (select 1 from jsonb_array_elements(current_setting('test.exp')::jsonb -> 'sections' -> 'calendar') e where e ->> 'section' in ('health_rich', 'admin', 'insurance')), 'export: calendar hides appointments from ungranted sections');
 select test.ok(current_setting('test.exp')::jsonb -> 'never_exported' ? 'digital_accounts', 'export: says what is never exported');
 select test.ok(test.fails($$select public.riana_export(current_setting('test.key2'), '{nonsense}')$$), 'export: unknown section is refused');
 select test.ok(test.rows('select * from public.final_wishes') <= 0, 'anon still cannot read tables directly');
@@ -268,3 +269,105 @@ select set_config('request.jwt.claims', '', false); set role anon;
 select test.ok(public.riana_export(current_setting('test.key2'), '{final_wishes}') -> 'sections' = '{}'::jsonb, 'export: read access can be taken away');
 reset role;
 \echo 'Riana export tests passed.'
+
+-- Drive import ----------------------------------------------------------------
+select test.act(:K, 'aal2'); set role authenticated;
+insert into public.drive_folders (key, drive_folder_id, name, sensitivity) values ('taxes', 'folder-taxes', 'Taxes', 'admin_only'), ('legal', 'folder-legal', 'Legal Docs', 'normal');
+select test.ok(public.drive_upsert_file('f1', 'legal', 'Will 2021.pdf', 'application/pdf', 100, 'aaa', '2026-01-01', 'https://drive.example/f1', 'legal', 'pdf', 'normal', 'legal-any', 'Legal') = 'created', 'first sync creates');
+select test.ok(public.drive_upsert_file('f1', 'legal', 'Will 2021.pdf', 'application/pdf', 100, 'aaa', '2026-01-01', 'https://drive.example/f1', 'legal', 'pdf', 'normal', 'legal-any', 'Legal') = 'unchanged', 'second sync is a no-op');
+select test.ok(public.drive_upsert_file('f1', 'legal', 'Will 2021 v2.pdf', 'application/pdf', 120, 'bbb', '2026-02-01', 'https://drive.example/f1', 'legal', 'pdf', 'normal', 'legal-any', 'Legal') = 'updated', 'a changed file updates in place');
+select test.ok((select count(*) from public.imported_files) = 1, 'no duplicate row was created');
+select test.ok(public.drive_upsert_file('f2', 'legal', 'Will 2021 v2.pdf', 'application/pdf', 120, 'bbb', '2026-02-01', 'https://drive.example/f2', 'legal', 'pdf', 'normal', 'legal-any', 'Legal') = 'duplicate', 'same content elsewhere is flagged duplicate');
+select test.ok(public.drive_upsert_file('t1', 'taxes', '2024 Greene Federal Tax Return.pdf', 'application/pdf', 900, 'ccc', '2026-03-01', 'https://drive.example/t1', 'taxes', 'pdf', 'admin_only', 'tax-return', 'Taxes') = 'created', 'tax return pointer created');
+select test.ok((select section from public.imported_files where drive_file_id = 'f1') = 'admin', 'pending files sit in admin');
+update public.imported_files set review_status = 'approved' where drive_file_id in ('f1', 't1');
+select test.ok((select section from public.imported_files where drive_file_id = 'f1') = 'legal', 'approved normal file moves to its section');
+select test.ok((select section from public.imported_files where drive_file_id = 't1') = 'admin', 'approved admin-only file stays in admin');
+reset role;
+select test.act(:ATT, 'aal2'); set role authenticated;   -- attorney has Legal (read)
+select test.ok(test.rows('select * from public.imported_files') = 1 and (select name from public.imported_files) = 'Will 2021 v2.pdf', 'attorney sees only the approved legal file');
+select test.ok(test.fails($$update public.imported_files set review_status = 'approved' where drive_file_id = 'f2'$$) or test.touches($$update public.imported_files set review_status = 'approved' where drive_file_id = 'f2'$$) <= 0, 'non-admin cannot approve');
+select test.ok(test.fails($$select public.drive_upsert_file('x', 'legal', 'x', 'x', 1, 'x', now(), 'x', 'legal', 'pdf', 'normal', 'r', 'n')$$), 'non-admin cannot run the sync');
+reset role;
+select test.act(:GK, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.imported_files') = 0, 'grandchild sees no imported files (no Legal, and taxes is admin-only)');
+select test.ok(test.rows('select * from public.drive_folders') = 0 and test.rows('select * from public.drive_sync_runs') = 0, 'grandchild cannot see folders or runs');
+reset role;
+\echo 'Drive import tests passed.'
+
+-- Taxes (admin-only, masked) ----------------------------------------------------
+select test.act(:RICH, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.tax_records') = 0, 'a parent cannot see tax records');
+select test.ok(test.rows('select * from public.tax_source_items') = 0, 'a parent cannot see the tax checklist');
+reset role; select test.act(:K, 'aal1'); set role authenticated;
+select test.ok(test.rows('select * from public.tax_records') = 0, 'super admin WITHOUT 2FA cannot see tax records');
+reset role; select test.act(:K, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.tax_records') >= 7, 'super admin with 2FA sees the returns');
+select test.ok((select amended from public.tax_records where tax_year = 2024 and kind = 'federal') and (select amended_form from public.tax_records where tax_year = 2024 and kind = 'federal') = '1040-X', '2024 is flagged amended 1040-X');
+select test.ok(test.fails($$insert into public.tax_records (tax_year, kind, status, ssn_last4_rich) values (2018, 'federal', 'Filed', '123456789')$$), 'a full SSN in the last-4 column is rejected');
+select test.ok(test.fails($$insert into public.tax_records (tax_year, kind, status, notes) values (2018, 'federal', 'Filed', 'SSN 123-45-6789')$$), 'a full SSN in notes is rejected');
+select test.ok(test.fails($$insert into public.tax_records (tax_year, kind, status, notes) values (2018, 'federal', 'Filed', 'acct 1234567890')$$), 'a full account number in notes is rejected');
+select test.ok(not test.fails($$insert into public.tax_records (tax_year, kind, status, ssn_last4_rich, notes) values (2018, 'federal', 'Filed', '4321', 'refund to ····1234')$$), 'last-4 values are accepted');
+select public.log_view('admin', 'imported_files:download:2024 return', null);
+select test.ok(exists (select 1 from public.audit_log where actor = :K::uuid and action = 'view' and entity like 'imported_files:download:%'), 'a return download is in the audit log');
+reset role;
+\echo 'Taxes tests passed.'
+
+-- Estate plan -----------------------------------------------------------------
+select test.act(:K, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.estate_plan_versions') = 1 and test.rows('select * from public.estate_provisions') = 10, 'super admin sees the plan and its provisions');
+select test.ok(test.rows('select * from public.plan_conflicts where status <> ''resolved''') >= 5, 'at least the five brief conflicts are open questions');
+select test.ok((select count(*) from public.plan_conflicts where owner_name is not null) = (select count(*) from public.plan_conflicts), 'every open question has an owner');
+select test.ok((select count(*) from public.loans where direction = 'owed_to_estate' and monthly_payment is not null and first_payment_on is not null) = 2, 'both StarLar notes carry payment terms');
+select test.ok(test.fails($$insert into public.plan_conflicts (title, status) values ('x', 'maybe')$$), 'unknown conflict status is rejected');
+reset role;
+select test.act(:ATT, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.estate_provisions') = 10, 'the attorney (Legal) can read the plan');
+select test.ok(test.fails($$insert into public.plan_conflicts (title) values ('attorney note')$$), 'the attorney (read-only) cannot add questions');
+reset role;
+select test.act(:DAV, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.plan_conflicts') = 0 or exists (select 1 from public.user_section_access where user_id = :DAV::uuid and section = 'legal' and break_glass), 'family without Legal sees no plan (unless break-glass is active)');
+reset role;
+\echo 'Estate plan tests passed.'
+
+-- Loans ledger ----------------------------------------------------------------
+select test.act(:K, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.loans where direction = ''owed_to_estate''') >= 5, 'the three family loans and the two StarLar notes exist');
+select test.ok((select status from public.loans where counterparty = 'StarLar') = 'unclassified', 'the $20k StarLar item is unclassified (gift or loan)');
+select test.ok((select appraisal_value from public.loans where appraisal_on = '2026-09-10') = 485000, 'the rental loan carries its AVM appraisal');
+select test.ok((select simple_balance from public.loan_balances b join public.loans l on l.id = b.loan_id where l.counterparty like 'Ryan%') = 35000, 'balance = principal minus recorded payments');
+select test.ok((select count(*) from public.loans l where l.direction = 'owed_to_estate' and l.status <> 'unclassified' and (l.legal_document_id is not null or l.imported_file_id is not null)) >= 3, 'signed/proposed loans link to a document');
+select test.ok(test.fails($$insert into public.loan_payments (loan_id, paid_on, amount) select id, now(), -5 from public.loans limit 1$$), 'negative payments are rejected');
+reset role;
+select test.act(:DAV, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.loans') = 0 and test.rows('select * from public.loan_payments') = 0 and test.rows('select * from public.loan_balances') = 0, 'family cannot see loans, payments or balances');
+reset role;
+\echo 'Loans ledger tests passed.'
+
+-- Accounts directory ----------------------------------------------------------
+select test.ok((select count(*) from public.secret_like_columns()) = 0, 'no table in the public schema has a credential-looking column');
+select test.act(:K, 'aal2'); set role authenticated;
+select test.ok(test.fails($$insert into public.digital_accounts (service, status) values ('x', 'maybe')$$), 'status must be found or to_find');
+select test.ok(test.fails($$insert into public.digital_accounts (service, website) values ('x', 'https://example.com?token=abc')$$), 'a token in the website field is rejected');
+select test.ok(test.fails($$insert into public.digital_accounts (service, notes) values ('x', 'security answer: fluffy')$$), 'a security answer in notes is rejected');
+select test.ok(not test.fails($$insert into public.digital_accounts (service, vault_item, status) values ('Sample Service', 'Greene – Sample Service', 'found')$$), 'a vault item name is accepted');
+select test.ok((select count(*) filter (where status = 'found') from public.digital_accounts) > 0 and (select count(*) filter (where status = 'to_find') from public.digital_accounts) > 0, 'progress has both found and to-find rows');
+reset role;
+\echo 'Accounts directory tests passed.'
+
+-- Vehicles --------------------------------------------------------------------------
+select test.act(:K, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.vehicles') = 3, 'super admin sees the vehicles');
+select test.ok((select estimated_value from public.vehicles where nickname = 'Vickie') = 50000 and (select engine from public.vehicles where nickname = 'Vickie') = '350 Chevy V8', 'Vickie has her value and engine');
+select test.ok((select count(*) from public.vehicle_improvements vi join public.vehicles v on v.id = vi.vehicle_id where v.nickname = 'Vickie') = 6, 'Vickie has an improvements list');
+select test.ok((select count(*) from public.vehicles where insurance_policy_id is not null and estate_provision_id is not null) = 2, 'both classics link to the policy and the plan');
+select test.ok(test.fails($$insert into public.vehicles (make, vin_last4) values ('x', '1HGCM82633A004352')$$), 'a full VIN is rejected');
+reset role;
+select test.act(:RICH, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.vehicles') = 3, 'a parent can read the vehicles (properties)');
+select test.ok(test.fails($$insert into public.vehicle_improvements (vehicle_id, description) select id, 'x' from public.vehicles limit 1$$), 'a parent cannot add improvements (read-only on properties)');
+reset role;
+select test.act(:DAV, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.vehicles') = 0, 'family cannot see vehicles');
+reset role;
+\echo 'Vehicles tests passed.'

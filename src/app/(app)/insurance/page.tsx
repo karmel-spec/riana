@@ -1,16 +1,15 @@
-import { requireSection, canWrite, canRead } from "@/lib/session";
+import { requireSection, canWrite } from "@/lib/session";
 import * as data from "@/lib/data";
 import { Empty, PageHeader, SectionCard, SourceTag } from "@/components/ui";
 import { daysUntil, fmtDate, fmtMoney, subjectName } from "@/lib/format";
-import { PolicyEditor, TaxEditor } from "./insurance-client";
+import { PolicyEditor } from "./insurance-client";
 
-export const metadata = { title: "Insurance & Taxes" };
+export const metadata = { title: "Insurance" };
 
 const POLICY_KIND: Record<string, string> = {
   auto: "Auto", home: "Homeowners", classic_car: "Classic car", umbrella: "Umbrella", medicare: "Medicare",
   supplemental: "Medicare supplement / Advantage", champva: "CHAMPVA", life: "Life", landlord: "Landlord (rentals)", other: "Other",
 };
-const TAX_KIND: Record<string, string> = { federal: "Federal return", state: "State return", property: "Property tax", exemption: "Exemption", other: "Other" };
 const GROUPS: { title: string; kinds: string[] }[] = [
   { title: "Health coverage", kinds: ["medicare", "supplemental", "champva"] },
   { title: "Home, rentals & umbrella", kinds: ["home", "landlord", "umbrella"] },
@@ -20,20 +19,18 @@ const GROUPS: { title: string; kinds: string[] }[] = [
 
 export default async function InsurancePage() {
   const v = await requireSection("insurance");
-  const [policies, taxes, people] = await Promise.all([data.getPolicies(v), data.getTaxRecords(v), data.getPeople(v)]);
+  const [policies, people] = await Promise.all([data.getPolicies(v), data.getPeople(v)]);
   await data.logView(v, "insurance");
   const parent = v.role === "parent";
   const canEditIns = canWrite(v, "insurance") && !parent;
-  const canEditTax = canWrite(v, "taxes") && !parent;
   const agents = people.filter((p) => /agent|broker|cpa|accountant/i.test(p.relationship ?? "")).map((p) => ({ id: p.id, name: p.full_name }));
   const renewingSoon = policies.filter((p) => { const d = daysUntil(p.renews_on); return d !== null && d >= 0 && d <= 60; });
   const annual = policies.reduce((s, p) => s + (p.premium ?? 0), 0);
-  const years = [...new Set(taxes.map((t) => t.tax_year))].sort((a, b) => b - a);
 
   return (
     <>
-      <PageHeader eyebrow={parent ? undefined : "Sections 9 & 10"} title={parent ? "Your insurance" : "Insurance & taxes"}
-        intro={parent ? "Which company covers what, and when each one renews." : "Every policy with its renewal date and premium, then tax returns by year, property tax, and the disabled-veteran exemption."}
+      <PageHeader eyebrow={parent ? undefined : "Section 9"} title={parent ? "Your insurance" : "Insurance"}
+        intro={parent ? "Which company covers what, and when each one renews." : "Every policy with its renewal date and premium. Taxes have moved to their own admin-only section."}
         actions={canEditIns ? <PolicyEditor agents={agents} /> : undefined} />
 
       {renewingSoon.length > 0 && !parent && (
@@ -75,30 +72,6 @@ export default async function InsurancePage() {
         {policies.length === 0 && <Empty>No policies recorded yet.</Empty>}
         {!parent && policies.length > 0 && <p className="text-[0.9rem] text-ink-soft">Premiums on file add up to about {fmtMoney(annual)} a year. Renewal dates also appear on the Calendar.</p>}
 
-        {!parent && canRead(v, "taxes") && (
-          <SectionCard title="Taxes">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-ink-soft">Returns by year, property tax, and exemptions. Preparer: {taxes.find((t) => t.preparer)?.preparer ?? "—"}.</p>
-              {canEditTax && <TaxEditor />}
-            </div>
-            {taxes.length === 0 ? <Empty>No tax records yet.</Empty> : years.map((y) => (
-              <div key={y}>
-                <h3 className="mb-1 font-sans text-[1rem] font-bold text-brass-deep">{y}</h3>
-                <ul className="divide-y divide-rule-soft rounded-xl border border-rule-soft">
-                  {taxes.filter((t) => t.tax_year === y).map((t) => (
-                    <li key={t.id} className="flex flex-wrap items-start justify-between gap-2 px-4 py-2.5">
-                      <div>
-                        <span className="font-semibold">{TAX_KIND[t.kind]}</span> <span className="text-ink-soft">· {t.status}{t.filed_on && ` · filed ${fmtDate(t.filed_on, { year: "numeric" })}`}{t.preparer && ` · ${t.preparer}`}</span>
-                        {t.notes && <div className="text-[0.9rem] text-ink-soft">{t.notes}</div>}
-                      </div>
-                      {canEditTax && <TaxEditor record={t} />}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </SectionCard>
-        )}
       </div>
     </>
   );

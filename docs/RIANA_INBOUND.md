@@ -78,7 +78,7 @@ select public.riana_key_set_read_sections('<id>', '{urgent_questions,calendar,fi
 select public.riana_key_set_read_sections('<id>', '{}');
 ```
 
-Sections that can be granted: `urgent_questions`, `calendar`, `contacts`, `health_diana`, `health_rich`, `properties`, `accounts`, `bills`, `insurance`, `taxes`, `legal`, `final_wishes`, `household`, `next_steps`. Logins (`digital_accounts`), family history (documents, journals, media), the notify lists, and admin data can **never** be exported; the database refuses the grant.
+Sections that can be granted: `urgent_questions`, `calendar`, `contacts`, `health_diana`, `health_rich`, `properties`, `accounts`, `bills`, `insurance`, `legal`, `final_wishes`, `household`, `next_steps`. Logins (`digital_accounts`), tax records, family history (documents, journals, media), the notify lists, and admin data can **never** be exported; the database refuses the grant.
 
 Health, money, and legal sections normally require a 2-step-verified person. Granting one of them to a key is a deliberate decision to let that assistant see it without that. Keep the grant to what the assistant's job needs.
 
@@ -98,7 +98,7 @@ Omit `sections` for everything the key may read. The reply:
     "calendar": [ { "title": "Cardiology follow-up", "about": "rich", "starts_at": "...", ... } ]
   },
   "not_permitted": ["legal"],
-  "never_exported": ["digital_accounts", "family_history", "documents", "notify", "admin"]
+  "never_exported": ["digital_accounts", "family_history", "documents", "taxes", "notify", "admin"]
 }
 ```
 
@@ -114,7 +114,6 @@ What each section contains:
 | `accounts` | Accounts (institution, kind, purpose, last 4 digits only) plus loans owed to the estate. |
 | `bills` | Bills with amount, due date, autopay, status, and which account pays them (last 4 only). |
 | `insurance` | Policies with carrier, renewal, premium, agent (last 4 of the policy number only). |
-| `taxes` | Tax records by year and status. |
 | `legal` | Current legal documents and their status, open issues, and where the original is. |
 | `final_wishes` | Each wish and whether it is confirmed. |
 | `household` | Pets, vehicles, heirlooms, services. |

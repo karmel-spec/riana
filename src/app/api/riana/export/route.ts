@@ -23,7 +23,7 @@ import { SECTIONS, type Section } from "@/lib/types";
 
 const EXPORTABLE: readonly Section[] = [
   "urgent_questions", "calendar", "contacts", "health_diana", "health_rich", "properties", "accounts",
-  "bills", "insurance", "taxes", "legal", "final_wishes", "household", "next_steps",
+  "bills", "insurance", "legal", "final_wishes", "household", "next_steps",
 ];
 
 const json = (status: number, body: Record<string, unknown>) =>
