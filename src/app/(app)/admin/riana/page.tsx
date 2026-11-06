@@ -28,6 +28,7 @@ export default async function RianaPage() {
                 <div className="mt-1 text-[1.1rem] font-semibold">{u.summary}</div>
                 {u.kind === "contact" && u.payload && <div className="text-[0.95rem] text-ink-soft">{[u.payload.relationship, u.payload.phone, u.payload.email, [u.payload.city, u.payload.region].filter(Boolean).join(", ")].filter(Boolean).join(" · ")}{u.payload.is_professional ? " · professional" : ""}{u.payload.notify_first ? " · tell first" : ""} → approving adds them to People (unconfirmed, via Riana)</div>}
                 {u.kind === "album" && u.payload && <div className="text-[0.95rem] text-ink-soft">{String(u.payload.url ?? "")} → approving saves the link under Family History</div>}
+                {u.kind === "note" && u.payload && <div className="text-[0.95rem] text-ink-soft"><p className="whitespace-pre-line text-ink">{String(u.payload.text ?? "")}</p>{u.payload.from ? `From ${u.payload.from}` : ""}{u.payload.section ? ` · about ${sectionLabel(String(u.payload.section))}` : ""} → approving marks it seen; make any binder change by hand</div>}
                 <div className="text-[0.9rem] text-ink-soft">Received {fmtDate(u.received_at)} at {fmtTime(u.received_at)}{u.external_ref?.startsWith("gdoc:") ? " · from the Binder doc" : ""}</div>
               </div>
               <ReviewButtons id={u.id} />

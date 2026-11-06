@@ -17,7 +17,7 @@ export default async function VehiclesPage() {
   const current = versions.find((x) => x.status === "current") ?? versions[0];
   const provisions = current ? await data.getProvisions(v, current.id) : [];
   await data.logView(v, "properties", "vehicles");
-  const parent = v.role === "parent";
+  const parent = v.brief;
   const canEdit = canWrite(v, "properties") && !parent;
   const policyOpts = policies.map((p) => ({ id: p.id, name: `${p.kind.replace("_", " ")} · ${p.carrier}` }));
   const provisionOpts = provisions.map((p) => ({ id: p.id, name: p.subject }));
@@ -28,7 +28,7 @@ export default async function VehiclesPage() {
     <>
       <PageHeader eyebrow={parent ? undefined : "Section 6 · Vehicles"} title={parent ? "Your cars" : "Vehicles"}
         intro={parent ? "The cars, what they're worth, and where the titles are." : "Each vehicle with its estimated value (and when and how it was valued), the improvements put into it, the insurance that covers it, where the title is, and what the estate plan says happens to it."}
-        actions={<><Link href="/properties" className="btn-secondary">Back to properties</Link>{canEdit && <VehicleEditor policies={policyOpts} provisions={provisionOpts} files={fileOpts} />}</>} />
+        actions={<>{canEdit && <VehicleEditor policies={policyOpts} provisions={provisionOpts} files={fileOpts} />}</>} />
 
       {!parent && vehicles.length > 0 && <p className="mb-5 text-ink-soft">Estimated value on file: <strong className="text-ink">{fmtMoney(total)}</strong> across {vehicles.length} vehicles.</p>}
 

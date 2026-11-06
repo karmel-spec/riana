@@ -149,6 +149,19 @@ export async function listRuns(v: Viewer): Promise<SyncRunRow[]> {
   return (data ?? []) as SyncRunRow[];
 }
 
+/** Approves every file still waiting for review. Returns how many were approved. */
+export async function approveAllPending(v: Viewer): Promise<number> {
+  if (v.demo) {
+    const rows = demo().files.filter((x) => x.review_status === "pending" && x.sensitivity !== "excluded");
+    for (const f of rows) f.review_status = "approved";
+    return rows.length;
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("imported_files").update({ review_status: "approved" }).eq("review_status", "pending").select("id");
+  if (error) throw new Error("Could not approve the waiting files.");
+  return data?.length ?? 0;
+}
+
 export async function reviewImportedFile(v: Viewer, id: string, decision: "approved" | "rejected") {
   if (v.demo) {
     const f = demo().files.find((x) => x.id === id);

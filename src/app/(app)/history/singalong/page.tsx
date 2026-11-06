@@ -14,7 +14,7 @@ export default async function SingAlongPage() {
   const list = playlists.find((p) => p.slug === "sing-along");
   const tracks = (list?.track_ids ?? []).map((id) => media.find((m) => m.id === id)).filter((m): m is NonNullable<typeof m> => !!m && !!m.imported_file_id)
     .map((m) => ({ id: m.id, title: m.title ?? "Untitled", src: `/api/files/${m.imported_file_id}`, duration: m.duration_seconds }));
-  const parent = v.role === "parent";
+  const parent = v.brief;
 
   return (
     <>

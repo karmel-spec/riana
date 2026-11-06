@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { NavItem } from "@/lib/nav";
 import { Close, Menu } from "@/components/icons";
+import { ViewToggle } from "./view-toggle";
 
 type Props = {
   items: Omit<NavItem, "icon">[] & { icon?: never }[];
@@ -12,6 +13,7 @@ type Props = {
   viewerName: string;
   viewerBlurb: string;
   demo: boolean;
+  canToggleView: boolean;      // false for parents, who only have the Brief version
   children?: React.ReactNode;  // the role switcher, demo-only
 };
 
@@ -33,7 +35,7 @@ function NavLink({ item, active, onClick }: { item: Omit<NavItem, "icon">; activ
   );
 }
 
-export function Sidebar({ items, adminItems, viewerName, viewerBlurb, demo, children }: Props) {
+export function Sidebar({ items, adminItems, viewerName, viewerBlurb, demo, canToggleView, children }: Props) {
   const pathname = usePathname();
   // Stores the path the menu was opened on, so navigating closes it.
   const [openOn, setOpenOn] = useState<string | null>(null);
@@ -55,7 +57,13 @@ export function Sidebar({ items, adminItems, viewerName, viewerBlurb, demo, chil
         </Link>
         <div className="mt-1 text-[0.85rem] text-mist">Rich &amp; Diana · Lake Havasu City</div>
       </div>
-      {items.map((i) => <NavLink key={i.href} item={i} active={isActive(i.href)} onClick={close} />)}
+      {canToggleView && <div className="mb-3 px-7"><ViewToggle current="full" /></div>}
+      {items.map((i, n) => (
+        <div key={i.href}>
+          {i.group && i.group !== items[n - 1]?.group && <div className="mt-4 px-7 pb-1 text-[0.75rem] font-bold uppercase tracking-[0.1em] text-mist">{i.group}</div>}
+          <NavLink item={i} active={isActive(i.href)} onClick={close} />
+        </div>
+      ))}
       {adminItems.length > 0 && (
         <>
           <div className="mt-4 px-7 pb-1 text-[0.75rem] font-bold uppercase tracking-[0.1em] text-mist">Admin</div>

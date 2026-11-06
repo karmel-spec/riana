@@ -17,7 +17,7 @@ export default async function LegalPage() {
   const v = await requireSection("legal");
   const docs = await data.getLegalDocuments(v);
   await data.logView(v, "legal", "legal_documents");
-  const parent = v.role === "parent";
+  const parent = v.brief;
 
   if (parent) {
     return (

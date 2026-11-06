@@ -6,6 +6,7 @@ import { fmtTime, greeting, monthDay, relative, subjectName, todayLong, fmtMoney
 import { DateChip, Empty, LegalStatusPill, SectionCard, SourceTag, Stat } from "@/components/ui";
 import { LabChart } from "./lab-chart";
 import { Mic, Sparkle } from "@/components/icons";
+import { ShareUpdateButton } from "./share-update";
 
 export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
   const [questions, events, legal, bills, labs, riana] = await Promise.all([
@@ -26,7 +27,7 @@ export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
           <h1 className="text-[2.2rem] font-semibold leading-tight sm:text-[2.6rem]">{greeting()}, {v.name}</h1>
           <p className="text-ink-soft">{canWrite(v, "urgent_questions") ? "Here is what needs your care this week." : "Here is what is happening in the family."}</p>
         </div>
-        {canWrite(v, "urgent_questions") && <Link href="/questions?new=1" className="btn-primary">+ Add an update</Link>}
+        <ShareUpdateButton />
       </header>
 
       {v.locked.length > 0 && (

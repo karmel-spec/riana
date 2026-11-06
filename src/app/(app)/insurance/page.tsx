@@ -21,7 +21,7 @@ export default async function InsurancePage() {
   const v = await requireSection("insurance");
   const [policies, people] = await Promise.all([data.getPolicies(v), data.getPeople(v)]);
   await data.logView(v, "insurance");
-  const parent = v.role === "parent";
+  const parent = v.brief;
   const canEditIns = canWrite(v, "insurance") && !parent;
   const agents = people.filter((p) => /agent|broker|cpa|accountant/i.test(p.relationship ?? "")).map((p) => ({ id: p.id, name: p.full_name }));
   const renewingSoon = policies.filter((p) => { const d = daysUntil(p.renews_on); return d !== null && d >= 0 && d <= 60; });

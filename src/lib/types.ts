@@ -151,6 +151,19 @@ export type FinalWish = {
 };
 
 /** A link to an album that lives elsewhere (Google Photos share link). Saved as a reference only. */
+export type Journal = {
+  id: string;
+  title: string;
+  url: string;
+  author: Subject;
+  kind: "blog" | "google_doc" | "drive_folder" | "scan" | "other";
+  period: string | null;
+  note: string | null;
+  added_by_name: string | null;
+  source: Source;
+  created_at: string;
+};
+
 export type SharedAlbum = {
   id: string;
   title: string;

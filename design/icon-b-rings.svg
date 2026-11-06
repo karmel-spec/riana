@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#f4eee2"/>
+  <!-- two interlocking rings: Rich & Diana -->
+  <g fill="none" stroke-width="26" stroke-linecap="round">
+    <circle cx="214" cy="256" r="118" stroke="#2f5141"/>
+    <circle cx="298" cy="256" r="118" stroke="#c9a35a"/>
+    <!-- re-draw evergreen arc over brass at the lower crossing so they interlock -->
+    <path d="M256 349.6 A118 118 0 0 1 214 374" stroke="#2f5141"/>
+  </g>
+  <!-- small heart at the shared centre -->
+  <path d="M256 236 c-8-18-36-14-36 6 0 16 22 30 36 42 14-12 36-26 36-42 0-20-28-24-36-6z" fill="#2f5141"/>
+</svg>

@@ -3,7 +3,7 @@
 // Used for (1) demo mode and (2) generating supabase/seed.sql.
 // Never put real family records in this file or anywhere in the repo.
 // =============================================================================
-import type {
+import type { Journal,
   Bill, CalendarEvent, ContactGroup, FinalWish, LabResult, LegalDocument, Loan,
   NotificationCampaign, NotificationList, Person, RianaUpdate, SharedAlbum, UrgentQuestion,
   AuditEntry,
@@ -194,6 +194,11 @@ export const rianaUpdates: RianaUpdate[] = [
 ];
 
 /** Shared album links are references only; the app never copies the photos. FAKE link. */
+export const journals: Journal[] = [
+  { id: uid("jrn", 1), title: "[Sample] Diana's blog, 2009–2015", url: "https://docs.google.com/document/d/SAMPLEfake0000001/edit", author: "diana", kind: "google_doc", period: "2009–2015", note: "Sample: every post gathered into one document.", added_by_name: "Karmel", source: "app", created_at: day(-30, 12) },
+  { id: uid("jrn", 2), title: "[Sample] Rich's mission journal", url: "https://drive.google.com/drive/folders/SAMPLEfake0000002", author: "rich", kind: "drive_folder", period: "1966–1968", note: "Sample: scanned pages in a Drive folder.", added_by_name: "Heather", source: "app", created_at: day(-10, 12) },
+];
+
 export const sharedAlbums: SharedAlbum[] = [
   { id: uid("alb", 1), title: "[Sample] Family reunion 2019", url: "https://photos.app.goo.gl/SAMPLEfake0000001", provider: "google_photos", note: "Shared by a cousin (sample).", added_by_name: "Karmel", source: "app", created_at: day(-20, 12) },
 ];

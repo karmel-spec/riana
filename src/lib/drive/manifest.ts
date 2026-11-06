@@ -45,6 +45,9 @@ export const FOLDERS: ManifestFolder[] = [
   { key: "taxes", name: "Taxes", driveFolderId: "1ptf78Ps6_GYOhV9wAxPM1IDiADZXh6Wn", sensitivity: "admin_only", defaultTarget: "taxes", notes: "Contains SSNs and bank details: masked on display, super admins only" },
   { key: "legal", name: "Legal Docs", driveFolderId: "1C7nytouvRz1C2Lv52QJUi1y0rSeoN3D_", sensitivity: "normal", defaultTarget: "legal" },
   { key: "widow_book", name: "2022 Widow Book", driveFolderId: "19vZ3XcQhF2e1WjzuAJRf-Ghh6nQdOEEq", sensitivity: "admin_only", defaultTarget: "legal", notes: "Four sensitive files: whole folder admin-only until an admin releases individual files" },
+  { key: "journals_diana", name: "Diana Greene (journals)", driveFolderId: "1Ft3LC45lZ7nsxp7AUajBbGgPyqf0dnXF", sensitivity: "normal", defaultTarget: "family_history", defaultNote: "Journals → Diana" },
+  { key: "journals_rich", name: "Rich Greene (journals)", driveFolderId: "10PilPvLEtxZhM5upnvG2MQaIyNMCc8c_", sensitivity: "normal", defaultTarget: "family_history", defaultNote: "Journals → Rich" },
+  { key: "riana_backup", name: "Riana Drive Backup", driveFolderId: "1EaGRLSfcLRRd2tuLRp8u8oyxjJuprYmQ", sensitivity: "admin_only", defaultTarget: "admin", notes: "Riana's own backup files: admin-only, each file released by an admin after review" },
   { key: "photos_takeout", name: "Photos (Takeout)", driveFolderId: null, parentKey: "root", sensitivity: "normal", defaultTarget: "family_history", defaultNote: "Photos → timeline", notes: "Created by the recurring Google Takeout export (item 9)" },
 ];
 

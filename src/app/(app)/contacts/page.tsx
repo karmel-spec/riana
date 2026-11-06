@@ -11,7 +11,7 @@ export default async function ContactsPage() {
   const v = await requireSection("contacts");
   const [people, groups, lists] = await Promise.all([data.getPeople(v), data.getGroups(v), data.getNotificationLists(v)]);
   await data.logView(v, "contacts", "people");
-  const parent = v.role === "parent";
+  const parent = v.brief;
   const mine = parent ? people.filter((p) => p.connected_to === v.isSubject || p.connected_to === "both") : people;
   const unconfirmed = mine.filter((p) => !p.confirmed).length;
 

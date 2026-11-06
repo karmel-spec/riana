@@ -7,7 +7,7 @@ import { QuestionStatusPill, SourceTag, Empty } from "@/components/ui";
 import { fmtDate, relative, subjectName } from "@/lib/format";
 import { SECTION_LABELS } from "@/lib/permissions";
 
-type ViewerInfo = { role: string; canEdit: boolean; name: string };
+type ViewerInfo = { role: string; brief: boolean; canEdit: boolean; name: string };
 
 export function QuestionList({ title, questions, viewer, collapsed = false }: {
   title: string; questions: UrgentQuestion[]; viewer: ViewerInfo; collapsed?: boolean;
@@ -31,7 +31,7 @@ export function QuestionList({ title, questions, viewer, collapsed = false }: {
 function QuestionCard({ q, viewer }: { q: UrgentQuestion; viewer: ViewerInfo }) {
   const [editing, setEditing] = useState(false);
   const [state, action, pending] = useActionState(answerQuestion, null);
-  const parent = viewer.role === "parent";
+  const parent = viewer.brief;
   const answered = ["answered", "closed"].includes(q.status);
   const [lastState, setLastState] = useState(state);
   if (state !== lastState) { setLastState(state); if (state?.ok) setEditing(false); }
@@ -72,6 +72,7 @@ function QuestionCard({ q, viewer }: { q: UrgentQuestion; viewer: ViewerInfo }) 
           <div className="flex flex-wrap gap-3">
             <button name="status" value="answered" className="btn-primary" disabled={pending}>{pending ? "Saving…" : "Save answer"}</button>
             <button name="status" value="partly_answered" className="btn-secondary" disabled={pending}>Save as partly answered</button>
+            <button type="button" disabled={pending} onClick={() => { if (window.confirm("Dismiss this question? It moves to the answered list without an answer.")) setQuestionStatus(q.id, "closed"); }} className="btn text-ink-soft">Dismiss</button>
             {editing && <button type="button" onClick={() => setEditing(false)} className="btn text-ink-soft">Cancel</button>}
           </div>
         </form>

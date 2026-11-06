@@ -16,7 +16,7 @@ export default async function LoansPage() {
     v.role === "super_admin" ? listImportedFiles(v) : Promise.resolve([]),
   ]);
   await data.logView(v, "accounts", "loans");
-  const parent = v.role === "parent";
+  const parent = v.brief;
   const canEdit = canWrite(v, "accounts") && !parent;
   const today = new Date().toISOString().slice(0, 10);
 

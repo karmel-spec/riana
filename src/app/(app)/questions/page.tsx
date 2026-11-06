@@ -10,7 +10,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
   const v = await requireSection("urgent_questions");
   const { new: openNew } = await searchParams;
   const questions = await data.getQuestions(v);
-  const parent = v.role === "parent";
+  const parent = v.brief;
   const list = parent
     ? questions.filter((q) => q.asked_of === v.isSubject || q.asked_of === "both")
     : questions;
@@ -27,10 +27,10 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
           : "Each question has an owner who will ask Mom and Dad, and a place to capture their answer."}
         actions={!parent && canWrite(v, "urgent_questions") ? <NewQuestionForm defaultOpen={openNew === "1"} /> : undefined}
       />
-      <QuestionList title={parent ? `Waiting for you (${open.length})` : `Open (${open.length})`} questions={open} viewer={{ role: v.role, canEdit: canWrite(v, "urgent_questions"), name: v.name }} />
+      <QuestionList title={parent ? `Waiting for you (${open.length})` : `Open (${open.length})`} questions={open} viewer={{ role: v.role, brief: v.brief, canEdit: canWrite(v, "urgent_questions"), name: v.name }} />
       {done.length > 0 && (
         <div className="mt-8">
-          <QuestionList title={`Answered (${done.length})`} questions={done} viewer={{ role: v.role, canEdit: canWrite(v, "urgent_questions"), name: v.name }} collapsed />
+          <QuestionList title={`Answered (${done.length})`} questions={done} viewer={{ role: v.role, brief: v.brief, canEdit: canWrite(v, "urgent_questions"), name: v.name }} collapsed />
         </div>
       )}
     </>

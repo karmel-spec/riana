@@ -41,7 +41,7 @@ export const SECTION_LABELS: Record<Section, string> = {
   legal: "Legal & Estate",
   final_wishes: "Final Wishes",
   digital_accounts: "Digital Accounts",
-  household: "Pets & Household",
+  household: "Household",
   next_steps: "Next Steps",
   family_history: "Family History",
   notify: "Notification Lists",

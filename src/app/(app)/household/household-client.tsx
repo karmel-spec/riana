@@ -6,7 +6,6 @@ import { deleteHouseholdItem, saveHouseholdItem } from "@/app/actions/household"
 import { FormDialog, Field } from "@/components/dialog";
 
 const KINDS: [HouseholdItem["kind"], string, string][] = [
-  ["pet", "Pet", "Name, age, vet, food and routine, medicines, who takes them if needed."],
   ["vehicle", "Vehicle", "Year and model, where the title is, spare key, who it's meant for."],
   ["heirloom", "Heirloom or keepsake", "What it is, where it is, the story, and who should have it."],
   ["service", "Someone who comes to the house", "What they do, when, how they're paid, phone, whether they have a key."],
@@ -15,7 +14,7 @@ const KINDS: [HouseholdItem["kind"], string, string][] = [
 
 export function HouseholdEditor({ item, parent }: { item?: HouseholdItem; parent: boolean }) {
   const [open, setOpen] = useState(false);
-  const [kind, setKind] = useState<HouseholdItem["kind"]>(item?.kind ?? "pet");
+  const [kind, setKind] = useState<HouseholdItem["kind"]>(item?.kind ?? "other");
   const [state, action, pending] = useActionState(saveHouseholdItem, null);
   const [last, setLast] = useState(state);
   if (state !== last) { setLast(state); if (state?.ok) setOpen(false); }

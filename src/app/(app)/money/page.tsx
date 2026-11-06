@@ -12,7 +12,7 @@ export default async function MoneyPage() {
   const v = await requireSection("accounts");
   const [accounts, bills, loans] = await Promise.all([data.getAccounts(v), data.getBills(v), data.getLoans(v)]);
   await data.logView(v, "accounts");
-  const parent = v.role === "parent";
+  const parent = v.brief;
   const failed = bills.filter((b) => b.status === "failed" || b.status === "overdue");
   const month = new Date().getMonth();
   const thisMonth = bills.filter((b) => b.next_due_on && new Date(`${b.next_due_on}T12:00:00`).getMonth() === month);

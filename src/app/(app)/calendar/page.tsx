@@ -10,8 +10,8 @@ const KIND: Record<string, string> = { appointment: "Appointment", deadline: "De
 export default async function CalendarPage() {
   const v = await requireSection("calendar");
   const events = await data.getUpcomingEvents(v, 120);
-  const parent = v.role === "parent";
-  const shown = parent ? events.filter((e) => e.about === v.isSubject || e.about === "both" || e.about === "household") : events;
+  const parent = v.brief;
+  const shown = events;  // Brief view is shared: Rich’s, Diana’s and household dates together
 
   // Group by month label
   const groups = new Map<string, typeof shown>();
@@ -22,8 +22,8 @@ export default async function CalendarPage() {
 
   return (
     <>
-      <PageHeader eyebrow={parent ? undefined : "Section 2"} title={parent ? "Your calendar" : "Key dates & calendar"}
-        intro={parent ? "Appointments and family plans for the next few months." : "Appointments, deadlines and renewals for the next four months. You only see dates for sections you have access to."} />
+      <PageHeader eyebrow={parent ? undefined : "Section 2"} title={parent ? "Our calendar" : "Key dates & calendar"}
+        intro={parent ? "Appointments and family plans for both of you over the next few months." : "Appointments, deadlines and renewals for the next four months. You only see dates for sections you have access to."} />
       {shown.length === 0 ? <Empty>Nothing coming up.</Empty> : [...groups.entries()].map(([month, list]) => (
         <section key={month} className="mb-8">
           <h2 className="mb-3 text-[1.4rem] font-semibold">{month}</h2>

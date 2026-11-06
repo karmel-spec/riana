@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getViewer } from "@/lib/session";
-import { applySync, checkFolderAccess, dryRun, reviewImportedFile } from "@/lib/drive/service";
+import { applySync, checkFolderAccess, dryRun, approveAllPending, reviewImportedFile } from "@/lib/drive/service";
 import type { SyncReport } from "@/lib/drive/sync";
 import type { FolderStatus } from "@/lib/drive/sync";
 
@@ -28,6 +28,12 @@ export async function runDryRun(): Promise<Result<SyncReport>> {
 export async function runApply(): Promise<Result<SyncReport>> {
   try { const v = await admin(); const data = await applySync(v); revalidatePath("/admin/import"); revalidatePath("/"); return { ok: true, data }; }
   catch (e) { return { ok: false, error: (e as Error).message }; }
+}
+
+export async function approveAllFiles(): Promise<Result<number>> {
+  try {
+    const v = await admin(); const n = await approveAllPending(v); revalidatePath("/admin/import"); return { ok: true, data: n };
+  } catch (e) { return { ok: false, error: (e as Error).message }; }
 }
 
 export async function reviewFile(id: string, decision: "approved" | "rejected"): Promise<Result> {

@@ -22,6 +22,8 @@ The binder reads documents from Google Drive through its own **service account**
    | Taxes | Karmel (admin-only in the app) |
    | Legal Docs | Karmel |
    | 2022 Widow Book | Karmel (admin-only in the app) |
+   | Riana Drive Backup | Karmel (admin-only in the app) |
+   | Diana Greene (journals), Rich Greene (journals) | Karmel |
 
    Sharing the root folder covers its subfolders automatically.
 

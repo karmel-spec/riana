@@ -1,13 +1,12 @@
 import { requireSection, canWrite } from "@/lib/session";
 import * as data from "@/lib/data";
 import { Empty, PageHeader, SourceTag } from "@/components/ui";
-import { Paw, House, Tag, Phone, Key } from "@/components/icons";
+import { House, Tag, Phone, Key } from "@/components/icons";
 import { HouseholdEditor, HouseholdRowActions } from "./household-client";
 
-export const metadata = { title: "Pets & Household" };
+export const metadata = { title: "Household" };
 
 const GROUPS = [
-  { kind: "pet", title: "Pets", icon: Paw, blurb: "Who they are, how to care for them, and who takes them." },
   { kind: "vehicle", title: "Vehicles", icon: House, blurb: "Titles, keys, and who gets them." },
   { kind: "heirloom", title: "Heirlooms & keepsakes", icon: Tag, blurb: "The things with a story, and who they're meant for." },
   { kind: "service", title: "People who come to the house", icon: Phone, blurb: "Yard, pool, cleaning, deliveries, and who has a key." },
@@ -17,13 +16,13 @@ const GROUPS = [
 export default async function HouseholdPage() {
   const v = await requireSection("household");
   const items = await data.getHouseholdItems(v);
-  const parent = v.role === "parent";
+  const parent = v.brief;
   const canEdit = canWrite(v, "household");
 
   return (
     <>
-      <PageHeader eyebrow={parent ? undefined : "Section 14"} title={parent ? "Pets & around the house" : "Pets & household"}
-        intro={parent ? "The dog, the cars, the keepsakes, and the people who help around the house. Add anything the kids should know." : "Everything a sibling would need to step in for a week: pet care, vehicles, keepsakes and who they're for, the people who come to the house, and where things are."}
+      <PageHeader eyebrow={parent ? undefined : "Section 14"} title={parent ? "Around the house" : "Household"}
+        intro={parent ? "The cars, the keepsakes, and the people who help around the house. Add anything the kids should know." : "Everything a sibling would need to step in for a week: vehicles, keepsakes and who they're for, the people who come to the house, and where things are."}
         actions={canEdit ? <HouseholdEditor parent={parent} /> : undefined} />
 
       {items.length === 0 ? <Empty>Nothing recorded yet.</Empty> : (

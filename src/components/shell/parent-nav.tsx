@@ -6,11 +6,12 @@ import { Calendar, Dove, Home, People, Question, Book } from "@/components/icons
 
 const ITEMS = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/calendar", label: "My Calendar", icon: Calendar },
+  { href: "/calendar", label: "Our Calendar", icon: Calendar },
   { href: "/questions", label: "Questions", icon: Question },
-  { href: "/wishes", label: "My Wishes", icon: Dove },
+  { href: "/wishes", label: "Our Wishes", icon: Dove },
   { href: "/contacts", label: "People", icon: People },
   { href: "/history", label: "Memories", icon: Book },
+  { href: "/journals", label: "Journals", icon: Book },
 ];
 
 export function ParentNav() {

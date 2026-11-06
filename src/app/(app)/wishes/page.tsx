@@ -18,19 +18,19 @@ export default async function WishesPage() {
   const [wishes, people] = await Promise.all([data.getFinalWishes(v), data.getPeople(v)]);
   const contact = (id: string | null) => (id ? people.find((p) => p.id === id) ?? null : null);
   await data.logView(v, "final_wishes");
-  const parent = v.role === "parent";
-  const shown = parent ? wishes.filter((w) => w.person === v.isSubject || w.person === "both") : wishes;
+  const parent = v.brief;
+  const shown = wishes;  // Brief view is shared: both of your wishes, side by side
 
   return (
     <>
-      <PageHeader eyebrow={parent ? undefined : "Section 12"} title={parent ? "My wishes" : "Final wishes & funeral requests"}
-        intro={parent ? "What you'd like, in your own words. Nothing here is final until you say so." : "Burial, service, music, speakers, obituary, organ donation, military honors and VA benefits, as Rich and Diana have expressed them."} />
+      <PageHeader eyebrow={parent ? undefined : "Section 12"} title={parent ? "Our wishes" : "Final wishes & funeral requests"}
+        intro={parent ? "What each of you would like, in your own words. Nothing here is final until you say so." : "Burial, service, music, speakers, obituary, organ donation, military honors and VA benefits, as Rich and Diana have expressed them."} />
       {shown.length === 0 ? <Empty>Nothing written down yet.</Empty> : (
         <ul className="grid gap-4 md:grid-cols-2">
           {shown.map((w) => (
             <li key={w.id} className="card">
               <div className="flex items-center justify-between gap-2">
-                <div className="eyebrow">{TOPIC[w.topic] ?? w.topic}{!parent && ` · ${subjectName(w.person)}`}</div>
+                <div className="eyebrow">{TOPIC[w.topic] ?? w.topic} · {w.person === "both" ? "Both of you" : subjectName(w.person)}</div>
                 {w.confirmed && <span className="pill bg-evergreen-tint text-evergreen"><Check size={14} /> Confirmed</span>}
               </div>
               <p className={`mt-2 ${parent ? "text-[1.3rem]" : "text-[1.1rem]"}`}>{w.wish}</p>

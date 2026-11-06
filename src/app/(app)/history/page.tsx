@@ -17,7 +17,7 @@ export default async function HistoryPage() {
   const byYear = new Map<string, typeof media>();
   for (const m of media.filter((x) => x.kind === "photo" && x.review_status === "approved")) { const y = m.taken_on ? m.taken_on.slice(0, 4) : "Undated"; byYear.set(y, [...(byYear.get(y) ?? []), m]); }
   const years = [...byYear.entries()].sort((a, b) => (a[0] === "Undated" ? 1 : b[0] === "Undated" ? -1 : a[0].localeCompare(b[0])));
-  const parent = v.role === "parent";
+  const parent = v.brief;
   const canEdit = canWrite(v, "family_history");
   const videos = media.filter((m) => m.kind === "video_story" && m.review_status === "approved");
   const photos = media.filter((m) => m.kind === "photo" && m.review_status === "approved");
@@ -29,6 +29,14 @@ export default async function HistoryPage() {
       <PageHeader eyebrow={parent ? undefined : "Section 16 · Family history"} title={parent ? "Memories" : "Family history archive"}
         intro={parent ? "Videos, songs and photos from the family. Tap one to watch or listen." : "Videos, audio, photos and stories, streamed from the shared Drive folders. Journals, the timeline and record-a-memory arrive in the next phase."}
         actions={<>{sing && <Link href="/history/singalong" className="btn-primary">🎵 Rich’s Sing-Along</Link>}{v.role === "super_admin" && <><Link href="/history/tribute" className="btn-secondary">Tribute pages</Link><SyncMediaButton /></>}</>} />
+
+      <section className="on-dark mb-6 flex flex-wrap items-center gap-6 rounded-3xl bg-evergreen-mid p-7 text-paper">
+        <div className="flex h-[88px] w-[88px] shrink-0 items-center justify-center rounded-full border-[6px] border-mist bg-paper text-ember"><Mic size={40} /></div>
+        <div className="min-w-[240px] flex-1">
+          <h2 className="text-[1.5rem] font-semibold leading-tight text-paper">Record a memory</h2>
+          <p className="mt-1 text-mist">Recording from the iPad, with transcripts, is the next phase of the archive. The library already has room for transcripts and captions on every item.</p>
+        </div>
+      </section>
 
       <section className="mb-6">
         <h2 className="mb-3 text-[1.4rem] font-semibold">Videos ({videos.length})</h2>
@@ -102,14 +110,6 @@ export default async function HistoryPage() {
           {canEdit && !parent && <div className="mt-3"><AddAlbumButton /></div>}
         </SectionCard>
       </div>
-
-      <section className="on-dark mt-6 flex flex-wrap items-center gap-6 rounded-3xl bg-evergreen-mid p-7 text-paper">
-        <div className="flex h-[88px] w-[88px] shrink-0 items-center justify-center rounded-full border-[6px] border-mist bg-paper text-ember"><Mic size={40} /></div>
-        <div className="min-w-[240px] flex-1">
-          <h2 className="text-[1.5rem] font-semibold leading-tight text-paper">Record a memory</h2>
-          <p className="mt-1 text-mist">Recording from the iPad, with transcripts, is the next phase of the archive. The library already has room for transcripts and captions on every item.</p>
-        </div>
-      </section>
     </>
   );
 }

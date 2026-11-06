@@ -15,7 +15,7 @@ export default async function EstatePage({ searchParams }: { searchParams: Promi
   await data.logView(v, "legal", "estate_plan");
   const version = versions.find((x) => x.id === wanted) ?? versions.find((x) => x.status === "current") ?? versions[0] ?? null;
   const provisions = version ? await data.getProvisions(v, version.id) : [];
-  const parent = v.role === "parent";
+  const parent = v.brief;
   const canEdit = canWrite(v, "legal") && !parent;
   const doc = (id: string | null) => legal.find((d) => d.id === id) ?? null;
   const open = conflicts.filter((c) => c.status !== "resolved");

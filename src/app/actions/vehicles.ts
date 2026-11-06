@@ -56,7 +56,7 @@ export async function saveVehicle(_p: Result | null, form: FormData): Promise<Re
       const { error } = id ? await supabase.from("vehicles").update(row).eq("id", id) : await supabase.from("vehicles").insert(row);
       if (error) return { ok: false, error: "Could not save the vehicle." };
     }
-    revalidatePath("/properties/vehicles"); revalidatePath("/properties");
+    revalidatePath("/vehicles"); revalidatePath("/properties");
     return { ok: true };
   } catch (e) { return { ok: false, error: (e as Error).message }; }
 }
@@ -85,7 +85,7 @@ export async function addImprovement(_p: Result | null, form: FormData): Promise
       const { error } = await supabase.from("vehicle_improvements").insert(row);
       if (error) return { ok: false, error: "Could not save." };
     }
-    revalidatePath("/properties/vehicles");
+    revalidatePath("/vehicles");
     return { ok: true };
   } catch (e) { return { ok: false, error: (e as Error).message }; }
 }

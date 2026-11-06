@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   title: { default: "Greene Family Binder", template: "%s · Greene Family Binder" },
   description: "A private home for everything the Greene family needs to care for Rich and Diana.",
   robots: { index: false, follow: false },
+  applicationName: "Greene Family Binder",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Greene Binder" },
 };
 
 export const viewport: Viewport = {

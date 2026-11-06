@@ -7,6 +7,7 @@ import { LabChart } from "@/components/dashboard/lab-chart";
 import { fmtDate, fmtTime, monthDay, relative } from "@/lib/format";
 import { Phone } from "@/components/icons";
 import { ClaimTimeline, ConditionList, HealthForms, MedicationList } from "./health-client";
+import { HEALTH_RECORDS_INDEX_URL } from "@/lib/links";
 
 const WHO = { diana: "Diana", rich: "Rich" } as const;
 
@@ -29,7 +30,7 @@ export default async function HealthPage({ params }: { params: Promise<{ who: st
   ]);
   await data.logView(v, section);
   const name = WHO[patient];
-  const parent = v.role === "parent";
+  const parent = v.brief;
   const own = parent && v.isSubject === patient;
   const canEdit = canWrite(v, section);
   const myEvents = events.filter((e) => e.about === patient && e.kind === "appointment");
@@ -46,7 +47,7 @@ export default async function HealthPage({ params }: { params: Promise<{ who: st
         title={own ? "My health" : `Health · ${name}`}
         intro={own ? "Your doctors, your medicines, and what's coming up. The kids keep this current; tell them if anything is wrong."
           : `Structured records for ${name}: every medication (daily or as needed), condition, allergy and sensitivity carries the document or visit it came from and the date.${patient === "rich" ? " The VA claim history is a timeline." : ""}`}
-        actions={canEdit && !parent ? <HealthForms patient={patient} providers={providerOpts} /> : undefined}
+        actions={<>{!parent && <a href={HEALTH_RECORDS_INDEX_URL} target="_blank" rel="noreferrer" className="btn-secondary">Health records index ↗</a>}{canEdit && !parent && <HealthForms patient={patient} providers={providerOpts} />}</>}
       />
 
       <div className="grid gap-6 lg:grid-cols-2">

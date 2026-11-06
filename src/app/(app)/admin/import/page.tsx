@@ -4,14 +4,14 @@ import { FOLDERS } from "@/lib/drive/manifest";
 import { PageHeader } from "@/components/ui";
 import { ImportConsole } from "./import-console";
 
-export const metadata = { title: "Drive import" };
+export const metadata = { title: "Riana Drive import" };
 
 export default async function ImportPage() {
   const v = await requireSuperAdmin();
   const [setup, folders, files, runs] = await Promise.all([driveSetup(v), lastFolderStatus(v), listImportedFiles(v), listRuns(v)]);
   return (
     <>
-      <PageHeader eyebrow="Riana integration · phase 1" title="Drive import"
+      <PageHeader eyebrow="Riana integration · phase 1" title="Riana Drive import"
         intro="The app reads the shared Google Drive folders and files each document under the right section for review. It keeps a pointer to every file (name, size, Drive link) and never copies the file itself into the database." />
       <ImportConsole
         setup={setup}

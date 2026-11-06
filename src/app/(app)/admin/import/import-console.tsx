@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import type { DriveSetup, ImportedFileRow, SyncRunRow } from "@/lib/drive/service";
 import type { FolderStatus, SyncReport } from "@/lib/drive/sync";
-import { reviewFile, runAccessCheck, runApply, runDryRun } from "@/app/actions/drive";
+import { approveAllFiles, reviewFile, runAccessCheck, runApply, runDryRun } from "@/app/actions/drive";
 import { SECTION_LABELS } from "@/lib/permissions";
 import { fmtDate, fmtTime } from "@/lib/format";
 import { Alert, Check, Lock } from "@/components/icons";
@@ -122,7 +122,14 @@ export function ImportConsole({ setup, manifest, folders: initialFolders, files,
 
       {/* Review queue */}
       <section className="card">
-        <h2 className="text-[1.3rem] font-semibold">Waiting for review ({pendingFiles.length})</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-[1.3rem] font-semibold">Waiting for review ({pendingFiles.length})</h2>
+          {pendingFiles.length > 0 && (
+            <button type="button" disabled={pending}
+              onClick={() => { if (window.confirm(`Approve all ${pendingFiles.length} waiting files? Normal files become visible to everyone who can see their section.`)) act(() => approveAllFiles()); }}
+              className="btn-primary px-4 text-[0.9rem]">Approve all</button>
+          )}
+        </div>
         <p className="mb-3 text-[0.95rem] text-ink-soft">Approving a normal file makes it visible to everyone who can see its section. Admin-only files (taxes, the Widow Book, contact lists) stay here for admins even when approved.</p>
         {pendingFiles.length === 0 ? <p className="text-ink-soft">Nothing waiting.</p> : (
           <ul className="divide-y divide-rule-soft">
