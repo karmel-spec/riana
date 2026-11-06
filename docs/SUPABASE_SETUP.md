@@ -34,6 +34,30 @@ In the left sidebar, **Authentication**:
 - **Email Templates → Magic Link**: optional, but a warmer message helps. Keep `{{ .ConfirmationURL }}` in it.
 - **Rate Limits**: defaults are fine.
 
+## 2b. Use your own email sender (required before inviting the family)
+
+Supabase's built-in sender is for testing only: it allows about two emails an
+hour for the whole project and only delivers to people who are members of the
+Supabase organization. Both limits bit on the first day. Magic links for Mom,
+Dad and siblings will not arrive until this is done.
+
+1. Create a free account at [resend.com](https://resend.com). Under **Domains**
+   add the domain you want links to come from (for example
+   `brighamlarsonpianos.com`) and add the DNS records it shows you. Until the
+   domain is verified, Resend only delivers to your own address.
+2. Under **API Keys** create a key named `greene-binder` with *Sending access*.
+   Copy it once; it is the SMTP password.
+3. In Supabase, **Authentication → Emails → SMTP Settings**, turn on
+   *Enable Custom SMTP* and enter:
+   - Sender email: `binder@your-domain` (any address on the verified domain)
+   - Sender name: `Greene Family Binder`
+   - Host: `smtp.resend.com`
+   - Port: `465`
+   - Username: `resend`
+   - Password: the API key from step 2
+4. Save, then under **Authentication → Rate Limits** raise *Rate limit for
+   sending emails* to something like 30 an hour.
+
 ## 3. Create the tables and security rules
 
 You need the project's connection string: **Project Settings → Database → Connection string → URI**, choose **Session** mode, and paste your database password into it.
