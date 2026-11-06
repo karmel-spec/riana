@@ -12,11 +12,12 @@ A private, role-based web app for the Greene family: a living "I'm dead, now wha
 | Roles, per-section + per-document permissions, 2-step-verification rule | Done, enforced by Postgres row-level security |
 | Append-only audit log and change history ("what changed, when, by whom, via Riana?") | Done |
 | Break-glass emergency access, two-admin approval for bulk sends | Done |
-| 90 automated permission tests | Done (`npm run test:db`) |
+| 166 automated permission tests | Done (`npm run test:db`) |
 | Dashboard (admins/family) and simplified large-text Parent view | Done |
 | Urgent Questions, Legal & Estate status board, Contacts & Who to Notify, Calendar, Final Wishes | Done (read + core edits) |
 | Riana approval inbox, Audit log screen | Done |
 | Riana inbound endpoint (`POST /api/riana/inbound`, per-agent keys, idempotent, audited) | Done (`docs/RIANA_INBOUND.md`) |
+| Riana read-only export (`GET /api/riana/export`, per-key section grants, never logins/documents, audited) | Done (`docs/RIANA_INBOUND.md`) |
 | Magic-link sign-in (Supabase Auth) | Wired; 2FA enrollment screen is a placeholder until a Supabase project exists |
 | Health, Properties, Money, Insurance, Digital, Household, Family History | Tables + permissions done; screens are "coming soon" (phases 2–6) |
 

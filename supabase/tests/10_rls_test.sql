@@ -221,6 +221,55 @@ select test.ok(test.rows('select * from public.riana_updates') = 0, 'family stil
 reset role;
 \echo 'Riana inbound tests passed.'
 
+-- Riana outbound export ---------------------------------------------------------
+select test.act(:K, 'aal2'); set role authenticated;
+select set_config('test.key2', public.riana_inbound_key_create('Monday update bot'), false);
+select set_config('test.key2id', (select id::text from public.riana_inbound_keys where label = 'Monday update bot'), false);
+reset role;
+select set_config('request.jwt.claims', '', false); set role anon;
+select test.ok(test.fails($$select public.riana_export('wrong-key-wrong-key-wrong-key-wrong')$$), 'export: wrong key is refused');
+select test.ok(test.fails($$select public.riana_export(current_setting('test.key'))$$), 'export: revoked key is refused');
+select set_config('test.exp', public.riana_export(current_setting('test.key2'))::text, false);
+select test.ok(current_setting('test.exp')::jsonb -> 'sections' = '{}'::jsonb, 'export: a key with no read sections gets nothing');
+select set_config('test.exp', public.riana_export(current_setting('test.key2'), '{urgent_questions,legal}')::text, false);
+select test.ok(current_setting('test.exp')::jsonb -> 'sections' = '{}'::jsonb
+           and current_setting('test.exp')::jsonb -> 'not_permitted' = '["urgent_questions","legal"]'::jsonb, 'export: ungranted sections are listed as not permitted, not returned');
+select test.ok(test.fails($$select public.riana_key_set_read_sections(current_setting('test.key2id')::uuid, '{calendar}')$$), 'anon cannot grant read sections');
+reset role;
+select test.act(:DAV, 'aal2'); set role authenticated;
+select test.ok(test.fails($$select public.riana_key_set_read_sections(current_setting('test.key2id')::uuid, '{calendar}')$$), 'family cannot grant read sections');
+reset role; select test.act(:K, 'aal2'); set role authenticated;
+select test.ok(test.fails($$select public.riana_key_set_read_sections(current_setting('test.key2id')::uuid, '{digital_accounts}')$$), 'logins can never be exported');
+select test.ok(test.fails($$select public.riana_key_set_read_sections(current_setting('test.key2id')::uuid, '{family_history}')$$), 'family history can never be exported');
+select test.ok(test.fails($$select public.riana_key_set_read_sections(current_setting('test.key2id')::uuid, '{taxes}')$$), 'tax records can never be exported');
+select public.riana_key_set_read_sections(current_setting('test.key2id')::uuid, '{urgent_questions,calendar,final_wishes,health_diana}');
+select test.ok((select read_sections from public.riana_inbound_keys where id = current_setting('test.key2id')::uuid) = '{urgent_questions,calendar,health_diana,final_wishes}'::public.section[], 'read sections are saved (in binder order)');
+select test.ok((select details -> 'read_sections' from public.audit_log where entity = 'riana_inbound_keys' and entity_id = current_setting('test.key2id')::uuid order by at desc limit 1) ? 'health_diana', 'granting read sections is audited');
+reset role;
+select set_config('request.jwt.claims', '', false); set role anon;
+select set_config('test.exp', public.riana_export(current_setting('test.key2'))::text, false);
+select test.ok(jsonb_array_length(current_setting('test.exp')::jsonb -> 'sections' -> 'urgent_questions') = 5, 'export: granted urgent questions come through');
+select test.ok(jsonb_array_length(current_setting('test.exp')::jsonb -> 'sections' -> 'final_wishes') > 0, 'export: granted final wishes come through');
+select test.ok(current_setting('test.exp')::jsonb -> 'sections' -> 'health_diana' -> 'lab_results' is not null
+           and current_setting('test.exp')::jsonb -> 'sections' -> 'health_diana' -> 'medications' is not null, 'export: Diana health includes labs and medications');
+select test.ok(current_setting('test.exp')::jsonb -> 'sections' ? 'health_rich' = false
+           and current_setting('test.exp')::jsonb -> 'sections' ? 'legal' = false, 'export: Rich health and legal stay out');
+select test.ok(not exists (select 1 from jsonb_array_elements(current_setting('test.exp')::jsonb -> 'sections' -> 'calendar') e where e ->> 'section' in ('health_rich', 'admin', 'insurance')), 'export: calendar hides appointments from ungranted sections');
+select test.ok(current_setting('test.exp')::jsonb -> 'never_exported' ? 'digital_accounts', 'export: says what is never exported');
+select test.ok(test.fails($$select public.riana_export(current_setting('test.key2'), '{nonsense}')$$), 'export: unknown section is refused');
+select test.ok(test.rows('select * from public.final_wishes') <= 0, 'anon still cannot read tables directly');
+reset role;
+select test.act(:K, 'aal2'); set role authenticated;
+select test.ok((select count(*) from public.audit_log where action = 'export' and entity = 'riana_export' and via = 'riana') = 3, 'every export call is audited via Riana');
+select test.ok((select details -> 'sections' from public.audit_log where action = 'export' order by at desc limit 1) ? 'health_diana', 'the audit entry lists the exported sections');
+select test.ok((select use_count from public.riana_inbound_keys where id = current_setting('test.key2id')::uuid) = 3, 'export calls count as key usage');
+select public.riana_key_set_read_sections(current_setting('test.key2id')::uuid, '{}');
+reset role;
+select set_config('request.jwt.claims', '', false); set role anon;
+select test.ok(public.riana_export(current_setting('test.key2'), '{final_wishes}') -> 'sections' = '{}'::jsonb, 'export: read access can be taken away');
+reset role;
+\echo 'Riana export tests passed.'
+
 -- Drive import ----------------------------------------------------------------
 select test.act(:K, 'aal2'); set role authenticated;
 insert into public.drive_folders (key, drive_folder_id, name, sensitivity) values ('taxes', 'folder-taxes', 'Taxes', 'admin_only'), ('legal', 'folder-legal', 'Legal Docs', 'normal');
