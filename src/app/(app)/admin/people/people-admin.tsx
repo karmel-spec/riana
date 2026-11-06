@@ -3,7 +3,7 @@
 import { useActionState, useState, useTransition } from "react";
 import type { GrantRow, InvitationRow, ProfileRow } from "@/lib/admin-data";
 import { GRANTABLE, SECTION_LABELS } from "@/lib/permissions";
-import { addGrant, addInvitation, changeRole, removeGrant, removeInvitation } from "@/app/actions/admin";
+import { addGrant, addInvitation, changeRole, removeGrant, removeInvitation, setUserPassword } from "@/app/actions/admin";
 import { fmtDate } from "@/lib/format";
 import { Empty } from "@/components/ui";
 
@@ -77,6 +77,10 @@ function RoleFields({ defaults, prefix }: { defaults?: Partial<ProfileRow & Invi
 function PersonCard({ p, grants, isSelf, readOnly }: { p: ProfileRow; grants: GrantRow[]; isSelf: boolean; readOnly: boolean }) {
   const [editing, setEditing] = useState(false);
   const [granting, setGranting] = useState(false);
+  const [pw, setPw] = useState(false);
+  const [pwState, pwAction, pwPending] = useActionState(setUserPassword, null);
+  const [lastPw, setLastPw] = useState(pwState);
+  if (pwState !== lastPw) { setLastPw(pwState); if (pwState?.ok) setPw(false); }
   const [roleState, roleAction, rolePending] = useActionState(changeRole, null);
   const [grantState, grantAction, grantPending] = useActionState(addGrant, null);
   const [, start] = useTransition();
@@ -101,6 +105,7 @@ function PersonCard({ p, grants, isSelf, readOnly }: { p: ProfileRow; grants: Gr
           <div className="flex gap-2">
             <button type="button" onClick={() => setEditing((e) => !e)} className="btn-secondary px-4 text-[0.95rem]">Change role</button>
             <button type="button" onClick={() => setGranting((g) => !g)} className="btn-secondary px-4 text-[0.95rem]">Give a section</button>
+            <button type="button" onClick={() => setPw((p) => !p)} className="btn-secondary px-4 text-[0.95rem]">Set password</button>
           </div>
         )}
       </div>
@@ -124,6 +129,22 @@ function PersonCard({ p, grants, isSelf, readOnly }: { p: ProfileRow; grants: Gr
           <div className="flex gap-2 sm:col-span-2">
             <button className="btn-primary px-4" disabled={rolePending}>{rolePending ? "Saving…" : "Save role"}</button>
             <button type="button" onClick={() => setEditing(false)} className="btn-secondary px-4">Cancel</button>
+          </div>
+        </form>
+      )}
+
+      {pw && (
+        <form action={pwAction} className="mt-4 grid gap-3 border-t border-rule-soft pt-4 sm:grid-cols-2">
+          <input type="hidden" name="id" value={p.id} />
+          <div className="sm:col-span-2">
+            <label htmlFor={`pw-${p.id}`} className="label">New password for {p.display_name}</label>
+            <input id={`pw-${p.id}`} name="password" type="text" autoComplete="off" minLength={10} required className="field" placeholder="10+ characters; a short sentence works well" />
+            <p className="mt-1 text-[0.85rem] text-ink-soft">Tell them in person or by phone, never by email. They can change it afterwards.</p>
+          </div>
+          {pwState && !pwState.ok && <p className="text-ember sm:col-span-2">{pwState.error}</p>}
+          <div className="flex gap-2 sm:col-span-2">
+            <button className="btn-primary px-4" disabled={pwPending}>{pwPending ? "Saving…" : "Set password"}</button>
+            <button type="button" onClick={() => setPw(false)} className="btn-secondary px-4">Cancel</button>
           </div>
         </form>
       )}
@@ -168,6 +189,11 @@ function InviteForm() {
       <div><label htmlFor="inv-name" className="label">Name</label><input id="inv-name" name="display_name" required className="field" placeholder="As they like to be called" /></div>
       <div><label htmlFor="inv-email" className="label">Email</label><input id="inv-email" name="email" type="email" required className="field" /></div>
       <RoleFields prefix="inv" />
+      <div className="sm:col-span-2">
+        <label htmlFor="inv-pw" className="label">Starter password (optional, recommended)</label>
+        <input id="inv-pw" name="starter_password" type="text" autoComplete="off" minLength={10} className="field" placeholder="A short sentence they can remember, 10+ characters" />
+        <p className="mt-1 text-[0.85rem] text-ink-soft">With a starter password the account is created now and they can sign in today, no email needed. Tell them the password in person or by phone, and ask them to change it inside the binder.</p>
+      </div>
       {state && !state.ok && <p className="text-ember sm:col-span-2">{state.error}</p>}
       {state?.ok && <p className="text-evergreen sm:col-span-2">Invitation added. They can sign in now.</p>}
       <div className="sm:col-span-2"><button className="btn-primary" disabled={pending}>{pending ? "Adding…" : "Add invitation"}</button></div>

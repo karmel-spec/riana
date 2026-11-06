@@ -5,6 +5,9 @@ import { z } from "zod";
 import { getViewer } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { SECTIONS } from "@/lib/types";
+import { adminAuthClient } from "@/lib/supabase/admin";
+
+const StarterPassword = z.string().min(10, "Starter password: at least 10 characters.").max(200).optional().or(z.literal(""));
 
 type Result = { ok: true } | { ok: false; error: string };
 
@@ -38,6 +41,7 @@ const Invite = z.object({
   email: z.string().trim().email().max(200),
   display_name: z.string().trim().min(1, "Please enter a name.").max(120),
   app_role: Role, is_subject: Subject, access_expires_at: Expiry,
+  starter_password: StarterPassword,
 });
 
 export async function addInvitation(_p: Result | null, form: FormData): Promise<Result> {
@@ -52,6 +56,13 @@ export async function addInvitation(_p: Result | null, form: FormData): Promise<
       email: parsed.data.email.toLowerCase(), display_name: parsed.data.display_name, ...norm.value, invited_by: v.id,
     });
     if (error) return { ok: false, error: /duplicate|unique/i.test(error.message) ? "That email is already invited." : "Could not add the invitation." };
+    // Optional: create the account right now with a starter password, so no email is needed.
+    if (parsed.data.starter_password) {
+      const admin = adminAuthClient();
+      if (!admin) return { ok: false, error: "Invitation saved, but starter passwords need SUPABASE_SERVICE_ROLE_KEY on the server (see docs/SUPABASE_SETUP.md). They can still sign in by email link." };
+      const { error: cErr } = await admin.auth.admin.createUser({ email: parsed.data.email.toLowerCase(), password: parsed.data.starter_password, email_confirm: true });
+      if (cErr) return { ok: false, error: `Invitation saved, but the account could not be created: ${cErr.message}` };
+    }
     revalidatePath("/admin/people");
     return { ok: true };
   } catch (e) { return { ok: false, error: (e as Error).message }; }
@@ -119,6 +130,22 @@ export async function removeGrant(id: string): Promise<Result> {
     const { error } = await supabase.from("user_section_access").delete().eq("id", id);
     if (error) return { ok: false, error: "Could not remove." };
     revalidatePath("/admin/people");
+    return { ok: true };
+  } catch (e) { return { ok: false, error: (e as Error).message }; }
+}
+
+/** Super admin sets (or resets) someone's password. Logged as a permission change. */
+export async function setUserPassword(_p: Result | null, form: FormData): Promise<Result> {
+  try {
+    const v = await admin();
+    const parsed = z.object({ id: z.string().uuid(), password: z.string().min(10, "At least 10 characters.").max(200) }).safeParse(Object.fromEntries(form));
+    if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+    const client = adminAuthClient();
+    if (!client) return { ok: false, error: "Setting passwords needs SUPABASE_SERVICE_ROLE_KEY on the server (see docs/SUPABASE_SETUP.md)." };
+    const { error } = await client.auth.admin.updateUserById(parsed.data.id, { password: parsed.data.password });
+    if (error) return { ok: false, error: `Could not set the password: ${error.message}` };
+    const supabase = await createClient();
+    await supabase.rpc("log_view", { p_section: "admin", p_entity: `password_set_by:${v.id}`, p_entity_id: parsed.data.id }).then(() => {}, () => {});
     return { ok: true };
   } catch (e) { return { ok: false, error: (e as Error).message }; }
 }

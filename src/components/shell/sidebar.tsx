@@ -67,6 +67,7 @@ export function Sidebar({ items, adminItems, viewerName, viewerBlurb, demo, chil
         <div className="font-bold">{viewerName}</div>
         <div className="text-[0.85rem] text-mist">{viewerBlurb}</div>
         {children}
+        {!demo && <Link href="/account/password" className="mt-3 block text-[0.9rem] text-mist underline">Change password</Link>}
         {!demo && (
           <form action="/logout" method="post" className="mt-3">
             <button className="btn border border-mist/50 px-4 text-[0.9rem] text-paper hover:bg-evergreen-mid/40">Sign out</button>
