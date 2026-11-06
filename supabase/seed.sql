@@ -167,13 +167,25 @@ insert into public.insurance_policies (id, kind, carrier, insured, policy_last4,
   ('000000b4-0000-4000-8000-000000000008', 'champva', 'CHAMPVA', 'diana', null, null, null, null, 'Secondary to Medicare.', 'app'),
   ('000000b4-0000-4000-8000-000000000009', 'life', 'Sample Life Co.', 'rich', '2290', 95, null, null, '[Sample] Term policy; beneficiary Diana. Check the end date.', 'app');
 
-insert into public.tax_records (id, tax_year, kind, preparer, status, filed_on, notes, source) values
-  ('000000b5-0000-4000-8000-000000000001', 2025, 'federal', 'Sample CPA, PLLC', 'Filed', '2026-03-20', null, 'app'),
-  ('000000b5-0000-4000-8000-000000000002', 2025, 'state', 'Sample CPA, PLLC', 'Not required (AZ resident, WA rental income reported federally)', null, null, 'app'),
-  ('000000b5-0000-4000-8000-000000000003', 2025, 'property', null, 'Second half due', null, 'Tumwater rentals. Due dates on the calendar.', 'app'),
-  ('000000b5-0000-4000-8000-000000000004', 2026, 'exemption', null, 'Active', null, 'Disabled-veteran exemption on the Lake Havasu home. Renew with the county assessor if asked.', 'app'),
-  ('000000b5-0000-4000-8000-000000000005', 2024, 'federal', 'Sample CPA, PLLC', 'Filed', '2025-04-02', null, 'app'),
-  ('000000b5-0000-4000-8000-000000000006', 2026, 'federal', 'Sample CPA, PLLC', 'Not started', null, 'Gather 1099s in January.', 'app');
+insert into public.tax_records (id, tax_year, kind, preparer, status, filed_on, notes, amended, amended_form, ssn_last4_rich, ssn_last4_diana, refund_bank_last4, source) values
+  ('000000b5-0000-4000-8000-000000000001', 2025, 'federal', 'Sample Block Advisor', 'Filed', '2026-03-20', null, false, null, '1111', '2222', '1234', 'app'),
+  ('000000b5-0000-4000-8000-000000000002', 2025, 'state', 'Sample Block Advisor', 'Not required (AZ resident; WA rental income on the federal return)', null, null, false, null, null, null, null, 'app'),
+  ('000000b5-0000-4000-8000-000000000003', 2025, 'property', 'Sample Block Advisor', 'Second half due', null, 'Tumwater rentals. Due dates on the calendar.', false, null, null, null, null, 'app'),
+  ('000000b5-0000-4000-8000-000000000004', 2026, 'exemption', 'Sample Block Advisor', 'Active', null, 'Disabled-veteran exemption on the Lake Havasu home. Renew with the county assessor if asked.', false, null, null, null, null, 'app'),
+  ('000000b5-0000-4000-8000-000000000005', 2024, 'federal', 'Sample Block Advisor', 'Filed, then amended', '2025-04-02', '[Sample] Amended to correct rental depreciation.', true, '1040-X', '1111', '2222', '1234', 'app'),
+  ('000000b5-0000-4000-8000-000000000006', 2023, 'federal', 'Sample CPA, PLLC', 'Filed', '2024-04-10', null, false, null, '1111', '2222', '1234', 'app'),
+  ('000000b5-0000-4000-8000-000000000007', 2022, 'federal', 'Sample CPA, PLLC', 'Filed', '2023-04-05', null, false, null, '1111', '2222', '1234', 'app'),
+  ('000000b5-0000-4000-8000-000000000008', 2021, 'federal', 'Sample CPA, PLLC', 'Filed', '2022-04-12', null, false, null, '1111', '2222', '1234', 'app'),
+  ('000000b5-0000-4000-8000-000000000009', 2020, 'federal', 'Sample CPA, PLLC', 'Filed', '2021-05-01', null, false, null, '1111', '2222', '1234', 'app'),
+  ('000000b5-0000-4000-8000-00000000000a', 2019, 'federal', 'Sample CPA, PLLC', 'Filed', '2020-07-10', null, false, null, '1111', '2222', '1234', 'app'),
+  ('000000b5-0000-4000-8000-00000000000b', 2026, 'federal', 'Sample Block Advisor', 'Not started', null, 'Gather 1099s in January.', false, null, null, null, null, 'app');
+
+insert into public.tax_source_items (id, tax_year, label, provider, where_to_find, portal_url, vault_item, received, received_on, notes) values
+  ('000000b8-0000-4000-8000-000000000001', 2025, '1099 · Rental A rents', 'Welcome Home (sample portal)', 'Owner portal → Documents → Tax', 'https://example.com/welcome-home', 'Greene – Welcome Home portal', true, '2026-10-06', null),
+  ('000000b8-0000-4000-8000-000000000002', 2025, '1099 · Rental B rents', 'MVP (sample portal)', 'Owner portal → Statements → Year-end', 'https://example.com/mvp', 'Greene – MVP portal', false, null, 'Usually posted late January.'),
+  ('000000b8-0000-4000-8000-000000000003', 2025, '1098 · Mortgage interest, Rental A', 'Truist (sample)', 'Online banking → Documents → Tax forms', 'https://example.com/truist', 'Greene – Truist', false, null, null),
+  ('000000b8-0000-4000-8000-000000000004', 2025, '1098 · Mortgage interest, Rental B', 'Mr. Cooper (sample)', 'Account → Tax documents', 'https://example.com/mrcooper', 'Greene – Mr. Cooper', false, null, null),
+  ('000000b8-0000-4000-8000-000000000005', 2025, 'SSA-1099 · Social Security', 'SSA.gov (sample)', 'my Social Security → Replacement documents', 'https://example.com/ssa', 'Rich – SSA', true, '2026-09-26', null);
 
 insert into public.riana_updates (id, kind, summary, received_at, review_status, payload) values
   ('000000ab-0000-4000-8000-000000000001', 'lab_result', 'New A1C result for Diana: 6.1 %', '2026-11-05T07:42:00-07:00', 'pending', '{}'),

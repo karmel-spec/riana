@@ -286,7 +286,28 @@ export type TaxRecord = {
   status: string;
   filed_on: string | null;
   notes: string | null;
+  amended: boolean;
+  amended_form: string | null;
+  ssn_last4_rich: string | null;
+  ssn_last4_diana: string | null;
+  refund_bank_last4: string | null;
+  cpa_person_id: string | null;
+  imported_file_id: string | null;
+  drive_link: string | null;
   source: Source;
+};
+
+export type TaxSourceItem = {
+  id: string;
+  tax_year: number;
+  label: string;
+  provider: string | null;
+  where_to_find: string | null;
+  portal_url: string | null;
+  vault_item: string | null;
+  received: boolean;
+  received_on: string | null;
+  notes: string | null;
 };
 
 export type DigitalAccount = {

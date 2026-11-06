@@ -88,6 +88,7 @@ export async function savePolicy(_p: Result | null, form: FormData): Promise<Res
 }
 
 // --- Taxes ----------------------------------------------------------------------------
+const Last4 = z.string().trim().regex(/^[0-9]{4}$/, "Last 4 digits only.").optional().or(z.literal(""));
 const TaxForm = z.object({
   id: z.string().uuid().optional().or(z.literal("")),
   tax_year: z.coerce.number().int().min(1990).max(2100),
@@ -96,26 +97,50 @@ const TaxForm = z.object({
   status: z.string().trim().min(1, "What's the status?").max(200),
   filed_on: z.string().optional().or(z.literal("")),
   notes: Opt(1000),
+  amended: z.string().optional(),
+  amended_form: Opt(40),
+  ssn_last4_rich: Last4, ssn_last4_diana: Last4, refund_bank_last4: Last4,
+  cpa_person_id: z.string().uuid().optional().or(z.literal("")),
+  drive_link: z.string().trim().url().max(500).optional().or(z.literal("")),
 });
 
 export async function saveTaxRecord(_p: Result | null, form: FormData): Promise<Result> {
   try {
-    const v = await need("taxes");
+    const v = await need("admin");
+    if (v.role !== "super_admin") return { ok: false, error: "Super admins only." };
     const parsed = TaxForm.safeParse(Object.fromEntries(form));
     if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
     const { id, ...d } = parsed.data;
-    const row = { tax_year: d.tax_year, kind: d.kind, preparer: nul(d.preparer), status: d.status, filed_on: nul(d.filed_on), notes: nul(d.notes) };
+    if (/\d{3}-\d{2}-\d{4}|\d{9,}/.test([d.notes, d.status, d.preparer].join(" "))) return { ok: false, error: "That looks like a full SSN or account number. Last 4 digits only." };
+    const row = {
+      tax_year: d.tax_year, kind: d.kind, preparer: nul(d.preparer), status: d.status, filed_on: nul(d.filed_on), notes: nul(d.notes),
+      amended: d.amended === "on", amended_form: d.amended === "on" ? (d.amended_form || "1040-X") : null,
+      ssn_last4_rich: nul(d.ssn_last4_rich), ssn_last4_diana: nul(d.ssn_last4_diana), refund_bank_last4: nul(d.refund_bank_last4),
+      cpa_person_id: nul(d.cpa_person_id), drive_link: nul(d.drive_link),
+    };
     if (v.demo) {
       const s = demoStore();
       if (id) { const t = s.taxes.find((x) => x.id === id); if (!t) return { ok: false, error: "Not found." }; Object.assign(t, row); }
-      else s.taxes.push({ id: crypto.randomUUID(), ...row, source: "app" });
-      bump(v.name, "taxes", id ? "update" : "create", `${id ? "Updated" : "Added"} ${d.tax_year} ${d.kind} tax record`, "tax_records");
+      else s.taxes.push({ id: crypto.randomUUID(), ...row, imported_file_id: null, source: "app" });
+      bump(v.name, "admin", id ? "update" : "create", `${id ? "Updated" : "Added"} ${d.tax_year} ${d.kind} tax record`, "tax_records");
     } else {
       const supabase = await createClient();
       const { error } = id ? await supabase.from("tax_records").update(row).eq("id", id) : await supabase.from("tax_records").insert(row);
       if (error) return { ok: false, error: "Could not save the record." };
     }
-    revalidatePath("/insurance");
+    revalidatePath("/taxes");
+    return { ok: true };
+  } catch (e) { return { ok: false, error: (e as Error).message }; }
+}
+
+export async function setTaxSourceReceived(id: string, received: boolean): Promise<Result> {
+  try {
+    if (!z.string().uuid().safeParse(id).success) return { ok: false, error: "Bad id." };
+    const v = await need("admin");
+    const patch = { received, received_on: received ? new Date().toISOString().slice(0, 10) : null };
+    if (v.demo) { const t = demoStore().taxSources.find((x) => x.id === id); if (t) Object.assign(t, patch); }
+    else { const supabase = await createClient(); const { error } = await supabase.from("tax_source_items").update(patch).eq("id", id); if (error) return { ok: false, error: "Could not update." }; }
+    revalidatePath("/taxes");
     return { ok: true };
   } catch (e) { return { ok: false, error: (e as Error).message }; }
 }

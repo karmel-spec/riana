@@ -15,7 +15,7 @@ export function uid(kind: string, n: number): string {
     q: "a1", e: "a2", l: "a3", g: "a4", p: "a5", nl: "a6", nc: "a7",
     b: "a8", lab: "a9", w: "aa", r: "ab", loan: "ac",
     prov: "ad", med: "ae", cond: "af", vn: "b0", va: "b1", acct: "b2",
-    prop: "b3", ins: "b4", tax: "b5", dig: "b6", hh: "b7",
+    prop: "b3", ins: "b4", tax: "b5", dig: "b6", hh: "b7", tsi: "b8",
   };
   const hex = n.toString(16).padStart(12, "0");
   return `000000${prefix[kind] ?? "ff"}-0000-4000-8000-${hex}`;
@@ -235,7 +235,7 @@ export const accounts: Account[] = [
 ];
 
 // --- Properties, insurance, taxes (FAKE) --------------------------------------
-import type { InsurancePolicy, Property, TaxRecord } from "../types";
+import type { InsurancePolicy, Property, TaxRecord, TaxSourceItem } from "../types";
 
 export const properties: Property[] = [
   { id: uid("prop", 1), name: "Home · Lake Havasu City", kind: "residence", address: "[Sample] 123 Example Dr, Lake Havasu City, AZ", held_by: "Rich & Diana", succession_plan: "[Sample] Passes under the will (six-way split).", manager_person_id: null, hoa_name: null, notes: "Paid off. Disabled-veteran property tax exemption applied.", source: "app" },
@@ -255,14 +255,32 @@ export const insurancePolicies: InsurancePolicy[] = [
   { id: uid("ins", 9), kind: "life", carrier: "Sample Life Co.", insured: "rich", policy_last4: "2290", premium: 95, renews_on: null, agent_person_id: null, notes: "[Sample] Term policy; beneficiary Diana. Check the end date.", source: "app" },
 ];
 
+const TR = (n: number, year: number, kind: TaxRecord["kind"], status: string, extra: Partial<TaxRecord> = {}): TaxRecord => ({
+  id: uid("tax", n), tax_year: year, kind, preparer: year <= 2023 ? "Sample CPA, PLLC" : "Sample Block Advisor", status, filed_on: null, notes: null,
+  amended: false, amended_form: null, ssn_last4_rich: "1111", ssn_last4_diana: "2222", refund_bank_last4: "1234", cpa_person_id: null, imported_file_id: null, drive_link: null, source: "app", ...extra,
+});
 export const taxRecords: TaxRecord[] = [
-  { id: uid("tax", 1), tax_year: 2025, kind: "federal", preparer: "Sample CPA, PLLC", status: "Filed", filed_on: "2026-03-20", notes: null, source: "app" },
-  { id: uid("tax", 2), tax_year: 2025, kind: "state", preparer: "Sample CPA, PLLC", status: "Not required (AZ resident, WA rental income reported federally)", filed_on: null, notes: null, source: "app" },
-  { id: uid("tax", 3), tax_year: 2025, kind: "property", preparer: null, status: "Second half due", filed_on: null, notes: "Tumwater rentals. Due dates on the calendar.", source: "app" },
-  { id: uid("tax", 4), tax_year: 2026, kind: "exemption", preparer: null, status: "Active", filed_on: null, notes: "Disabled-veteran exemption on the Lake Havasu home. Renew with the county assessor if asked.", source: "app" },
-  { id: uid("tax", 5), tax_year: 2024, kind: "federal", preparer: "Sample CPA, PLLC", status: "Filed", filed_on: "2025-04-02", notes: null, source: "app" },
-  { id: uid("tax", 6), tax_year: 2026, kind: "federal", preparer: "Sample CPA, PLLC", status: "Not started", filed_on: null, notes: "Gather 1099s in January.", source: "app" },
+  TR(1, 2025, "federal", "Filed", { filed_on: "2026-03-20" }),
+  TR(2, 2025, "state", "Not required (AZ resident; WA rental income on the federal return)", { ssn_last4_rich: null, ssn_last4_diana: null, refund_bank_last4: null }),
+  TR(3, 2025, "property", "Second half due", { notes: "Tumwater rentals. Due dates on the calendar.", ssn_last4_rich: null, ssn_last4_diana: null, refund_bank_last4: null }),
+  TR(4, 2026, "exemption", "Active", { notes: "Disabled-veteran exemption on the Lake Havasu home. Renew with the county assessor if asked.", ssn_last4_rich: null, ssn_last4_diana: null, refund_bank_last4: null }),
+  TR(5, 2024, "federal", "Filed, then amended", { filed_on: "2025-04-02", amended: true, amended_form: "1040-X", notes: "[Sample] Amended to correct rental depreciation." }),
+  TR(6, 2023, "federal", "Filed", { filed_on: "2024-04-10" }),
+  TR(7, 2022, "federal", "Filed", { filed_on: "2023-04-05" }),
+  TR(8, 2021, "federal", "Filed", { filed_on: "2022-04-12" }),
+  TR(9, 2020, "federal", "Filed", { filed_on: "2021-05-01" }),
+  TR(10, 2019, "federal", "Filed", { filed_on: "2020-07-10" }),
+  TR(11, 2026, "federal", "Not started", { notes: "Gather 1099s in January.", ssn_last4_rich: null, ssn_last4_diana: null, refund_bank_last4: null }),
 ];
+
+export const taxSourceItems: TaxSourceItem[] = [
+  { id: uid("tsi", 1), tax_year: 2025, label: "1099 · Rental A rents", provider: "Welcome Home (sample portal)", where_to_find: "Owner portal → Documents → Tax", portal_url: "https://example.com/welcome-home", vault_item: "Greene – Welcome Home portal", received: true, received_on: day(-30), notes: null },
+  { id: uid("tsi", 2), tax_year: 2025, label: "1099 · Rental B rents", provider: "MVP (sample portal)", where_to_find: "Owner portal → Statements → Year-end", portal_url: "https://example.com/mvp", vault_item: "Greene – MVP portal", received: false, received_on: null, notes: "Usually posted late January." },
+  { id: uid("tsi", 3), tax_year: 2025, label: "1098 · Mortgage interest, Rental A", provider: "Truist (sample)", where_to_find: "Online banking → Documents → Tax forms", portal_url: "https://example.com/truist", vault_item: "Greene – Truist", received: false, received_on: null, notes: null },
+  { id: uid("tsi", 4), tax_year: 2025, label: "1098 · Mortgage interest, Rental B", provider: "Mr. Cooper (sample)", where_to_find: "Account → Tax documents", portal_url: "https://example.com/mrcooper", vault_item: "Greene – Mr. Cooper", received: false, received_on: null, notes: null },
+  { id: uid("tsi", 5), tax_year: 2025, label: "SSA-1099 · Social Security", provider: "SSA.gov (sample)", where_to_find: "my Social Security → Replacement documents", portal_url: "https://example.com/ssa", vault_item: "Rich – SSA", received: true, received_on: day(-40), notes: null },
+];
+
 
 // --- Digital accounts & household (FAKE) --------------------------------------
 import type { DigitalAccount, HouseholdItem } from "../types";
