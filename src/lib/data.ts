@@ -5,7 +5,7 @@ import { SENSITIVE } from "./permissions";
 import * as fx from "./demo/fixtures";
 import type {
   Account, AuditEntry, Bill, CalendarEvent, ContactGroup, FinalWish, HealthCondition, LabResult, LegalDocument, Loan,
-  DigitalAccount, EstatePlanVersion, LoanPayment, MediaItem, Playlist, TributeBlock, TributePage, Vehicle, VehicleImprovement, EstateProvision, HouseholdItem, InsurancePolicy, Medication, PlanConflict, TaxSourceItem, NotificationCampaign, NotificationList, Person, Property, Provider, RianaKey, RianaUpdate, Section, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
+  DigitalAccount, EstatePlanVersion, LoanPayment, MediaItem, Playlist, TributeBlock, TributePage, Vehicle, VehicleImprovement, EstateProvision, HouseholdItem, InsurancePolicy, Medication, PlanConflict, TaxSourceItem, NotificationCampaign, NotificationList, Person, Property, Provider, RianaKey, RianaUpdate, Section, SharedAlbum, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
 } from "./types";
 
 // -----------------------------------------------------------------------------
@@ -25,9 +25,10 @@ type Store = {
   groups: ContactGroup[]; people: Person[]; lists: NotificationList[];
   campaigns: NotificationCampaign[]; bills: Bill[]; labs: LabResult[];
   wishes: FinalWish[]; loans: Loan[]; riana: RianaUpdate[]; audit: AuditEntry[];
+  albums: SharedAlbum[];
 };
 // Bump when Store gains a key, so a dev server that kept the old object rebuilds it.
-const STORE_VERSION = 10;
+const STORE_VERSION = 11;
 const g = globalThis as unknown as { __greeneDemo?: Store; __greeneDemoV?: number };
 export function demoStore(): Store {
   if (g.__greeneDemoV !== STORE_VERSION) { g.__greeneDemo = undefined; g.__greeneDemoV = STORE_VERSION; }
@@ -44,6 +45,7 @@ export function demoStore(): Store {
     groups: fx.contactGroups, people: fx.people, lists: fx.notificationLists,
     campaigns: fx.notificationCampaigns, bills: fx.bills, labs: fx.labResults,
     wishes: fx.finalWishes, loans: fx.loans, riana: fx.rianaUpdates, audit: fx.auditEntries,
+    albums: fx.sharedAlbums,
   });
   return g.__greeneDemo;
 }
@@ -150,7 +152,7 @@ export async function getRianaPending(v: Viewer): Promise<RianaUpdate[]> {
   if (!canRead(v, "admin")) return [];
   if (v.demo) return demoStore().riana.filter((r) => r.review_status === "pending");
   const supabase = await createClient();
-  const { data, error } = await supabase.from("riana_updates").select("id, kind, summary, received_at, review_status, external_ref")
+  const { data, error } = await supabase.from("riana_updates").select("id, kind, summary, received_at, review_status, external_ref, payload")
     .eq("review_status", "pending").order("received_at", { ascending: false });
   if (error) fail("Riana updates", error);
   return data as RianaUpdate[];
@@ -422,4 +424,13 @@ export async function getTributeBlocks(v: Viewer, pageId: string): Promise<Tribu
   const { data, error } = await supabase.from("tribute_blocks").select("*").eq("page_id", pageId).order("position");
   if (error) fail("tribute blocks", error);
   return data as TributeBlock[];
+}
+
+export async function getSharedAlbums(v: Viewer): Promise<SharedAlbum[]> {
+  if (!canRead(v, "family_history")) return [];
+  if (v.demo) return demoStore().albums;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("shared_albums").select("*").order("created_at");
+  if (error) fail("shared albums", error);
+  return data as SharedAlbum[];
 }

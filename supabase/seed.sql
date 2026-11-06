@@ -50,6 +50,8 @@ insert into public.people (id, full_name, relationship, connected_to, email, pho
   ('000000a5-0000-4000-8000-000000000007', 'Bishop Sample', 'Bishop', 'both', 'bishop@example.com', '(555) 010-0401', 'Lake Havasu City', 'AZ', 3, '2026-10-16', 'phone', true, true, 'Coordinates the service and the luncheon.'),
   ('000000a5-0000-4000-8000-000000000008', 'Relief Society President (sample)', 'Relief Society', 'diana', null, '(555) 010-0402', 'Lake Havasu City', 'AZ', 3, null, 'text', false, false, null),
   ('000000a5-0000-4000-8000-000000000009', 'Elders Quorum President (sample)', 'Elders quorum', 'rich', null, '(555) 010-0403', 'Lake Havasu City', 'AZ', 3, null, 'text', false, false, null),
+  ('000000a5-0000-4000-8000-000000000011', 'Sample Memorial Park', 'Cemetery · prepaid plots', 'both', null, '(555) 010-0601', 'Lake Havasu City', 'AZ', 5, null, 'phone', false, true, '[Sample] Prepaid plot contract is in the binder. Call them first after a death.'),
+  ('000000a5-0000-4000-8000-000000000012', 'Sample Funeral Home', 'Funeral home', 'both', 'care@example.com', '(555) 010-0602', 'Lake Havasu City', 'AZ', 5, null, 'phone', false, false, null),
   ('000000a5-0000-4000-8000-00000000000a', 'Next-Door Neighbor (sample)', 'Neighbor', 'both', null, '(555) 010-0501', 'Lake Havasu City', 'AZ', 2, '2026-11-03', 'in_person', true, true, 'Has a spare key.'),
   ('000000a5-0000-4000-8000-00000000000b', 'Former Neighbor (sample)', 'Old neighbor', 'both', 'neighbor@example.com', null, 'Tumwater', 'WA', 4, '2026-04-20', 'mail', false, false, 'Christmas cards.'),
   ('000000a5-0000-4000-8000-00000000000c', 'Army Buddy (sample)', 'Served together', 'rich', null, '(555) 010-0601', 'Sample Town', 'TX', 3, '2026-08-08', 'phone', false, true, null),
@@ -70,6 +72,8 @@ insert into public.person_groups (person_id, group_id) values
   ('000000a5-0000-4000-8000-000000000007', '000000a4-0000-4000-8000-000000000004'),
   ('000000a5-0000-4000-8000-000000000008', '000000a4-0000-4000-8000-000000000004'),
   ('000000a5-0000-4000-8000-000000000009', '000000a4-0000-4000-8000-000000000004'),
+  ('000000a5-0000-4000-8000-000000000011', '000000a4-0000-4000-8000-00000000000a'),
+  ('000000a5-0000-4000-8000-000000000012', '000000a4-0000-4000-8000-00000000000a'),
   ('000000a5-0000-4000-8000-00000000000a', '000000a4-0000-4000-8000-000000000007'),
   ('000000a5-0000-4000-8000-00000000000b', '000000a4-0000-4000-8000-000000000008'),
   ('000000a5-0000-4000-8000-00000000000c', '000000a4-0000-4000-8000-000000000009'),
@@ -143,12 +147,15 @@ insert into public.lab_results (id, patient, test_name, value, unit, ref_low, re
   ('000000a9-0000-4000-8000-000000000005', 'diana', 'A1C', 5.6, '%', 4, 5.6, '2026-05-06', 'app'),
   ('000000a9-0000-4000-8000-000000000006', 'diana', 'A1C', 6.1, '%', 4, 5.6, '2026-11-06', 'riana');
 
-insert into public.final_wishes (id, person, topic, wish, confirmed) values
-  ('000000aa-0000-4000-8000-000000000001', 'both', 'burial_place', '[Sample] Family plot in Washington, beside other family members.', false),
-  ('000000aa-0000-4000-8000-000000000002', 'both', 'service', '[Sample] A simple LDS chapel service followed by a family luncheon.', true),
-  ('000000aa-0000-4000-8000-000000000003', 'diana', 'music', '[Sample] A favorite hymn sung by the grandchildren.', false),
-  ('000000aa-0000-4000-8000-000000000004', 'rich', 'military_honors', '[Sample] Military honors at the graveside, if possible.', true),
-  ('000000aa-0000-4000-8000-000000000005', 'both', 'obituary', '[Sample] Keep it short; include the grandchildren''s names.', false);
+insert into public.final_wishes (id, person, topic, wish, confirmed, contact_person_id, detail) values
+  ('000000aa-0000-4000-8000-000000000001', 'both', 'burial_place', '[Sample] Prepaid plots at Sample Memorial Park, side by side.', true, '000000a5-0000-4000-8000-000000000011', '[Sample] Block 000, Lots 1 & 2. The real block and lot numbers are in the binder, not here.'),
+  ('000000aa-0000-4000-8000-000000000002', 'both', 'service', '[Sample] A simple LDS chapel service followed by a family luncheon.', true, '000000a5-0000-4000-8000-000000000007', null),
+  ('000000aa-0000-4000-8000-000000000003', 'diana', 'music', '[Sample] A favorite hymn sung by the grandchildren.', false, null, null),
+  ('000000aa-0000-4000-8000-000000000004', 'rich', 'military_honors', '[Sample] Military honors at the graveside, if possible.', true, null, '[Sample] DD-214 copy is in the VA folder.'),
+  ('000000aa-0000-4000-8000-000000000005', 'both', 'obituary', '[Sample] Keep it short; include the grandchildren''s names.', false, '000000a5-0000-4000-8000-000000000012', null);
+
+insert into public.shared_albums (id, title, url, provider, note, added_by_name, source, created_at) values
+  ('000000c2-0000-4000-8000-000000000001', '[Sample] Family reunion 2019', 'https://photos.app.goo.gl/SAMPLEfake0000001', 'google_photos', 'Shared by a cousin (sample).', 'Karmel', 'app', '2026-10-17T12:00:00-07:00');
 
 insert into public.loans (id, direction, counterparty, principal, rate_pct, status, note_signed, property_id, balance_note, term_months, monthly_payment, first_payment_on, legal_document_id, lender, purpose, appraisal_on, appraisal_value, appraisal_source, gift_or_loan, advance_on_inheritance, started_on) values
   ('000000ac-0000-4000-8000-000000000001', 'owed_to_estate', 'Ryan & Tracy (sample)', 50000, null, 'active', true, null, 'Note signed 2023. No interest stated on the note.', null, null, null, '000000a3-0000-4000-8000-000000000009', null, '[Sample] Home purchase help', null, null, null, 'loan', 'undecided', '2023-06-01'),
@@ -218,9 +225,12 @@ insert into public.tax_source_items (id, tax_year, label, provider, where_to_fin
   ('000000b8-0000-4000-8000-000000000004', 2025, '1098 · Mortgage interest, Rental B', 'Mr. Cooper (sample)', 'Account → Tax documents', 'https://example.com/mrcooper', 'Greene – Mr. Cooper', false, null, null),
   ('000000b8-0000-4000-8000-000000000005', 2025, 'SSA-1099 · Social Security', 'SSA.gov (sample)', 'my Social Security → Replacement documents', 'https://example.com/ssa', 'Rich – SSA', true, '2026-09-27', null);
 
-insert into public.riana_updates (id, kind, summary, received_at, review_status, payload) values
-  ('000000ab-0000-4000-8000-000000000001', 'lab_result', 'New A1C result for Diana: 6.1 %', '2026-11-06T07:42:00-07:00', 'pending', '{}'),
-  ('000000ab-0000-4000-8000-000000000002', 'bill', 'Payment failed: Sample Electric Co., $142.18', '2026-11-05T09:05:00-07:00', 'pending', '{}');
+insert into public.riana_updates (id, kind, summary, received_at, review_status, external_ref, payload) values
+  ('000000ab-0000-4000-8000-000000000001', 'lab_result', 'New A1C result for Diana: 6.1 %', '2026-11-06T07:42:00-07:00', 'pending', null, '{}'),
+  ('000000ab-0000-4000-8000-000000000002', 'bill', 'Payment failed: Sample Electric Co., $142.18', '2026-11-05T09:05:00-07:00', 'pending', null, '{}'),
+  ('000000ab-0000-4000-8000-000000000003', 'contact', 'Add to Who to Notify: Sample Attorney (attorney, 2021 will)', '2026-11-05T10:15:00-07:00', 'pending', 'binder-notify-01', '{"full_name":"Sample Attorney","relationship":"Attorney (2021 will)","connected_to":"both","phone":"(555) 010-0701","email":"attorney@example.com","city":"Lake Havasu City","region":"AZ","is_professional":true,"notify_first":false,"preferred_method":"phone"}'),
+  ('000000ab-0000-4000-8000-000000000004', 'contact', 'Add to Who to Notify: Sample CPA, Example & Co', '2026-11-05T10:16:00-07:00', 'pending', 'binder-notify-02', '{"full_name":"Sample CPA","relationship":"CPA, Example & Co","connected_to":"both","phone":"(555) 010-0702","is_professional":true,"notify_first":false}'),
+  ('000000ab-0000-4000-8000-000000000005', 'contact', 'Add to Who to Notify: Sample Old Friend (Rich''s Navy buddy)', '2026-11-05T10:17:00-07:00', 'pending', 'binder-notify-03', '{"full_name":"Sample Old Friend","relationship":"Navy buddy","connected_to":"rich","phone":"(555) 010-0801","city":"Sample City","region":"OR","notify_first":true,"preferred_method":"phone"}');
 
 insert into public.providers (id, patient, name, specialty, practice, phone, portal_name, is_va, notes) values
   ('000000ad-0000-4000-8000-000000000001', 'diana', 'Dr. Sample Primary', 'Primary care', 'Sample Family Medicine', '(555) 010-0703', 'MyChart (sample)', false, null),

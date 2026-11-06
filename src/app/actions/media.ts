@@ -182,3 +182,26 @@ export async function shareTributeWithLists(pageId: string, listIds: string[]): 
     revalidatePath(`/history/tribute/${pageId}`); return { ok: true };
   } catch (e) { return { ok: false, error: (e as Error).message }; }
 }
+
+const Album = z.object({ title: z.string().trim().min(2, "Give the album a name.").max(120), url: z.string().trim().url("Paste the full https:// link.").max(500).refine((u) => u.startsWith("https://"), "The link must start with https://"), note: Opt(300) });
+/** Save a shared album link as a reference. The photos stay where they are; nothing is copied. */
+export async function addSharedAlbum(_p: Result | null, form: FormData): Promise<Result> {
+  try {
+    const parsed = Album.safeParse(Object.fromEntries(form));
+    if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+    const d = parsed.data; const v = await getViewer();
+    if (!canWrite(v, "family_history") && v.role !== "super_admin") return { ok: false, error: "You can't add albums." };
+    const provider = /photos\.app\.goo\.gl|photos\.google\.com/.test(d.url) ? "google_photos" : /icloud\.com/.test(d.url) ? "icloud" : "other";
+    if (v.demo) {
+      const s = demoStore();
+      if (s.albums.some((a) => a.url === d.url)) return { ok: false, error: "That album is already saved." };
+      s.albums.push({ id: crypto.randomUUID(), title: d.title, url: d.url, provider, note: d.note || null, added_by_name: v.name, source: "app", created_at: new Date().toISOString() });
+      bump(v.name, "family_history", "create", `Saved shared album link: ${d.title}`, "shared_albums");
+    } else {
+      const supabase = await createClient();
+      const { error } = await supabase.from("shared_albums").insert({ title: d.title, url: d.url, provider, note: d.note || null, added_by_name: v.name });
+      if (error) return { ok: false, error: error.code === "23505" ? "That album is already saved." : "Could not save the album link." };
+    }
+    revalidatePath("/history"); return { ok: true };
+  } catch (e) { return { ok: false, error: (e as Error).message }; }
+}

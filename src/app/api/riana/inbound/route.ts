@@ -22,7 +22,7 @@ import { demoStore } from "@/lib/data";
  * external_ref, 400 bad body, 401 bad key, 413 too large, 503 not configured.
  */
 
-const KINDS = ["appointment", "lab_result", "bill", "urgent_question", "document", "note"] as const;
+const KINDS = ["appointment", "lab_result", "bill", "urgent_question", "document", "note", "contact", "album"] as const;
 
 const Update = z.object({
   kind: z.enum(KINDS),

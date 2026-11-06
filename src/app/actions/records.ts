@@ -5,9 +5,9 @@ import { z } from "zod";
 import { getViewer, canWrite } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { demoStore } from "@/lib/data";
-import type { LegalStatus, QuestionStatus, Section, Subject } from "@/lib/types";
+import type { LegalStatus, QuestionStatus, Section, Subject, Person } from "@/lib/types";
 
-type Result = { ok: true } | { ok: false; error: string };
+type Result<T = undefined> = { ok: true; data?: T } | { ok: false; error: string };
 
 // Every action re-checks the viewer; in real mode Postgres checks again.
 async function need(section: Section): Promise<Awaited<ReturnType<typeof getViewer>>> {
@@ -229,16 +229,63 @@ export async function reviewRianaUpdate(id: string, decision: "approved" | "reje
   const v = await getViewer();
   if (v.role !== "super_admin") return { ok: false, error: "Super admins only." };
   if (v.demo) {
-    const r = demoStore().riana.find((x) => x.id === id);
-    if (r) r.review_status = decision;
     const s = demoStore();
+    const r = s.riana.find((x) => x.id === id);
+    if (!r || r.review_status !== "pending") return { ok: false, error: "Already reviewed." };
+    r.review_status = decision;
+    if (decision === "approved") {
+      const p = (r.payload ?? {}) as Record<string, string | boolean | undefined>;
+      if (r.kind === "contact") {
+        const name = String(p.full_name ?? "").trim(); if (!name) return { ok: false, error: "This contact has no name." };
+        s.people.push({ id: crypto.randomUUID(), full_name: name, relationship: (p.relationship as string) ?? null, connected_to: ((p.connected_to as "rich" | "diana" | "both") ?? "both"), email: (p.email as string) ?? null, phone: (p.phone as string) ?? null, city: (p.city as string) ?? null, region: (p.region as string) ?? null, closeness: null, last_contact_on: null, preferred_method: (p.preferred_method as Person["preferred_method"]) ?? null, notify_first: Boolean(p.notify_first), confirmed: false, notes: (p.notes as string) ?? null, group_ids: p.is_professional ? [s.groups.find((g) => g.kind === "professional")?.id ?? ""].filter(Boolean) : [] });
+      } else if (r.kind === "album") {
+        const url = String(p.url ?? ""); if (!/^https:\/\//.test(url)) return { ok: false, error: "The album link must start with https://." };
+        if (!s.albums.some((a) => a.url === url)) s.albums.push({ id: crypto.randomUUID(), title: String(p.title ?? "Shared album"), url, provider: "google_photos", note: (p.note as string) ?? null, added_by_name: "Riana", source: "riana", created_at: new Date().toISOString() });
+      }
+    }
     s.audit.unshift({ id: Date.now(), at: new Date().toISOString(), actor_name: v.name, action: decision === "approved" ? "approve" : "reject", section: "admin", entity: "riana_updates", via: "app", summary: `${decision === "approved" ? "Approved" : "Rejected"} an update from Riana` });
   } else {
     const supabase = await createClient();
-    const { error } = await supabase.from("riana_updates")
-      .update({ review_status: decision, reviewed_by: v.id, reviewed_at: new Date().toISOString() }).eq("id", id);
-    if (error) return { ok: false, error: "Could not save the decision." };
+    if (decision === "approved") {
+      const { error } = await supabase.rpc("riana_apply", { p_update_id: id });
+      if (error) return { ok: false, error: error.message.includes("riana_apply") ? "The database is missing migration 16." : `Could not apply: ${error.message}` };
+    } else {
+      const { error } = await supabase.from("riana_updates")
+        .update({ review_status: decision, reviewed_by: v.id, reviewed_at: new Date().toISOString() }).eq("id", id);
+      if (error) return { ok: false, error: "Could not save the decision." };
+    }
   }
-  revalidatePath("/admin/riana"); revalidatePath("/");
+  revalidatePath("/admin/riana"); revalidatePath("/"); revalidatePath("/contacts"); revalidatePath("/history");
   return { ok: true };
+}
+
+/**
+ * Super admin pastes the binder's "who to notify" additions, one per line:
+ *   Name | relationship | phone | email | rich/diana/both | professional
+ * Each line becomes a pending update in the Riana inbox, so additions are reviewed before they reach People.
+ * The pasted names stay in the database only, never in the repo.
+ */
+export async function proposeContacts(_p: Result<{ queued: number }> | null, form: FormData): Promise<Result<{ queued: number }>> {
+  const v = await getViewer();
+  if (v.role !== "super_admin") return { ok: false, error: "Super admins only." };
+  const text = String(form.get("lines") ?? "");
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).slice(0, 100);
+  if (lines.length === 0) return { ok: false, error: "Paste at least one line." };
+  const rows = lines.map((line) => {
+    const [full_name = "", relationship = "", phone = "", email = "", who = "", prof = ""] = line.split("|").map((x) => x.trim());
+    const connected_to = ["rich", "diana", "both"].includes(who.toLowerCase()) ? who.toLowerCase() : "both";
+    const is_professional = /^(y|yes|true|professional|pro)$/i.test(prof) || /attorney|cpa|doctor|dr\.|funeral|memorial|agent|manager/i.test(relationship);
+    return { full_name, relationship: relationship || null, phone: phone || null, email: email || null, connected_to, is_professional, notify_first: false };
+  }).filter((r) => r.full_name.length >= 2);
+  if (rows.length === 0) return { ok: false, error: "No line had a name." };
+  if (v.demo) {
+    const s = demoStore();
+    for (const r of rows) s.riana.unshift({ id: crypto.randomUUID(), kind: "contact", summary: `Add to Who to Notify: ${r.full_name}${r.relationship ? ` (${r.relationship})` : ""}`, received_at: new Date().toISOString(), review_status: "pending", payload: r });
+  } else {
+    const supabase = await createClient();
+    const { error } = await supabase.from("riana_updates").insert(rows.map((r) => ({ kind: "contact", summary: `Add to Who to Notify: ${r.full_name}${r.relationship ? ` (${r.relationship})` : ""}`, payload: r, source: "app" })));
+    if (error) return { ok: false, error: `Could not queue: ${error.message}` };
+  }
+  revalidatePath("/admin/riana");
+  return { ok: true, data: { queued: rows.length } };
 }

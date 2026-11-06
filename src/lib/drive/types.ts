@@ -8,6 +8,8 @@ export type DriveFile = {
   modifiedTime: string;
   webViewLink: string | null;
   parents: string[];
+  /** EXIF DateTimeOriginal as Drive reports it (imageMediaMetadata.time), if any. */
+  takenTime?: string | null;
 };
 
 export interface DriveClient {

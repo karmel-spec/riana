@@ -51,7 +51,7 @@ async function accessToken(sa: SA): Promise<string> {
   return cached.token;
 }
 
-const FIELDS = "id,name,mimeType,size,md5Checksum,modifiedTime,webViewLink,parents";
+const FIELDS = "id,name,mimeType,size,md5Checksum,modifiedTime,webViewLink,parents,imageMediaMetadata(time)";
 
 export function realDriveClient(sa: SA): DriveClient {
   const api = async (path: string, params: Record<string, string>) => {
@@ -68,6 +68,7 @@ export function realDriveClient(sa: SA): DriveClient {
     size: f.size ? Number(f.size) : null, md5Checksum: (f.md5Checksum as string) ?? null,
     modifiedTime: String(f.modifiedTime), webViewLink: (f.webViewLink as string) ?? null,
     parents: (f.parents as string[]) ?? [],
+    takenTime: ((f.imageMediaMetadata as { time?: string } | undefined)?.time) ?? null,
   });
   return {
     async probeFolder(folderId) {

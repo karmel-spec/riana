@@ -144,6 +144,22 @@ export type FinalWish = {
   topic: string;
   wish: string;
   confirmed: boolean;
+  /** A person to call about this wish (memorial park, funeral home). */
+  contact_person_id: string | null;
+  /** Specifics kept with the wish (plot numbers, contract reference). */
+  detail: string | null;
+};
+
+/** A link to an album that lives elsewhere (Google Photos share link). Saved as a reference only. */
+export type SharedAlbum = {
+  id: string;
+  title: string;
+  url: string;
+  provider: "google_photos" | "icloud" | "other";
+  note: string | null;
+  added_by_name: string | null;
+  source: Source;
+  created_at: string;
 };
 
 export type RianaUpdate = {
@@ -154,6 +170,8 @@ export type RianaUpdate = {
   review_status: "pending" | "approved" | "rejected";
   /** Set by the agent that sent it, so a retry is recognized as the same update. */
   external_ref?: string | null;
+  /** What approval would create (shown in the inbox before anyone approves). */
+  payload?: Record<string, unknown>;
 };
 
 /** An agent key for the Riana endpoints (hash never leaves the database). */

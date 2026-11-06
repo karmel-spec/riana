@@ -16,7 +16,7 @@ test("every manifest file gets a target section", async () => {
 test("unreadable folders are flagged, and their files are skipped", async () => {
   const { status } = await resolveFolders(fakeDriveClient({ unreadable: ["widow_book", "taxes"] }));
   const bad = status.filter((s) => !s.readable).map((s) => s.key).sort();
-  assert.deepEqual(bad, ["photos_takeout", "taxes", "widow_book"]);   // photos_takeout doesn't exist in the fake root yet
+  assert.deepEqual(bad, ["taxes", "widow_book"]);
   assert.match(status.find((s) => s.key === "taxes")!.error!, /not shared/i);
   const report = await planSync(fakeDriveClient({ unreadable: ["taxes"] }), new Map());
   assert.equal(report.entries.filter((e) => e.folderKey === "taxes").length, 0);
