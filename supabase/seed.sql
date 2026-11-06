@@ -263,15 +263,27 @@ insert into public.accounts (id, institution, kind, purpose, last4, held_by, ben
   ('000000b2-0000-4000-8000-000000000004', 'Sample Bank', 'checking', 'Rental income and expenses (StarLar)', '3456', 'both', null, 'Property manager deposits here.', 'app'),
   ('000000b2-0000-4000-8000-000000000005', 'Sample Card Co.', 'credit_card', 'Travel and groceries', '7890', 'diana', null, 'Autopay from checking 1234.', 'app');
 
-insert into public.digital_accounts (id, service, owner, purpose, vault_item, after_death, notes, source) values
-  ('000000b6-0000-4000-8000-000000000001', 'Gmail (Rich)', 'rich', 'Main email; Riana reads it', 'Rich – Gmail', 'Keep open 12 months for bills, then close.', null, 'app'),
-  ('000000b6-0000-4000-8000-000000000002', 'Gmail (Diana)', 'diana', 'Main email; Riana reads it', 'Diana – Gmail', 'Keep open 12 months, then close.', null, 'app'),
-  ('000000b6-0000-4000-8000-000000000003', 'Apple ID', 'both', 'iPad, photos, iCloud', 'Greene – Apple ID', 'Download photos first (Legacy Contact set to Karmel).', 'Legacy Contact set up in Settings.', 'app'),
-  ('000000b6-0000-4000-8000-000000000004', 'Facebook', 'diana', 'Family and church friends', 'Diana – Facebook', 'Memorialize.', null, 'app'),
-  ('000000b6-0000-4000-8000-000000000005', 'Sample Credit Union online banking', 'both', 'Bills and transfers', 'Greene – Credit Union', 'Executor contacts the bank; do not log in after death.', 'Account ····1234 and ····5678.', 'app'),
-  ('000000b6-0000-4000-8000-000000000006', 'My HealtheVet (VA)', 'rich', 'VA appointments, prescriptions, claim status', 'Rich – VA login', 'Close.', null, 'app'),
-  ('000000b6-0000-4000-8000-000000000007', 'Google Photos (shared family album)', 'both', 'Scanned photos and documents', 'Greene – Google', 'Transfer ownership to Karmel.', null, 'riana'),
-  ('000000b6-0000-4000-8000-000000000008', 'Streaming (sample)', 'both', 'TV', 'Greene – Streaming', 'Cancel.', 'Billed to card ····7890.', 'app');
+insert into public.digital_accounts (id, service, website, owner, category, purpose, vault_name, vault_item, status, after_death, notes, source) values
+  ('000000b6-0000-4000-8000-000000000001', 'Gmail (Rich)', 'https://mail.google.com', 'rich', 'Email', 'Main email; Riana reads it', 'Greene Family', 'Rich – Gmail (Rich)', 'found', 'Keep open 12 months for bills, then close.', null, 'app'),
+  ('000000b6-0000-4000-8000-000000000002', 'Gmail (Diana)', 'https://mail.google.com', 'diana', 'Email', 'Main email; Riana reads it', 'Greene Family', 'Diana – Gmail (Diana)', 'found', 'Keep open 12 months, then close.', null, 'app'),
+  ('000000b6-0000-4000-8000-000000000003', 'Apple ID', 'https://appleid.apple.com', 'both', 'Devices', 'iPad, photos, iCloud', 'Greene Family', 'Greene – Apple ID', 'found', 'Download photos first (Legacy Contact set to Karmel).', 'Legacy Contact set up in Settings.', 'app'),
+  ('000000b6-0000-4000-8000-000000000004', 'Facebook', 'https://facebook.com', 'diana', 'Social', null, 'Greene Family', 'Diana – Facebook', 'found', 'Memorialize.', null, 'app'),
+  ('000000b6-0000-4000-8000-000000000005', 'Sample Credit Union online banking', 'https://example.com/cu', 'both', 'Banking', 'Bills and transfers', 'Greene Family', 'Greene – Sample Credit Union online banking', 'found', 'Executor contacts the bank; do not log in after death.', 'Account ····1234 and ····5678.', 'app'),
+  ('000000b6-0000-4000-8000-000000000006', 'My HealtheVet (VA)', 'https://www.myhealth.va.gov', 'rich', 'Health', 'VA appointments, prescriptions, claim status', 'Greene Family', 'Rich – My HealtheVet (VA)', 'found', 'Close.', null, 'app'),
+  ('000000b6-0000-4000-8000-000000000007', 'Google Photos (shared family album)', 'https://photos.google.com', 'both', 'Photos', null, 'Greene Family', 'Greene – Google Photos (shared family album)', 'found', 'Transfer ownership to Karmel.', null, 'riana'),
+  ('000000b6-0000-4000-8000-000000000008', 'Streaming (sample)', null, 'both', 'Entertainment', 'TV', 'Greene Family', null, 'to_find', 'Cancel.', 'Billed to card ····7890.', 'app'),
+  ('000000b6-0000-4000-8000-000000000009', 'Sample Brokerage', null, 'rich', 'Investments', 'Rich''s IRA', 'Greene Family', null, 'to_find', null, null, 'app'),
+  ('000000b6-0000-4000-8000-00000000000a', 'Sample Card Co.', null, 'diana', 'Banking', null, 'Greene Family', null, 'to_find', null, null, 'app'),
+  ('000000b6-0000-4000-8000-00000000000b', 'Medicare.gov', 'https://www.medicare.gov', 'both', 'Health', null, 'Greene Family', null, 'to_find', null, null, 'app'),
+  ('000000b6-0000-4000-8000-00000000000c', 'SSA.gov (my Social Security)', 'https://www.ssa.gov', 'rich', 'Government', null, 'Greene Family', 'Rich – SSA.gov (my Social Security)', 'found', null, null, 'app'),
+  ('000000b6-0000-4000-8000-00000000000d', 'SSA.gov (my Social Security)', 'https://www.ssa.gov', 'diana', 'Government', null, 'Greene Family', null, 'to_find', null, null, 'app'),
+  ('000000b6-0000-4000-8000-00000000000e', 'Sample Electric Co.', null, 'both', 'Utilities', 'Autopay', 'Greene Family', 'Greene – Sample Electric Co.', 'found', null, null, 'app'),
+  ('000000b6-0000-4000-8000-00000000000f', 'Water & sewer (sample)', null, 'both', 'Utilities', null, 'Greene Family', null, 'to_find', null, null, 'app'),
+  ('000000b6-0000-4000-8000-000000000010', 'Phone & internet (sample)', null, 'both', 'Utilities', null, 'Greene Family', 'Greene – Phone & internet (sample)', 'found', null, null, 'app'),
+  ('000000b6-0000-4000-8000-000000000011', 'Welcome Home portal (sample)', null, 'both', 'Rentals', 'Rental A statements and 1099', 'Greene Family', 'Greene – Welcome Home portal (sample)', 'found', null, null, 'app'),
+  ('000000b6-0000-4000-8000-000000000012', 'MVP portal (sample)', null, 'both', 'Rentals', 'Rental B statements and 1099', 'Greene Family', null, 'to_find', null, null, 'app'),
+  ('000000b6-0000-4000-8000-000000000013', 'Amazon', null, 'diana', 'Shopping', null, 'Greene Family', null, 'to_find', null, null, 'app'),
+  ('000000b6-0000-4000-8000-000000000014', 'Church membership tools (sample)', null, 'both', 'Church', null, 'Greene Family', 'Greene – Church membership tools (sample)', 'found', null, null, 'app');
 
 insert into public.household_items (id, kind, name, details, source) values
   ('000000b7-0000-4000-8000-000000000001', 'pet', 'Buddy (sample dog)', '[Sample] 9-year-old terrier mix. Vet: Sample Animal Clinic (555) 010-1001. Food: one scoop morning and night. Goes to David if Mom and Dad can''t care for him.', 'app'),

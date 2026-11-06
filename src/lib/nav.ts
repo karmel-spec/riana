@@ -26,7 +26,7 @@ export const NAV: NavItem[] = [
   { href: "/legal", label: "Legal & Estate", section: "legal", icon: I.Scroll, built: true },
   { href: "/estate", label: "Estate Plan", section: "legal", icon: I.Scroll, built: true },
   { href: "/wishes", label: "Final Wishes", section: "final_wishes", icon: I.Dove, built: true },
-  { href: "/digital", label: "Digital Accounts", section: "digital_accounts", icon: I.Key, built: true },
+  { href: "/digital", label: "Accounts Directory", section: "digital_accounts", icon: I.Key, built: true },
   { href: "/household", label: "Pets & Household", section: "household", icon: I.Paw, built: true },
   { href: "/history", label: "Family History", section: "family_history", icon: I.Book },
 ];
