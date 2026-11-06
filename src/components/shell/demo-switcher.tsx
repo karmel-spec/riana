@@ -1,12 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { DEMO_USERS } from "@/lib/demo/users";
 import { switchDemoUser } from "@/app/actions/demo";
 
 export function DemoSwitcher({ current }: { current: string }) {
-  const router = useRouter();
   const [pending, start] = useTransition();
   return (
     <label className="mt-3 block">
@@ -15,7 +13,9 @@ export function DemoSwitcher({ current }: { current: string }) {
         className="mt-1 w-full rounded-xl border border-mist/50 bg-evergreen-deep px-3 text-paper"
         value={current}
         disabled={pending}
-        onChange={(e) => start(async () => { await switchDemoUser(e.target.value); router.push("/"); router.refresh(); })}
+        // Full navigation (not router.push) so the <html> text scale picks up the new role.
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+        onChange={(e) => start(async () => { await switchDemoUser(e.target.value); window.location.href = "/"; })}
       >
         {DEMO_USERS.map((u) => <option key={u.key} value={u.key}>{u.name} — {u.blurb}</option>)}
       </select>

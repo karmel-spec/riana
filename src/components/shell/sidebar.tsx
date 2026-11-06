@@ -12,7 +12,7 @@ type Props = {
   viewerName: string;
   viewerBlurb: string;
   demo: boolean;
-  children?: React.ReactNode;  // the role switcher, demo-only
+  children?: React.ReactNode;  // view toggle, plus the demo-only role switcher
 };
 
 function NavLink({ item, active, onClick }: { item: Omit<NavItem, "icon">; active: boolean; onClick: () => void }) {

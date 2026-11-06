@@ -2,13 +2,15 @@ import Link from "next/link";
 import { getViewer } from "@/lib/session";
 import { SampleBanner } from "./sample-banner";
 import { ParentNav } from "./parent-nav";
+import { ViewToggle } from "./view-toggle";
+import type { ViewMode } from "@/lib/view-mode";
 
 /**
  * The parent frame. Same colors and type as the main binder, but:
  * larger base text, a short row of big buttons instead of the long sidebar,
  * and nothing about money, bills, or admin.
  */
-export async function ParentShell({ children }: { children: React.ReactNode }) {
+export async function ParentShell({ children, mode }: { children: React.ReactNode; mode: ViewMode }) {
   const v = await getViewer();
   return (
     <div className="flex min-h-dvh flex-col">
@@ -19,6 +21,7 @@ export async function ParentShell({ children }: { children: React.ReactNode }) {
           </Link>
           <div className="text-right text-[0.85rem] text-mist">
             <div className="font-semibold text-paper">{v.name}</div>
+            <ViewToggle mode={mode} className="mt-2 min-h-0 py-1 text-[0.85rem]" />
             {!v.demo && (
               <div className="flex gap-3 justify-end">
                 <Link href="/account/password" className="text-mist underline">Password</Link>

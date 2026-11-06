@@ -5,6 +5,8 @@ import { DEMO_COOKIE } from "@/lib/session";
 import { Sidebar } from "./sidebar";
 import { DemoSwitcher } from "./demo-switcher";
 import { SampleBanner } from "./sample-banner";
+import { ViewToggle } from "./view-toggle";
+import type { ViewMode } from "@/lib/view-mode";
 
 const ROLE_BLURB = {
   super_admin: "Co-executor · Super Admin",
@@ -15,7 +17,7 @@ const ROLE_BLURB = {
 } as const;
 
 /** The main binder frame: evergreen sidebar + parchment content. */
-export async function AppShell({ children }: { children: React.ReactNode }) {
+export async function AppShell({ children, mode }: { children: React.ReactNode; mode: ViewMode }) {
   const v = await getViewer();
   const strip = (items: typeof NAV) => visibleNav(v, items).map((i) => ({ href: i.href, label: i.label, section: i.section, built: i.built }));
   const demoKey = v.demo ? ((await cookies()).get(DEMO_COOKIE)?.value ?? "karmel") : "";
@@ -30,6 +32,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         demo={v.demo}
       >
         {v.demo && <DemoSwitcher current={demoKey} />}
+        <ViewToggle mode={mode} className="mt-3 text-[0.9rem]" />
       </Sidebar>
       <div className="flex min-w-0 flex-1 flex-col">
         <SampleBanner demo={v.demo} />
