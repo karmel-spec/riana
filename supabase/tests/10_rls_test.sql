@@ -263,3 +263,20 @@ select public.log_view('admin', 'imported_files:download:2024 return', null);
 select test.ok(exists (select 1 from public.audit_log where actor = :K::uuid and action = 'view' and entity like 'imported_files:download:%'), 'a return download is in the audit log');
 reset role;
 \echo 'Taxes tests passed.'
+
+-- Estate plan -----------------------------------------------------------------
+select test.act(:K, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.estate_plan_versions') = 1 and test.rows('select * from public.estate_provisions') = 10, 'super admin sees the plan and its provisions');
+select test.ok(test.rows('select * from public.plan_conflicts where status <> ''resolved''') >= 5, 'at least the five brief conflicts are open questions');
+select test.ok((select count(*) from public.plan_conflicts where owner_name is not null) = (select count(*) from public.plan_conflicts), 'every open question has an owner');
+select test.ok((select count(*) from public.loans where monthly_payment is not null and first_payment_on is not null) = 2, 'both StarLar notes carry payment terms');
+select test.ok(test.fails($$insert into public.plan_conflicts (title, status) values ('x', 'maybe')$$), 'unknown conflict status is rejected');
+reset role;
+select test.act(:ATT, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.estate_provisions') = 10, 'the attorney (Legal) can read the plan');
+select test.ok(test.fails($$insert into public.plan_conflicts (title) values ('attorney note')$$), 'the attorney (read-only) cannot add questions');
+reset role;
+select test.act(:DAV, 'aal2'); set role authenticated;
+select test.ok(test.rows('select * from public.plan_conflicts') = 0 or exists (select 1 from public.user_section_access where user_id = :DAV::uuid and section = 'legal' and break_glass), 'family without Legal sees no plan (unless break-glass is active)');
+reset role;
+\echo 'Estate plan tests passed.'

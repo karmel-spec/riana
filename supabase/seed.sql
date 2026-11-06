@@ -150,11 +150,36 @@ insert into public.final_wishes (id, person, topic, wish, confirmed) values
   ('000000aa-0000-4000-8000-000000000004', 'rich', 'military_honors', '[Sample] Military honors at the graveside, if possible.', true),
   ('000000aa-0000-4000-8000-000000000005', 'both', 'obituary', '[Sample] Keep it short; include the grandchildren''s names.', false);
 
-insert into public.loans (id, direction, counterparty, principal, rate_pct, status, note_signed, property_id, balance_note) values
-  ('000000ac-0000-4000-8000-000000000001', 'owed_to_estate', 'Loan A (sample child)', 50000, 5, 'active', true, null, null),
-  ('000000ac-0000-4000-8000-000000000002', 'owed_to_estate', 'Loan B (sample child)', 50000, 5, 'proposed', false, null, null),
-  ('000000ac-0000-4000-8000-000000000003', 'owed_by_estate', 'Sample Mortgage Co.', 185000, 3.25, 'active', true, '000000b3-0000-4000-8000-000000000002', '[Sample] About $120k remaining, 30-year fixed from 2018.'),
-  ('000000ac-0000-4000-8000-000000000004', 'owed_by_estate', 'Sample Mortgage Co.', 210000, 3.5, 'active', true, '000000b3-0000-4000-8000-000000000003', '[Sample] About $150k remaining.');
+insert into public.loans (id, direction, counterparty, principal, rate_pct, status, note_signed, property_id, balance_note, term_months, monthly_payment, first_payment_on, legal_document_id) values
+  ('000000ac-0000-4000-8000-000000000001', 'owed_to_estate', 'Loan A (sample child)', 50000, 5, 'active', true, null, null, null, null, null, null),
+  ('000000ac-0000-4000-8000-000000000002', 'owed_to_estate', 'Loan B (sample child)', 50000, 5, 'proposed', false, null, null, null, null, null, null),
+  ('000000ac-0000-4000-8000-000000000005', 'owed_to_estate', 'StarLar · Note 1', 250000, 4.75, 'active', true, null, 'Rents pay this note to Rich & Diana. Unpaid balance at death splits equally among the six children.', 240, 1655, '2021-04-01', '000000a3-0000-4000-8000-000000000009'),
+  ('000000ac-0000-4000-8000-000000000006', 'owed_to_estate', 'StarLar · Note 2', 300000, 6.25, 'active', true, null, 'Rents pay this note to Rich & Diana. Unpaid balance at death splits equally among the six children.', 180, 2575, '2023-03-01', null),
+  ('000000ac-0000-4000-8000-000000000003', 'owed_by_estate', 'Sample Mortgage Co.', 185000, 3.25, 'active', true, '000000b3-0000-4000-8000-000000000002', '[Sample] About $120k remaining, 30-year fixed from 2018.', null, null, null, null),
+  ('000000ac-0000-4000-8000-000000000004', 'owed_by_estate', 'Sample Mortgage Co.', 210000, 3.5, 'active', true, '000000b3-0000-4000-8000-000000000003', '[Sample] About $150k remaining.', null, null, null, null);
+
+insert into public.estate_plan_versions (id, version_no, title, plan_date, status, summary, source_docs) values
+  ('000000b9-0000-4000-8000-000000000001', 1, '2026 estate plan (in progress)', '2026-10-15', 'current', 'A revocable living trust to hold the Washington rentals, the vehicles and the CDs; StarLar passes to Mike and Karmel; the rents keep paying the parents on two notes; anything unpaid at death is split six ways.', '{"Attorney Strategic Summary Brief","Family Agreement Notes"}');
+
+insert into public.estate_provisions (id, plan_version_id, category, subject, planned, legal_document_id, sort_order, notes) values
+  ('000000ba-0000-4000-8000-000000000001', '000000b9-0000-4000-8000-000000000001', 'asset', 'Revocable living trust', 'Create a revocable living trust to hold the WA rentals, the vehicles, and the Foothills and Glacier CDs.', '000000a3-0000-4000-8000-000000000002', 1, 'Trust not yet drafted.'),
+  ('000000ba-0000-4000-8000-000000000002', '000000b9-0000-4000-8000-000000000001', 'asset', 'WA rentals (StarLar)', 'Title and appreciation go to Mike and Karmel 50/50, held through the trust; outside the six-way split of the will.', '000000a3-0000-4000-8000-000000000006', 2, '2021 TOD deeds conflict with this (see open questions).'),
+  ('000000ba-0000-4000-8000-000000000003', '000000b9-0000-4000-8000-000000000001', 'asset', 'Vehicles (Vickie, ''56 Chevy)', 'Held by the trust.', '000000a3-0000-4000-8000-000000000002', 3, null),
+  ('000000ba-0000-4000-8000-000000000004', '000000b9-0000-4000-8000-000000000001', 'asset', 'Foothills and Glacier CDs', 'Held by the trust.', '000000a3-0000-4000-8000-000000000002', 4, null),
+  ('000000ba-0000-4000-8000-000000000005', '000000b9-0000-4000-8000-000000000001', 'role', 'Successor trustee / executrix', 'Heather.', '000000a3-0000-4000-8000-000000000001', 5, 'The 2021 draft will names one executor; family intends co-executors (Karmel & Heather) — confirm which role each holds.'),
+  ('000000ba-0000-4000-8000-000000000006', '000000b9-0000-4000-8000-000000000001', 'role', 'Co-attorneys-in-fact', 'Mike and Karmel.', '000000a3-0000-4000-8000-000000000003', 6, 'Current signed financial POA (2019) names someone — confirm.'),
+  ('000000ba-0000-4000-8000-000000000007', '000000b9-0000-4000-8000-000000000001', 'term', 'StarLar Note 1', '$1,655/mo · $250k at 4.75% · 20 years · from Apr 2021. Rents pay the parents.', '000000a3-0000-4000-8000-000000000009', 7, null),
+  ('000000ba-0000-4000-8000-000000000008', '000000b9-0000-4000-8000-000000000001', 'term', 'StarLar Note 2', '$2,575/mo · $300k at 6.25% · 15 years · from Mar 2023. Rents pay the parents.', null, 8, 'No signed note on the Legal board yet.'),
+  ('000000ba-0000-4000-8000-000000000009', '000000b9-0000-4000-8000-000000000001', 'term', 'Unpaid note balance at death', 'Split equally among all six children.', null, 9, null),
+  ('000000ba-0000-4000-8000-00000000000a', '000000b9-0000-4000-8000-000000000001', 'term', 'Loans to children ($50k each)', 'Not addressed in the plan.', null, 10, 'Open question.');
+
+insert into public.plan_conflicts (id, plan_version_id, provision_id, title, detail, owner_name, status, resolution, due_on, sort_order) values
+  ('000000bb-0000-4000-8000-000000000001', '000000b9-0000-4000-8000-000000000001', '000000ba-0000-4000-8000-000000000002', 'Equity figure: $480k vs. $540k', 'The attorney''s summary and the family notes give different equity figures for the rentals. Which one does the plan use, and as of what date?', 'Karmel', 'open', null, null, 1),
+  ('000000bb-0000-4000-8000-000000000002', '000000b9-0000-4000-8000-000000000001', '000000ba-0000-4000-8000-000000000009', 'Payout at the first death vs. after both deaths', 'Does the six-way split (and the StarLar transfer) happen when the first parent dies, or only after both?', 'Heather', 'open', null, null, 2),
+  ('000000bb-0000-4000-8000-000000000003', '000000b9-0000-4000-8000-000000000001', null, 'No attorney named yet', 'The 2026 plan has no engaged attorney. Larry Stout drafted the 2021 documents.', 'Karmel', 'open', null, null, 3),
+  ('000000bb-0000-4000-8000-000000000004', '000000b9-0000-4000-8000-000000000001', '000000ba-0000-4000-8000-00000000000a', 'The $50k loans to children aren''t addressed', 'Ryan & Tracy ($50k, signed) and David ($50k, proposed): advances against inheritance, repaid, or forgiven?', 'Heather', 'open', null, null, 4),
+  ('000000bb-0000-4000-8000-000000000005', '000000b9-0000-4000-8000-000000000001', '000000ba-0000-4000-8000-000000000002', '2021 TOD deeds conflict with the trust plan', 'Recorded transfer-on-death deeds (nos. 4857438 and 4857439) would pass the rentals outside the trust. They must be revoked or the plan must change.', 'Karmel', 'with_attorney', null, null, 5),
+  ('000000bb-0000-4000-8000-000000000006', '000000b9-0000-4000-8000-000000000001', '000000ba-0000-4000-8000-000000000007', 'Note 1 terms don''t match its payment', '$250k at 4.75% over 20 years computes to $1,615.56/mo, not $1,655 (about $40/mo apart; $1,655 pays off in ~19 years). Confirm the note''s actual rate, term or payment.', 'Karmel', 'open', null, null, 6);
 
 insert into public.insurance_policies (id, kind, carrier, insured, policy_last4, premium, renews_on, agent_person_id, notes, source) values
   ('000000b4-0000-4000-8000-000000000001', 'auto', 'Sample Mutual', 'both', '4411', 1180, '2026-12-15', null, 'Two vehicles.', 'app'),
