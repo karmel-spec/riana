@@ -5,7 +5,7 @@
 // =============================================================================
 import type {
   Bill, CalendarEvent, ContactGroup, FinalWish, LabResult, LegalDocument, Loan,
-  NotificationCampaign, NotificationList, Person, RianaUpdate, UrgentQuestion,
+  NotificationCampaign, NotificationList, Person, RianaUpdate, SharedAlbum, UrgentQuestion,
   AuditEntry,
 } from "../types";
 
@@ -15,7 +15,7 @@ export function uid(kind: string, n: number): string {
     q: "a1", e: "a2", l: "a3", g: "a4", p: "a5", nl: "a6", nc: "a7",
     b: "a8", lab: "a9", w: "aa", r: "ab", loan: "ac",
     prov: "ad", med: "ae", cond: "af", vn: "b0", va: "b1", acct: "b2",
-    lp: "bc", veh: "bd", vi: "be", pl: "bf", tp: "c0", tb: "c1", prop: "b3", ins: "b4", tax: "b5", dig: "b6", hh: "b7", tsi: "b8", epv: "b9", epr: "ba", pc: "bb",
+    lp: "bc", veh: "bd", vi: "be", pl: "bf", tp: "c0", tb: "c1", alb: "c2", prop: "b3", ins: "b4", tax: "b5", dig: "b6", hh: "b7", tsi: "b8", epv: "b9", epr: "ba", pc: "bb",
   };
   const hex = n.toString(16).padStart(12, "0");
   return `000000${prefix[kind] ?? "ff"}-0000-4000-8000-${hex}`;
@@ -88,6 +88,8 @@ export const people: Person[] = [
   P(7, { full_name: "Bishop Sample", relationship: "Bishop", connected_to: "both", email: "bishop@example.com", phone: "(555) 010-0401", city: "Lake Havasu City", region: "AZ", closeness: 3, last_contact_on: day(-21), preferred_method: "phone", notify_first: true, confirmed: true, notes: "Coordinates the service and the luncheon.", group_ids: [uid("g", 4)] }),
   P(8, { full_name: "Relief Society President (sample)", relationship: "Relief Society", connected_to: "diana", email: null, phone: "(555) 010-0402", city: "Lake Havasu City", region: "AZ", closeness: 3, last_contact_on: null, preferred_method: "text", notify_first: false, confirmed: false, notes: null, group_ids: [uid("g", 4)] }),
   P(9, { full_name: "Elders Quorum President (sample)", relationship: "Elders quorum", connected_to: "rich", email: null, phone: "(555) 010-0403", city: "Lake Havasu City", region: "AZ", closeness: 3, last_contact_on: null, preferred_method: "text", notify_first: false, confirmed: false, notes: null, group_ids: [uid("g", 4)] }),
+  P(17, { full_name: "Sample Memorial Park", relationship: "Cemetery · prepaid plots", connected_to: "both", email: null, phone: "(555) 010-0601", city: "Lake Havasu City", region: "AZ", closeness: 5, last_contact_on: null, preferred_method: "phone", notify_first: false, confirmed: true, notes: "[Sample] Prepaid plot contract is in the binder. Call them first after a death.", group_ids: [uid("g", 10)] }),
+  P(18, { full_name: "Sample Funeral Home", relationship: "Funeral home", connected_to: "both", email: "care@example.com", phone: "(555) 010-0602", city: "Lake Havasu City", region: "AZ", closeness: 5, last_contact_on: null, preferred_method: "phone", notify_first: false, confirmed: false, notes: null, group_ids: [uid("g", 10)] }),
   P(10, { full_name: "Next-Door Neighbor (sample)", relationship: "Neighbor", connected_to: "both", email: null, phone: "(555) 010-0501", city: "Lake Havasu City", region: "AZ", closeness: 2, last_contact_on: day(-3), preferred_method: "in_person", notify_first: true, confirmed: true, notes: "Has a spare key.", group_ids: [uid("g", 7)] }),
   P(11, { full_name: "Former Neighbor (sample)", relationship: "Old neighbor", connected_to: "both", email: "neighbor@example.com", phone: null, city: "Tumwater", region: "WA", closeness: 4, last_contact_on: day(-200), preferred_method: "mail", notify_first: false, confirmed: false, notes: "Christmas cards.", group_ids: [uid("g", 8)] }),
   P(12, { full_name: "Army Buddy (sample)", relationship: "Served together", connected_to: "rich", email: null, phone: "(555) 010-0601", city: "Sample Town", region: "TX", closeness: 3, last_contact_on: day(-90), preferred_method: "phone", notify_first: false, confirmed: true, notes: null, group_ids: [uid("g", 9), uid("g", 2)] }),
@@ -156,11 +158,11 @@ export const labResults: LabResult[] = [
 ];
 
 export const finalWishes: FinalWish[] = [
-  { id: uid("w", 1), person: "both", topic: "burial_place", wish: "[Sample] Family plot in Washington, beside other family members.", confirmed: false },
-  { id: uid("w", 2), person: "both", topic: "service", wish: "[Sample] A simple LDS chapel service followed by a family luncheon.", confirmed: true },
-  { id: uid("w", 3), person: "diana", topic: "music", wish: "[Sample] A favorite hymn sung by the grandchildren.", confirmed: false },
-  { id: uid("w", 4), person: "rich", topic: "military_honors", wish: "[Sample] Military honors at the graveside, if possible.", confirmed: true },
-  { id: uid("w", 5), person: "both", topic: "obituary", wish: "[Sample] Keep it short; include the grandchildren's names.", confirmed: false },
+  { id: uid("w", 1), person: "both", topic: "burial_place", wish: "[Sample] Prepaid plots at Sample Memorial Park, side by side.", confirmed: true, contact_person_id: uid("p", 17), detail: "[Sample] Block 000, Lots 1 & 2. The real block and lot numbers are in the binder, not here." },
+  { id: uid("w", 2), person: "both", topic: "service", wish: "[Sample] A simple LDS chapel service followed by a family luncheon.", confirmed: true, contact_person_id: uid("p", 7), detail: null },
+  { id: uid("w", 3), person: "diana", topic: "music", wish: "[Sample] A favorite hymn sung by the grandchildren.", confirmed: false, contact_person_id: null, detail: null },
+  { id: uid("w", 4), person: "rich", topic: "military_honors", wish: "[Sample] Military honors at the graveside, if possible.", confirmed: true, contact_person_id: null, detail: "[Sample] DD-214 copy is in the VA folder." },
+  { id: uid("w", 5), person: "both", topic: "obituary", wish: "[Sample] Keep it short; include the grandchildren's names.", confirmed: false, contact_person_id: uid("p", 18), detail: null },
 ];
 
 export const loans: Loan[] = [
@@ -180,8 +182,20 @@ export const loanPayments: LoanPayment[] = [
 ];
 
 export const rianaUpdates: RianaUpdate[] = [
-  { id: uid("r", 1), kind: "lab_result", summary: "New A1C result for Diana: 6.1 %", received_at: day(0, 7, 42), review_status: "pending" },
-  { id: uid("r", 2), kind: "bill", summary: "Payment failed: Sample Electric Co., $142.18", received_at: day(-1, 9, 5), review_status: "pending" },
+  { id: uid("r", 1), kind: "lab_result", summary: "New A1C result for Diana: 6.1 %", received_at: day(0, 7, 42), review_status: "pending", payload: {} },
+  { id: uid("r", 2), kind: "bill", summary: "Payment failed: Sample Electric Co., $142.18", received_at: day(-1, 9, 5), review_status: "pending", payload: {} },
+  // Who-to-Notify additions proposed from the binder (FAKE names; the real list is pasted in at runtime and reviewed here).
+  { id: uid("r", 3), kind: "contact", summary: "Add to Who to Notify: Sample Attorney (attorney, 2021 will)", received_at: day(-1, 10, 15), review_status: "pending", external_ref: "binder-notify-01",
+    payload: { full_name: "Sample Attorney", relationship: "Attorney (2021 will)", connected_to: "both", phone: "(555) 010-0701", email: "attorney@example.com", city: "Lake Havasu City", region: "AZ", is_professional: true, notify_first: false, preferred_method: "phone" } },
+  { id: uid("r", 4), kind: "contact", summary: "Add to Who to Notify: Sample CPA, Example & Co", received_at: day(-1, 10, 16), review_status: "pending", external_ref: "binder-notify-02",
+    payload: { full_name: "Sample CPA", relationship: "CPA, Example & Co", connected_to: "both", phone: "(555) 010-0702", is_professional: true, notify_first: false } },
+  { id: uid("r", 5), kind: "contact", summary: "Add to Who to Notify: Sample Old Friend (Rich's Navy buddy)", received_at: day(-1, 10, 17), review_status: "pending", external_ref: "binder-notify-03",
+    payload: { full_name: "Sample Old Friend", relationship: "Navy buddy", connected_to: "rich", phone: "(555) 010-0801", city: "Sample City", region: "OR", notify_first: true, preferred_method: "phone" } },
+];
+
+/** Shared album links are references only; the app never copies the photos. FAKE link. */
+export const sharedAlbums: SharedAlbum[] = [
+  { id: uid("alb", 1), title: "[Sample] Family reunion 2019", url: "https://photos.app.goo.gl/SAMPLEfake0000001", provider: "google_photos", note: "Shared by a cousin (sample).", added_by_name: "Karmel", source: "app", created_at: day(-20, 12) },
 ];
 
 export const auditEntries: AuditEntry[] = [

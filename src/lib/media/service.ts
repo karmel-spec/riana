@@ -31,7 +31,7 @@ export async function syncMediaFromImports(v: Viewer): Promise<{ created: number
     for (const f of files) {
       let m = s.media.find((x) => x.imported_file_id === f.id);
       if (!m) {
-        m = { id: crypto.randomUUID(), kind: kindFor(f)!, title: titleFor(f.name), caption: null, story: null, taken_on: f.drive_modified_at?.slice(0, 10) ?? null, decade: null, event_name: null, people_tags: [],
+        m = { id: crypto.randomUUID(), kind: kindFor(f)!, title: titleFor(f.name), caption: null, story: null, taken_on: (f.taken_at ?? f.drive_modified_at)?.slice(0, 10) ?? null, decade: null, event_name: null, people_tags: [],
               category: SINGALONG_RULES.has(f.manifest_rule ?? "") ? "music" : /church|scripture/i.test(f.target_note ?? "") ? "church" : "memory",
               imported_file_id: f.id, poster_file_id: null, duration_seconds: null, mime_type: f.mime_type, transcript: null, recorded_by: null, review_status: "approved", source: "import" };
         s.media.push(m); created++;
@@ -50,7 +50,7 @@ export async function syncMediaFromImports(v: Viewer): Promise<{ created: number
     let mediaId = existing?.find((x) => x.imported_file_id === f.id)?.id;
     if (!mediaId) {
       const { data, error } = await supabase.from("media_items").insert({
-        kind: kindFor(f)!, title: titleFor(f.name), taken_on: f.drive_modified_at?.slice(0, 10) ?? null, imported_file_id: f.id, mime_type: f.mime_type,
+        kind: kindFor(f)!, title: titleFor(f.name), taken_on: (f.taken_at ?? f.drive_modified_at)?.slice(0, 10) ?? null, imported_file_id: f.id, mime_type: f.mime_type,
         category: SINGALONG_RULES.has(f.manifest_rule ?? "") ? "music" : /church|scripture/i.test(f.target_note ?? "") ? "church" : "memory", review_status: "approved", source: "import",
       }).select("id").single();
       if (error) throw new Error(`${f.name}: ${error.message}`);

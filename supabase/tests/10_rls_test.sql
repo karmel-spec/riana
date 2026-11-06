@@ -54,7 +54,7 @@ select test.ok(test.rows('select * from public.urgent_questions') = 0, 'super ad
 reset role; select test.act(:K, 'aal2'); set role authenticated;
 select test.ok(test.rows('select * from public.urgent_questions') = 5, 'super admin with 2FA sees all questions');
 select test.ok(test.rows('select * from public.bills') = 7, 'super admin with 2FA sees bills');
-select test.ok(test.rows('select * from public.riana_updates') = 2, 'super admin sees the Riana inbox');
+select test.ok(test.rows('select * from public.riana_updates') = 5, 'super admin sees the Riana inbox');
 select test.ok(test.rows('select * from public.audit_log') > 0, 'super admin can read the audit log');
 select test.ok(test.fails('delete from public.audit_log'), 'even a super admin cannot delete audit entries');
 select test.ok(test.fails('update public.change_history set op = ''INSERT'''), 'even a super admin cannot edit change history');
@@ -204,7 +204,7 @@ select test.ok(test.fails($$insert into public.riana_updates (kind, summary, pay
 reset role;
 
 select test.act(:K, 'aal2'); set role authenticated;
-select test.ok(test.rows('select * from public.riana_updates') = 3, 'the update is in the inbox, once');
+select test.ok(test.rows('select * from public.riana_updates') = 6, 'the update is in the inbox, once');
 select test.ok((select review_status from public.riana_updates where id = current_setting('test.upd')::uuid) = 'pending', 'it waits as pending');
 select test.ok((select source from public.riana_updates where id = current_setting('test.upd')::uuid) = 'riana', 'it is stamped via Riana');
 select test.ok(exists (select 1 from public.audit_log where entity = 'riana_updates' and entity_id = current_setting('test.upd')::uuid and via = 'riana' and action = 'create'), 'receipt is in the audit log via Riana');
@@ -418,3 +418,28 @@ select test.act(:DI, 'aal2'); set role authenticated;
 select test.ok(test.rows('select * from public.va_claim_timeline') = 0, 'Diana does not see Rich''s VA timeline');
 reset role;
 \echo 'Health structuring tests passed.'
+
+-- Who-to-Notify review queue, shared albums, photo dates ---------------------------
+select test.act(:K, 'aal2'); set role authenticated;
+select test.ok((select count(*) from public.riana_updates where kind = 'contact' and review_status = 'pending') = 3, 'three proposed contacts wait in the inbox');
+select test.ok(not exists (select 1 from public.people where full_name = 'Sample Attorney'), 'a proposed contact is not in People before approval');
+select public.riana_apply((select id from public.riana_updates where external_ref = 'binder-notify-01'));
+select test.ok((select source::text from public.people where full_name = 'Sample Attorney') = 'riana', 'approving creates the person, stamped via Riana');
+select test.ok((select confirmed from public.people where full_name = 'Sample Attorney') = false, 'the new person still needs confirming');
+select test.ok((select is_professional from public.people where full_name = 'Sample Attorney') = true, 'professional flag carried over');
+select test.ok((select applied_table from public.riana_updates where external_ref = 'binder-notify-01') = 'people', 'the update records what it created');
+select test.ok(test.fails($$select public.riana_apply((select id from public.riana_updates where external_ref = 'binder-notify-01'))$$), 'an update cannot be applied twice');
+select test.ok(test.fails($$insert into public.riana_updates (kind, summary, payload) values ('password', 'x', '{}')$$), 'unknown kinds are rejected');
+select test.ok(test.fails($$insert into public.shared_albums (title, url) values ('x', 'http://insecure.example')$$), 'album links must be https');
+select test.ok((select count(*) from public.shared_albums) = 1, 'the sample album link is there');
+select test.ok((select contact_person_id from public.final_wishes where topic = 'burial_place') is not null, 'the burial wish points at the memorial park contact');
+insert into public.drive_folders (key, drive_folder_id, name, sensitivity) values ('photos_takeout', 'folder-photos', 'Photos (Takeout)', 'normal');
+select public.drive_upsert_file('t-photo-1', 'photos_takeout', 'IMG_9.jpg', 'image/jpeg', 10, 'hash-9', now(), null, 'family_history', 'image', 'normal', 'photo-takeout', 'Photos', '2019-07-04T15:20:00'::timestamptz);
+select test.ok((select taken_at::date::text from public.imported_files where drive_file_id = 't-photo-1') = '2019-07-04', 'photo keeps its taken date');
+select test.ok(public.drive_upsert_file('t-photo-2', 'photos_takeout', 'Copy of IMG_9.jpg', 'image/jpeg', 10, 'hash-9', now(), null, 'family_history', 'image', 'normal', 'photo-takeout', 'Photos', null) = 'duplicate', 'a renamed photo with the same bytes is a duplicate');
+reset role;
+select test.act(:DAV, 'aal2'); set role authenticated;
+select test.ok(test.fails($$select public.riana_apply((select id from public.riana_updates where external_ref = 'binder-notify-02'))$$), 'family cannot approve proposed contacts');
+select test.ok(test.rows('select * from public.shared_albums') = 1, 'family can see shared album links');
+reset role;
+\echo 'Notify / photos tests passed.'

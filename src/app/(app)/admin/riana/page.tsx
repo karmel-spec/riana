@@ -3,7 +3,7 @@ import * as data from "@/lib/data";
 import { Empty, PageHeader } from "@/components/ui";
 import { fmtDate, fmtTime } from "@/lib/format";
 import { NAV } from "@/lib/nav";
-import { ReviewButtons } from "./review-buttons";
+import { ProposeContacts, ReviewButtons } from "./review-buttons";
 
 export const metadata = { title: "Updates from Riana" };
 
@@ -22,6 +22,8 @@ export default async function RianaPage() {
               <div>
                 <span className="pill bg-plum-tint text-plum">{u.kind.replace("_", " ")}</span>
                 <div className="mt-1 text-[1.1rem] font-semibold">{u.summary}</div>
+                {u.kind === "contact" && u.payload && <div className="text-[0.95rem] text-ink-soft">{[u.payload.relationship, u.payload.phone, u.payload.email, [u.payload.city, u.payload.region].filter(Boolean).join(", ")].filter(Boolean).join(" · ")}{u.payload.is_professional ? " · professional" : ""}{u.payload.notify_first ? " · tell first" : ""} → approving adds them to People (unconfirmed, via Riana)</div>}
+                {u.kind === "album" && u.payload && <div className="text-[0.95rem] text-ink-soft">{String(u.payload.url ?? "")} → approving saves the link under Family History</div>}
                 <div className="text-[0.9rem] text-ink-soft">Received {fmtDate(u.received_at)} at {fmtTime(u.received_at)}</div>
               </div>
               <ReviewButtons id={u.id} />
@@ -29,6 +31,11 @@ export default async function RianaPage() {
           ))}
         </ul>
       )}
+      <section className="card mt-8">
+        <h2 className="text-[1.2rem] font-semibold">Propose Who-to-Notify additions</h2>
+        <p className="mt-1 text-ink-soft">Type or paste the binder&rsquo;s additions, one person per line. Each becomes an item in the inbox above to approve or reject; nothing reaches People until approved. The names live only in the database.</p>
+        <ProposeContacts />
+      </section>
       <section className="card mt-8">
         <h2 className="text-[1.2rem] font-semibold">Agent keys</h2>
         <p className="mt-1 text-ink-soft">Each assistant gets its own key. Every key can send updates here. What a key may <em>read</em> through the export is chosen per key, and nothing lets an agent read logins, documents, or family history. Mint, revoke, and change read access from the SQL editor; see <code>docs/RIANA_INBOUND.md</code>.</p>
