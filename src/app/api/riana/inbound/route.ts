@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
     // PGRST202: PostgREST cannot find the function, i.e. the Riana migrations are not applied yet.
     if (error.code === "PGRST202") return json(503, { error: "The database is missing the Riana migrations. Run scripts/apply-migrations.sh against the project." });
     console.error("[riana/inbound]", error.code, error.message);
-    return json(500, { error: "Could not record the update." });
+    return json(500, { error: "Could not record the update.", code: error.code ?? null });
   }
   return json(201, { id: data as string, status: "pending" });
 }
