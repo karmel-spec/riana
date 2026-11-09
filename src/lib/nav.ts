@@ -21,6 +21,7 @@ export const NAV: NavItem[] = [
   { href: "/calendar", label: "Calendar", section: "calendar", icon: I.Calendar, built: true, group: "Today" },
   { href: "/health/diana", label: "Health · Diana", section: "health_diana", icon: I.Heart, built: true, group: "Health" },
   { href: "/health/rich", label: "Health · Rich", section: "health_rich", icon: I.Heart, built: true, group: "Health" },
+  { href: "/health/legal", label: "Medical Legal Docs", section: "legal", icon: I.Scroll, built: true, group: "Health" },
   { href: "/properties", label: "Home", section: "properties", icon: I.House, built: true, group: "Property" },
   { href: "/starlar", label: "StarLar", section: "properties", icon: I.Key, built: true, group: "Property" },
   { href: "/vehicles", label: "Vehicles", section: "properties", icon: I.Car, built: true, group: "Property" },
