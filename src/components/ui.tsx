@@ -30,6 +30,21 @@ export function SectionCard({ title, link, children, className = "" }: {
   );
 }
 
+/** A card whose body folds away. Open by default; the heading is the toggle. */
+export function CollapsibleCard({ title, id, defaultOpen = true, count, link, children, className = "" }: {
+  title: string; id?: string; defaultOpen?: boolean; count?: number; link?: { href: string; label: string }; children: React.ReactNode; className?: string;
+}) {
+  return (
+    <details id={id} open={defaultOpen} className={`card group self-start open:flex open:flex-col open:gap-4 ${className}`}>
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+        <span className="flex items-center gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-evergreen-tint text-[1.1rem] text-evergreen transition-transform group-open:rotate-90">▶</span><h2 className="text-[1.35rem] font-semibold">{title}{count !== undefined && <span className="ml-2 text-[1rem] font-normal text-ink-soft">{count}</span>}</h2></span>
+        {link && <Link href={link.href} className="shrink-0 font-semibold text-evergreen" onClick={(e) => e.stopPropagation()}>{link.label}</Link>}
+      </summary>
+      {children}
+    </details>
+  );
+}
+
 export function Stat({ label, value, note, tone = "ink", href }: {
   label: string; value: React.ReactNode; note?: React.ReactNode; tone?: "ink" | "ember" | "evergreen"; href?: string;
 }) {

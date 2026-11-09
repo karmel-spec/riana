@@ -6,14 +6,14 @@ import { Empty, PageHeader, SectionCard } from "@/components/ui";
 import { fmtDate } from "@/lib/format";
 import { Mic } from "@/components/icons";
 import { VideoPlayer } from "@/components/media/player";
-import { AddAlbumButton, MediaEditor, SyncMediaButton } from "./media-client";
+import { MediaEditor, SyncMediaButton } from "./media-client";
 
 export const metadata = { title: "Family History" };
 
 export default async function HistoryPage() {
   const v = await requireSection("family_history");
   await ensureDemoMedia(v);
-  const [media, playlists, albums] = await Promise.all([data.getMediaItems(v), data.getPlaylists(v), data.getSharedAlbums(v)]);
+  const [media, playlists] = await Promise.all([data.getMediaItems(v), data.getPlaylists(v)]);
   const byYear = new Map<string, typeof media>();
   for (const m of media.filter((x) => x.kind === "photo" && x.review_status === "approved")) { const y = m.taken_on ? m.taken_on.slice(0, 4) : "Undated"; byYear.set(y, [...(byYear.get(y) ?? []), m]); }
   const years = [...byYear.entries()].sort((a, b) => (a[0] === "Undated" ? 1 : b[0] === "Undated" ? -1 : a[0].localeCompare(b[0])));
@@ -95,20 +95,6 @@ export default async function HistoryPage() {
           )}
         </SectionCard>
 
-        <SectionCard title={`Shared albums (${albums.length})`}>
-          <p className="mb-3 text-[0.95rem] text-ink-soft">{parent ? "Albums the family has shared. Tap one to open it." : "Links to albums that live in Google Photos. The app keeps the link as a reference; the photos stay where they are."}</p>
-          {albums.length === 0 ? <Empty>No album links saved yet.</Empty> : (
-            <ul className="divide-y divide-rule-soft">
-              {albums.map((a) => (
-                <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0 last:pb-0">
-                  <div><div className={`font-semibold ${parent ? "text-[1.2rem]" : ""}`}>{a.title}</div>{a.note && <div className="text-[0.9rem] text-ink-soft">{a.note}</div>}{!parent && <div className="text-[0.8rem] text-ink-soft">{a.provider === "google_photos" ? "Google Photos" : a.provider === "icloud" ? "iCloud" : "Link"} · added {fmtDate(a.created_at, { year: "numeric" })}{a.added_by_name && ` by ${a.added_by_name}`}</div>}</div>
-                  <a href={a.url} target="_blank" rel="noreferrer" className="btn-secondary px-4 text-[0.95rem]">Open album ↗</a>
-                </li>
-              ))}
-            </ul>
-          )}
-          {canEdit && !parent && <div className="mt-3"><AddAlbumButton /></div>}
-        </SectionCard>
       </div>
     </>
   );

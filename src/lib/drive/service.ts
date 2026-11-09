@@ -1,13 +1,14 @@
 import "server-only";
 import { createClient } from "../supabase/server";
 import type { Viewer } from "../session";
-import { driveClient, serviceAccountEmail } from "./client";
+import { driveClient, serviceAccountEmail, oauthClientFromEnv } from "./client";
 import { fakeDriveClient } from "./fake";
 import { FOLDERS } from "./manifest";
 import { enrichTakenAt, planSync, resolveFolders, type Existing, type FolderStatus, type KnownHashes, type SyncReport } from "./sync";
 import { hashKey } from "./photo-dates";
 import type { DriveClient } from "./types";
 import type { Section } from "../types";
+import { BUCKET, objectKey, resolveMime } from "../files/storage";
 
 export type ImportedFileRow = {
   id: string; drive_file_id: string; drive_folder_key: string; name: string; mime_type: string | null; size_bytes: number | null;
@@ -15,16 +16,18 @@ export type ImportedFileRow = {
   media_kind: string; sensitivity: "normal" | "admin_only" | "excluded"; manifest_rule: string | null; duplicate_of: string | null;
   review_status: "pending" | "approved" | "rejected"; first_imported_at: string; last_synced_at: string;
   taken_at?: string | null;
+  storage_path?: string | null;
 };
 export type SyncRunRow = { id: string; mode: string; started_at: string; finished_at: string | null; ok: boolean | null; summary: Record<string, number>; error: string | null };
 
-export type DriveSetup = { mode: "real" | "fake" | "none"; serviceAccount: string | null };
+export type DriveSetup = { mode: "real" | "fake" | "none"; serviceAccount: string | null; canConnect: boolean };
 
 /** Which Drive we talk to. Demo mode and "no key yet" both use the fake Drive, but say so. */
 export function driveSetup(v: Viewer): DriveSetup {
   const email = serviceAccountEmail();
-  if (!v.demo && email) return { mode: "real", serviceAccount: email };
-  return { mode: v.demo || !email ? "fake" : "none", serviceAccount: email };
+  const canConnect = !v.demo && !email && !!oauthClientFromEnv();
+  if (!v.demo && email) return { mode: "real", serviceAccount: email, canConnect: false };
+  return { mode: v.demo || !email ? "fake" : "none", serviceAccount: email, canConnect };
 }
 
 function clientFor(v: Viewer): DriveClient {
@@ -116,7 +119,7 @@ export async function applySync(v: Viewer): Promise<SyncReport> {
 }
 
 async function recordRun(v: Viewer, mode: "dry_run" | "apply", report: SyncReport, error: string | null) {
-  const summary = { ...report.counts, unreadable_folders: report.folders.filter((f) => !f.readable).length };
+  const summary = { ...report.counts, unreadable_folders: report.folders.filter((f) => !f.readable && !f.optional).length };
   const slim = report.entries.map((e) => ({ name: e.name, folder: e.folderKey, target: e.target, note: e.note, action: e.action, sensitivity: e.sensitivity }));
   if (v.demo) {
     demo().runs.unshift({ id: crypto.randomUUID(), mode, started_at: new Date().toISOString(), finished_at: new Date().toISOString(), ok: !error, summary, error });
@@ -171,4 +174,48 @@ export async function reviewImportedFile(v: Viewer, id: string, decision: "appro
   const supabase = await createClient();
   const { error } = await supabase.from("imported_files").update({ review_status: decision }).eq("id", id);
   if (error) throw new Error("Could not save the decision.");
+}
+
+/**
+ * Copy approved Drive files into the private storage bucket so the app can serve them without a Google login.
+ * Runs as the signed-in super admin; takes the next `limit` files without a copy. Synthetic rows (album
+ * links, Riana uploads) and anything over 25 MB are skipped.
+ */
+export async function copyDriveFilesToStorage(v: Viewer, limit = 25): Promise<{ copied: number; remaining: number; errors: string[] }> {
+  if (v.demo) return { copied: 0, remaining: 0, errors: ["Not in the demo."] };
+  const drive = clientFor(v);
+  const supabase = await createClient();
+  const { data: rows, error } = await supabase.from("imported_files")
+    .select("id, drive_file_id, name, mime_type, size_bytes, section, review_status, storage_path")
+    .is("storage_path", null).eq("review_status", "approved")
+    .not("drive_file_id", "like", "gphoto%").not("drive_file_id", "like", "riana%").not("drive_file_id", "like", "local%").not("drive_file_id", "like", "upload%")
+    .order("first_imported_at", { ascending: true }).limit(limit + 1);
+  if (error) throw new Error(error.message);
+  const batch = (rows ?? []).slice(0, limit);
+  const errors: string[] = []; let copied = 0;
+  for (const r of batch) {
+    // Files that can never be copied (Google Docs, spreadsheets, types the bucket refuses, oversize) are marked
+    // "drive-only" so the Open button keeps using Drive and the copy step stops retrying them.
+    const driveOnly = async (why: string) => { await supabase.from("imported_files").update({ storage_path: `drive-only: ${why}` }).eq("id", r.id); errors.push(`${r.name}: ${why}`); };
+    if ((r.size_bytes ?? 0) > 25 * 1024 * 1024) { await driveOnly("over 25 MB, left in Drive"); continue; }
+    if ((r.mime_type ?? "").startsWith("application/vnd.google-apps")) { await driveOnly("a Google Doc/Sheet, opens in Drive"); continue; }
+    try {
+      const res = await drive.stream(r.drive_file_id);
+      if (res.status === 403 || res.status === 404) { await driveOnly(`Drive ${res.status}, opens in Drive`); continue; }
+      if (!res.ok) throw new Error(`Drive ${res.status}`);
+      const mime = resolveMime(r.name, r.mime_type, res.headers.get("content-type"));
+      if (!mime) { await driveOnly("file type not accepted by the binder bucket, left in Drive"); continue; }
+      const bytes = Buffer.from(await res.arrayBuffer());
+      const key = objectKey(r.section, r.id, r.name);
+      const up = await supabase.storage.from(BUCKET).upload(key, bytes, { contentType: mime, upsert: true });
+      if (up.error) throw new Error(up.error.message);
+      const { error: e2 } = await supabase.from("imported_files").update({ storage_path: key, mime_type: r.mime_type ?? mime }).eq("id", r.id);
+      if (e2) throw new Error(e2.message);
+      copied++;
+    } catch (e) { errors.push(`${r.name}: ${(e as Error).message}`); }
+  }
+  const { count } = await supabase.from("imported_files").select("id", { count: "exact", head: true })
+    .is("storage_path", null).eq("review_status", "approved")
+    .not("drive_file_id", "like", "gphoto%").not("drive_file_id", "like", "riana%").not("drive_file_id", "like", "local%").not("drive_file_id", "like", "upload%");
+  return { copied, remaining: count ?? 0, errors };
 }

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getViewer, canWrite } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { demoStore } from "@/lib/data";
+import { applyRianaUpdate } from "@/lib/riana/apply";
 import type { LegalStatus, QuestionStatus, Section, Subject, Person } from "@/lib/types";
 
 type Result<T = undefined> = { ok: true; data?: T } | { ok: false; error: string };
@@ -325,15 +326,25 @@ export async function reviewRianaUpdate(id: string, decision: "approved" | "reje
   } else {
     const supabase = await createClient();
     if (decision === "approved") {
-      const { error } = await supabase.rpc("riana_apply", { p_update_id: id });
-      if (error) return { ok: false, error: error.message.includes("riana_apply") ? "The database is missing migration 16." : `Could not apply: ${error.message}` };
+      const { data: u } = await supabase.from("riana_updates").select("id, kind, summary, payload, review_status").eq("id", id).maybeSingle();
+      if (!u || u.review_status !== "pending") return { ok: false, error: "Already reviewed." };
+      if (u.kind === "contact" || u.kind === "album") {
+        const { error } = await supabase.rpc("riana_apply", { p_update_id: id });
+        if (error) return { ok: false, error: error.message.includes("riana_apply") ? "The database is missing migration 16." : `Could not apply: ${error.message}` };
+      } else {
+        const r = await applyRianaUpdate(supabase, u);
+        if (!r.ok) return r;
+        const { error } = await supabase.from("riana_updates")
+          .update({ review_status: "approved", reviewed_by: v.id, reviewed_at: new Date().toISOString(), applied_table: r.applied?.table ?? null, applied_id: r.applied?.id ?? null }).eq("id", id);
+        if (error) return { ok: false, error: "Filed, but could not mark the update reviewed." };
+      }
     } else {
       const { error } = await supabase.from("riana_updates")
         .update({ review_status: decision, reviewed_by: v.id, reviewed_at: new Date().toISOString() }).eq("id", id);
       if (error) return { ok: false, error: "Could not save the decision." };
     }
   }
-  revalidatePath("/admin/riana"); revalidatePath("/"); revalidatePath("/contacts"); revalidatePath("/history");
+  for (const path of ["/admin/riana", "/", "/contacts", "/history", "/bills", "/questions", "/calendar", "/health/rich", "/health/diana"]) revalidatePath(path);
   return { ok: true };
 }
 

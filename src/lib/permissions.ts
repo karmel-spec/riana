@@ -33,7 +33,7 @@ export const SECTION_LABELS: Record<Section, string> = {
   contacts: "Contacts & Who to Notify",
   health_diana: "Health · Diana",
   health_rich: "Health · Rich",
-  properties: "Properties",
+  properties: "Home & properties",
   accounts: "Accounts & Loans",
   bills: "Bills & Utilities",
   insurance: "Insurance",

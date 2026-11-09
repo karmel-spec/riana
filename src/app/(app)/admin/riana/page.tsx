@@ -5,6 +5,7 @@ import { fmtDate, fmtTime } from "@/lib/format";
 import { NAV } from "@/lib/nav";
 import { ProposeContacts, ReviewButtons } from "./review-buttons";
 import { DocSyncPanel } from "./doc-sync-panel";
+import { PayloadView } from "./payload-view";
 import { driveSetup } from "@/lib/drive/service";
 import { listDocSources } from "@/lib/riana/doc-sync";
 
@@ -22,10 +23,10 @@ export default async function RianaPage() {
       {pending.length === 0 ? <Empty>Inbox is empty.</Empty> : (
         <ul className="flex flex-col gap-3">
           {pending.map((u) => (
-            <li key={u.id} className="card flex flex-wrap items-center justify-between gap-3">
-              <div>
+            <li key={u.id} className="card flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
                 <span className="pill bg-plum-tint text-plum">{u.kind.replace("_", " ")}</span>
-                <div className="mt-1 text-[1.1rem] font-semibold">{u.summary}</div>
+                <div className="mt-1"><PayloadView summary={u.summary} kind={u.kind} payload={u.payload} /></div>
                 {u.kind === "contact" && u.payload && <div className="text-[0.95rem] text-ink-soft">{[u.payload.relationship, u.payload.phone, u.payload.email, [u.payload.city, u.payload.region].filter(Boolean).join(", ")].filter(Boolean).join(" · ")}{u.payload.is_professional ? " · professional" : ""}{u.payload.notify_first ? " · tell first" : ""} → approving adds them to People (unconfirmed, via Riana)</div>}
                 {u.kind === "album" && u.payload && <div className="text-[0.95rem] text-ink-soft">{String(u.payload.url ?? "")} → approving saves the link under Family History</div>}
                 {u.kind === "note" && u.payload && <div className="text-[0.95rem] text-ink-soft"><p className="whitespace-pre-line text-ink">{String(u.payload.text ?? "")}</p>{u.payload.from ? `From ${u.payload.from}` : ""}{u.payload.section ? ` · about ${sectionLabel(String(u.payload.section))}` : ""} → approving marks it seen; make any binder change by hand</div>}

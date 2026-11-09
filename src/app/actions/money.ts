@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+// An empty field means "not given": blank it before coercion, or z.coerce turns "" into 0.
+const blank = (v: unknown) => (v === "" || v === undefined ? undefined : v);
 import { getViewer, canWrite } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { demoStore } from "@/lib/data";
@@ -24,7 +26,7 @@ const bump = (name: string, section: Section, action: "create" | "update", summa
 const NewBill = z.object({
   payee: z.string().trim().min(2, "Who gets paid?").max(200),
   category: z.string().trim().max(80).optional().or(z.literal("")),
-  amount: z.coerce.number().nonnegative().optional().or(z.literal("")),
+  amount: z.preprocess(blank, z.coerce.number().nonnegative().optional()),
   frequency: z.enum(["monthly", "quarterly", "semiannual", "annual", "one_time"]),
   next_due_on: z.string().optional().or(z.literal("")),
   autopay: z.string().optional(),
@@ -38,7 +40,7 @@ export async function addBill(_p: Result | null, form: FormData): Promise<Result
     if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
     const d = parsed.data;
     const row = {
-      payee: d.payee, category: nul(d.category), amount: d.amount === "" || d.amount === undefined ? null : d.amount,
+      payee: d.payee, category: nul(d.category), amount: d.amount ?? null,
       frequency: d.frequency, next_due_on: nul(d.next_due_on), autopay: d.autopay === "on", notes: nul(d.notes),
     };
     if (v.demo) {
@@ -49,7 +51,7 @@ export async function addBill(_p: Result | null, form: FormData): Promise<Result
       const { error } = await supabase.from("bills").insert(row);
       if (error) return { ok: false, error: "Could not save the bill." };
     }
-    revalidatePath("/money"); revalidatePath("/");
+    revalidatePath("/money"); revalidatePath("/bills"); revalidatePath("/");
     return { ok: true };
   } catch (e) { return { ok: false, error: (e as Error).message }; }
 }
@@ -91,7 +93,7 @@ export async function setBillStatus(id: string, status: Bill["status"]): Promise
         if (error) return { ok: false, error: "Could not update." };
       }
     }
-    revalidatePath("/money"); revalidatePath("/");
+    revalidatePath("/money"); revalidatePath("/bills"); revalidatePath("/");
     return { ok: true };
   } catch (e) { return { ok: false, error: (e as Error).message }; }
 }
@@ -125,7 +127,7 @@ export async function addAccount(_p: Result | null, form: FormData): Promise<Res
       const { error } = await supabase.from("accounts").insert(row);
       if (error) return { ok: false, error: "Could not save the account." };
     }
-    revalidatePath("/money");
+    revalidatePath("/money"); revalidatePath("/bills");
     return { ok: true };
   } catch (e) { return { ok: false, error: (e as Error).message }; }
 }

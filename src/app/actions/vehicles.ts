@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+// An empty field means "not given": blank it before coercion, or z.coerce turns "" into 0.
+const blank = (v: unknown) => (v === "" || v === undefined ? undefined : v);
 import { getViewer, canWrite } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { demoStore } from "@/lib/data";
@@ -21,11 +23,11 @@ const bump = (name: string, action: "create" | "update", summary: string, entity
 
 const VehicleForm = z.object({
   id: z.string().uuid().optional().or(z.literal("")),
-  year: z.coerce.number().int().min(1900).max(2100).optional().or(z.literal("")),
+  year: z.preprocess(blank, z.coerce.number().int().min(1900).max(2100).optional()),
   make: z.string().trim().min(2, "Make?").max(80),
   model: Opt(80), nickname: Opt(80), engine: Opt(120),
   vin_last4: z.string().trim().regex(/^[0-9A-Za-z]{4}$/, "Last 4 of the VIN only.").optional().or(z.literal("")),
-  estimated_value: z.coerce.number().nonnegative().optional().or(z.literal("")),
+  estimated_value: z.preprocess(blank, z.coerce.number().nonnegative().optional()),
   valuation_on: z.string().optional().or(z.literal("")),
   valuation_source: Opt(200), title_location: Opt(200),
   owner: z.enum(["rich", "diana", "both"]),
@@ -66,7 +68,7 @@ const ImprovementForm = z.object({
   done_on: z.string().optional().or(z.literal("")),
   done_on_approx: Opt(40),
   description: z.string().trim().min(2, "What was done?").max(500),
-  cost: z.coerce.number().nonnegative().optional().or(z.literal("")),
+  cost: z.preprocess(blank, z.coerce.number().nonnegative().optional()),
   vendor: Opt(120),
 });
 

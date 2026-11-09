@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
-import type { HealthCondition, Medication, VaClaim } from "@/lib/types";
-import { addLabResult, addVisitNote, saveClaimEvent, saveCondition, saveMedication, stopMedication, syncVaLetters } from "@/app/actions/health";
+import type { HealthCondition, Medication, Provider, VaClaim } from "@/lib/types";
+import { addLabResult, addVisitNote, deleteCondition, deleteMedication, deleteProvider, saveClaimEvent, saveCondition, saveMedication, saveProvider, setProviderCurrent, stopMedication, syncVaLetters } from "@/app/actions/health";
 import { FormDialog, Field } from "@/components/dialog";
 import { fmtDate } from "@/lib/format";
 import { Empty, SourceTag } from "@/components/ui";
@@ -10,6 +10,51 @@ import { Empty, SourceTag } from "@/components/ui";
 type Patient = "rich" | "diana";
 type Prov = { id: string; name: string };
 const todayIso = () => new Date().toISOString().slice(0, 10);
+
+export function ProviderEditor({ patient, item }: { patient: Patient; item?: Provider }) {
+  const [open, setOpen] = useState(false);
+  const [state, action, pending] = useActionState(saveProvider, null);
+  const [last, setLast] = useState(state); if (state !== last) { setLast(state); if (state?.ok) setOpen(false); }
+  const p = item;
+  if (!open) return <button type="button" onClick={() => setOpen(true)} className={p ? "btn-secondary px-3 text-[0.85rem]" : "btn-secondary"}>{p ? "Edit" : "Add provider"}</button>;
+  return (
+    <FormDialog title={p ? `Edit: ${p.name}` : "Add a provider"} close={() => setOpen(false)} action={action} pending={pending} error={state && !state.ok ? state.error : undefined}>
+      <input type="hidden" name="patient" value={patient} />{p && <input type="hidden" name="id" value={p.id} />}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field id="pv-name" label="Name" span><input id="pv-name" name="name" required defaultValue={p?.name ?? ""} className="field" placeholder="Mary A. Widman, FNP-BC" /></Field>
+        <Field id="pv-spec" label="Specialty"><input id="pv-spec" name="specialty" defaultValue={p?.specialty ?? ""} className="field" placeholder="Primary care, Cardiology, Pharmacy…" /></Field>
+        <Field id="pv-phone" label="Phone"><input id="pv-phone" name="phone" type="tel" inputMode="tel" defaultValue={p?.phone ?? ""} className="field" /></Field>
+        <Field id="pv-practice" label="Practice and address" span><input id="pv-practice" name="practice" defaultValue={p?.practice ?? ""} className="field" placeholder="Havasu Primary Care, 1799 Kiowa Ave Ste 104, Lake Havasu City, AZ 86403" /></Field>
+        <Field id="pv-portal" label="Patient portal"><input id="pv-portal" name="portal_name" defaultValue={p?.portal_name ?? ""} className="field" placeholder="athena, My HealtheVet…" /></Field>
+        <Field id="pv-flags" label="Flags">
+          <div className="flex min-h-[44px] flex-wrap items-center gap-4">
+            <label className="flex items-center gap-2"><input type="checkbox" name="is_va" defaultChecked={p?.is_va ?? false} className="h-4 w-4 accent-evergreen" />VA</label>
+            <label className="flex items-center gap-2"><input type="checkbox" name="is_current" value="off" defaultChecked={p ? p.is_current === false : false} className="h-4 w-4 accent-evergreen" />Former provider</label>
+          </div>
+        </Field>
+        <Field id="pv-notes" label="Notes" span><textarea id="pv-notes" name="notes" rows={2} defaultValue={p?.notes ?? ""} className="field" placeholder="Fax, hours, what they treat, when last seen" /></Field>
+      </div>
+    </FormDialog>
+  );
+}
+
+export function ProviderRowActions({ patient, item }: { patient: Patient; item: Provider }) {
+  const [pending, start] = useTransition();
+  const former = item.is_current === false;
+  return (
+    <div className="flex flex-wrap gap-1">
+      <ProviderEditor patient={patient} item={item} />
+      <button type="button" disabled={pending} onClick={() => start(() => { setProviderCurrent(patient, item.id, former); })} className="btn px-2 text-[0.85rem] text-ink-soft">{former ? "Mark current" : "Mark former"}</button>
+      <RemoveButton label={item.name} onRemove={() => deleteProvider(patient, item.id)} />
+    </div>
+  );
+}
+
+/** Remove with a confirm step. Used for medications and conditions. */
+function RemoveButton({ label, onRemove }: { label: string; onRemove: () => Promise<unknown> }) {
+  const [pending, start] = useTransition();
+  return <button type="button" disabled={pending} onClick={() => { if (window.confirm(`Remove "${label}"? This can't be undone.`)) start(() => { onRemove(); }); }} className="btn px-2 text-[0.85rem] text-ember">Remove</button>;
+}
 
 function Source({ doc, date }: { doc: string | null; date: string | null }) {
   if (!doc) return <span className="text-[0.8rem] text-ember">source not recorded</span>;
@@ -25,6 +70,7 @@ export function HealthForms({ patient, providers }: { patient: Patient; provider
       <MedicationEditor patient={patient} providers={providers} />
       <ConditionEditor patient={patient} />
       <button type="button" onClick={() => setOpen("lab")} className="btn-secondary">Add lab result</button>
+      <ProviderEditor patient={patient} />
       {open === "visit" && <VisitDialog patient={patient} providers={providers} close={() => setOpen(null)} />}
       {open === "lab" && <LabDialog patient={patient} close={() => setOpen(null)} />}
     </>
@@ -107,7 +153,7 @@ export function MedicationList({ patient, meds, providerNames, providers, canEdi
         <div className={`text-ink-soft ${parent ? "" : "text-[0.9rem]"}`}>{m.frequency_kind === "prn" ? `As needed${m.prn_for ? ` for ${m.prn_for}` : ""}${m.max_per_day ? ` · at most ${m.max_per_day}` : ""}` : [m.schedule, m.purpose].filter(Boolean).join(" · ")}</div>
         {!parent && <div className="flex flex-wrap gap-x-3 text-[0.85rem] text-ink-soft">{m.prescriber_id && providerNames[m.prescriber_id] && <span>{providerNames[m.prescriber_id]}</span>}<Source doc={m.source_document} date={m.source_date} /><SourceTag source={m.source} /></div>}
       </div>
-      {canEdit && <div className="flex gap-1"><MedicationEditor patient={patient} providers={providers} med={m} /><button type="button" onClick={() => start(() => { stopMedication(patient, m.id, true); })} className="btn px-2 text-[0.85rem] text-ink-soft">Mark stopped</button></div>}
+      {canEdit && <div className="flex gap-1"><MedicationEditor patient={patient} providers={providers} med={m} /><button type="button" onClick={() => start(() => { stopMedication(patient, m.id, true); })} className="btn px-2 text-[0.85rem] text-ink-soft">Mark stopped</button><RemoveButton label={m.name} onRemove={() => deleteMedication(patient, m.id)} /></div>}
     </li>
   );
   return (
@@ -178,7 +224,7 @@ export function ConditionList({ patient, items, canEdit, parent, mode }: { patie
             {c.detail && <div className={`text-ink-soft ${parent ? "" : "text-[0.9rem]"}`}>{c.detail}</div>}
             {!parent && c.kind !== "coverage" && <Source doc={c.source_document} date={c.source_date} />}
           </div>
-          {canEdit && <ConditionEditor patient={patient} item={c} />}
+          {canEdit && <div className="flex gap-1"><ConditionEditor patient={patient} item={c} /><RemoveButton label={c.name} onRemove={() => deleteCondition(patient, c.id)} /></div>}
         </li>
       ))}
     </ul>

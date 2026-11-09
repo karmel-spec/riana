@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+// An empty field means "not given": blank it before coercion, or z.coerce turns "" into 0.
+const blank = (v: unknown) => (v === "" || v === undefined ? undefined : v);
 import { getViewer, canWrite } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { demoStore } from "@/lib/data";
@@ -86,6 +88,73 @@ export async function stopMedication(patient: "rich" | "diana", id: string, stop
   } catch (e) { return { ok: false, error: (e as Error).message }; }
 }
 
+export async function deleteMedication(patient: "rich" | "diana", id: string): Promise<Result> {
+  try {
+    if (!z.string().uuid().safeParse(id).success) return { ok: false, error: "Bad id." };
+    const { v } = await need(patient);
+    if (v.demo) { const s = demoStore(); s.medications = s.medications.filter((x) => x.id !== id); }
+    else { const supabase = await createClient(); const { error } = await supabase.from("medications").delete().eq("id", id); if (error) return { ok: false, error: "Could not remove it." }; }
+    revalidatePath(`/health/${patient}`); return { ok: true };
+  } catch (e) { return { ok: false, error: (e as Error).message }; }
+}
+
+export async function deleteCondition(patient: "rich" | "diana", id: string): Promise<Result> {
+  try {
+    if (!z.string().uuid().safeParse(id).success) return { ok: false, error: "Bad id." };
+    const { v } = await need(patient);
+    if (v.demo) { const s = demoStore(); s.conditions = s.conditions.filter((x) => x.id !== id); }
+    else { const supabase = await createClient(); const { error } = await supabase.from("health_conditions").delete().eq("id", id); if (error) return { ok: false, error: "Could not remove it." }; }
+    revalidatePath(`/health/${patient}`); return { ok: true };
+  } catch (e) { return { ok: false, error: (e as Error).message }; }
+}
+
+// --- Providers -----------------------------------------------------------------------
+const Prov = z.object({
+  patient: Patient, id: z.string().uuid().optional().or(z.literal("")),
+  name: z.string().trim().min(2, "Who is the provider?").max(200),
+  specialty: Opt(120), practice: Opt(300), phone: Opt(40), portal_name: Opt(120), notes: Opt(600),
+  is_va: z.string().optional(), is_current: z.string().optional(),
+});
+
+export async function saveProvider(_p: Result | null, form: FormData): Promise<Result> {
+  try {
+    const parsed = Prov.safeParse(Object.fromEntries(form));
+    if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+    const { id, ...d } = parsed.data; const { v } = await need(d.patient);
+    const row = { patient: d.patient, name: d.name, specialty: nul(d.specialty), practice: nul(d.practice), phone: nul(d.phone), portal_name: nul(d.portal_name), notes: nul(d.notes), is_va: d.is_va === "on", is_current: d.is_current !== "off" };
+    if (v.demo) {
+      const s = demoStore();
+      if (id) { const p = s.providers.find((x) => x.id === id); if (!p) return { ok: false, error: "Not found." }; Object.assign(p, row); }
+      else s.providers.push({ id: crypto.randomUUID(), ...row });
+    } else {
+      const supabase = await createClient();
+      const { error } = id ? await supabase.from("providers").update(row).eq("id", id) : await supabase.from("providers").insert(row);
+      if (error) return { ok: false, error: error.message.includes("is_current") ? "The database is missing the provider migration (is_current)." : `Could not save: ${error.message}` };
+    }
+    revalidatePath(`/health/${d.patient}`); return { ok: true };
+  } catch (e) { return { ok: false, error: (e as Error).message }; }
+}
+
+export async function setProviderCurrent(patient: "rich" | "diana", id: string, current: boolean): Promise<Result> {
+  try {
+    if (!z.string().uuid().safeParse(id).success) return { ok: false, error: "Bad id." };
+    const { v } = await need(patient);
+    if (v.demo) { const p = demoStore().providers.find((x) => x.id === id); if (p) p.is_current = current; }
+    else { const supabase = await createClient(); const { error } = await supabase.from("providers").update({ is_current: current }).eq("id", id); if (error) return { ok: false, error: error.message.includes("is_current") ? "The database is missing the provider migration (is_current)." : "Could not update." }; }
+    revalidatePath(`/health/${patient}`); return { ok: true };
+  } catch (e) { return { ok: false, error: (e as Error).message }; }
+}
+
+export async function deleteProvider(patient: "rich" | "diana", id: string): Promise<Result> {
+  try {
+    if (!z.string().uuid().safeParse(id).success) return { ok: false, error: "Bad id." };
+    const { v } = await need(patient);
+    if (v.demo) { const s = demoStore(); s.providers = s.providers.filter((x) => x.id !== id); }
+    else { const supabase = await createClient(); const { error } = await supabase.from("providers").delete().eq("id", id); if (error) return { ok: false, error: "Could not remove it. If medications or visits reference this provider, mark it former instead." }; }
+    revalidatePath(`/health/${patient}`); return { ok: true };
+  } catch (e) { return { ok: false, error: (e as Error).message }; }
+}
+
 // --- Conditions, allergies, sensitivities ---------------------------------------------
 const Cond = z.object({
   patient: Patient, id: z.string().uuid().optional().or(z.literal("")),
@@ -123,7 +192,7 @@ export async function saveCondition(_p: Result | null, form: FormData): Promise<
 const Lab = z.object({
   patient: Patient, test_name: z.string().trim().min(1, "Which test?").max(100),
   value: z.coerce.number({ message: "Please enter the number." }), unit: Opt(),
-  ref_low: z.coerce.number().optional().or(z.literal("")), ref_high: z.coerce.number().optional().or(z.literal("")),
+  ref_low: z.preprocess(blank, z.coerce.number().optional()), ref_high: z.preprocess(blank, z.coerce.number().optional()),
   taken_on: z.string().min(10, "When was it taken?"),
 });
 export async function addLabResult(_p: Result | null, form: FormData): Promise<Result> {
@@ -131,7 +200,7 @@ export async function addLabResult(_p: Result | null, form: FormData): Promise<R
     const parsed = Lab.safeParse(Object.fromEntries(form));
     if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
     const d = parsed.data; const { v, section } = await need(d.patient);
-    const lo = d.ref_low === "" || d.ref_low === undefined ? null : d.ref_low; const hi = d.ref_high === "" || d.ref_high === undefined ? null : d.ref_high;
+    const lo = d.ref_low ?? null; const hi = d.ref_high ?? null;
     const row = { patient: d.patient, test_name: d.test_name, value: d.value, unit: nul(d.unit), ref_low: lo, ref_high: hi, taken_on: d.taken_on };
     if (v.demo) { const flag = hi !== null && d.value > hi ? "high" : lo !== null && d.value < lo ? "low" : "normal"; demoStore().labs.push({ id: crypto.randomUUID(), ...row, flag, source: "app" }); bump(v.name, section, `Added lab result ${d.test_name}`, "lab_results"); }
     else { const supabase = await createClient(); const { error } = await supabase.from("lab_results").insert(row); if (error) return { ok: false, error: "Could not save the result." }; }
@@ -144,7 +213,7 @@ const ClaimEvent = z.object({
   id: z.string().uuid().optional().or(z.literal("")),
   kind: z.enum(["claim", "appeal", "cp_exam", "rating_decision", "letter", "evidence", "note"]),
   title: z.string().trim().min(2, "Title?").max(200), status: z.string().trim().min(1, "Status?").max(120),
-  event_on: z.string().min(10, "Date?"), rating_pct: z.coerce.number().int().min(0).max(100).optional().or(z.literal("")),
+  event_on: z.string().min(10, "Date?"), rating_pct: z.preprocess(blank, z.coerce.number().int().min(0).max(100).optional()),
   summary: Opt(1000), next_step: Opt(300), notes: Opt(1000), imported_file_id: z.string().uuid().optional().or(z.literal("")),
 });
 export async function saveClaimEvent(_p: Result | null, form: FormData): Promise<Result> {
@@ -152,7 +221,7 @@ export async function saveClaimEvent(_p: Result | null, form: FormData): Promise
     const parsed = ClaimEvent.safeParse(Object.fromEntries(form));
     if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
     const { id, ...d } = parsed.data; const { v } = await need("rich");
-    const row = { kind: d.kind, title: d.title, status: d.status, event_on: d.event_on, rating_pct: d.rating_pct === "" || d.rating_pct === undefined ? null : d.rating_pct, summary: nul(d.summary), next_step: nul(d.next_step), notes: nul(d.notes), imported_file_id: nul(d.imported_file_id),
+    const row = { kind: d.kind, title: d.title, status: d.status, event_on: d.event_on, rating_pct: d.rating_pct ?? null, summary: nul(d.summary), next_step: nul(d.next_step), notes: nul(d.notes), imported_file_id: nul(d.imported_file_id),
       decided_on: d.kind === "rating_decision" ? d.event_on : null, filed_on: d.kind === "claim" || d.kind === "appeal" ? d.event_on : null };
     if (v.demo) {
       const s = demoStore();

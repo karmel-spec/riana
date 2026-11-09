@@ -81,6 +81,7 @@ function QuestionCard({ q, viewer }: { q: UrgentQuestion; viewer: ViewerInfo }) 
           <button type="button" onClick={() => setEditing(true)} className={q.answer ? "btn-secondary" : "btn-primary"}>{q.answer ? "Change the answer" : "Write the answer"}</button>
           {!parent && q.status === "open" && <button type="button" onClick={() => setQuestionStatus(q.id, "asked")} className="btn-secondary">Mark as asked</button>}
           {!parent && answered && q.status !== "closed" && <button type="button" onClick={() => setQuestionStatus(q.id, "closed")} className="btn text-ink-soft">Close</button>}
+          {q.status !== "closed" && <button type="button" onClick={() => { if (window.confirm("Dismiss this question? It will no longer need an answer.")) setQuestionStatus(q.id, "closed"); }} className="btn text-ink-soft" title="You don't need to know the answer to this one">Dismiss</button>}
         </div>
       ) : null}
     </li>

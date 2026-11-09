@@ -4,11 +4,13 @@ import { useState, useTransition } from "react";
 import type { DriveSetup, ImportedFileRow, SyncRunRow } from "@/lib/drive/service";
 import type { FolderStatus, SyncReport } from "@/lib/drive/sync";
 import { approveAllFiles, reviewFile, runAccessCheck, runApply, runDryRun } from "@/app/actions/drive";
+import { sendFileTo } from "@/app/actions/files";
+import { DESTINATIONS } from "@/lib/files/destinations";
 import { SECTION_LABELS } from "@/lib/permissions";
 import { fmtDate, fmtTime } from "@/lib/format";
 import { Alert, Check, Lock } from "@/components/icons";
 
-type Manifest = { key: string; name: string; sensitivity: string; hasId: boolean; parent: string | null; notes: string | null };
+type Manifest = { key: string; name: string; sensitivity: string; hasId: boolean; parent: string | null; notes: string | null; optional?: boolean };
 type Props = { setup: DriveSetup; manifest: Manifest[]; folders: FolderStatus[] | null; files: ImportedFileRow[]; runs: SyncRunRow[] };
 
 const ACTION: Record<string, [string, string]> = {
@@ -23,11 +25,16 @@ export function ImportConsole({ setup, manifest, folders: initialFolders, files,
   const [report, setReport] = useState<SyncReport | null>(null);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<string>("all");
+  const [dest, setDest] = useState<Record<string, string>>({});
+  const [find, setFind] = useState("");
+  const [sent, setSent] = useState<Record<string, string>>({});
 
   const act = (fn: () => Promise<{ ok: true; data?: unknown } | { ok: false; error: string }>, onData?: (d: unknown) => void) =>
     start(async () => { setError(""); const r = await fn(); if (!r.ok) setError(r.error); else onData?.(r.data); });
 
-  const unreadable = folders?.filter((f) => !f.readable) ?? [];
+  // Optional folders (a planned export that does not exist yet) are neither listed nor counted while missing.
+  const shownFolders = folders?.filter((f) => f.readable || !f.optional) ?? null;
+  const unreadable = shownFolders?.filter((f) => !f.readable) ?? [];
   const pendingFiles = files.filter((f) => f.review_status === "pending");
   const shown = report?.entries.filter((e) => filter === "all" || e.action === filter) ?? [];
 
@@ -36,9 +43,16 @@ export function ImportConsole({ setup, manifest, folders: initialFolders, files,
       {/* Connection */}
       <section className={`rounded-2xl border px-5 py-4 ${setup.mode === "real" ? "border-evergreen-mid bg-evergreen-tint/50" : "border-brass-deep/40 bg-brass-tint"}`}>
         {setup.mode === "real" ? (
-          <p><strong>Connected to Google Drive</strong> as <code className="rounded bg-paper px-1.5 py-0.5 text-[0.9rem]">{setup.serviceAccount}</code>. Share each folder below with that address (Viewer) and run the access check.</p>
+          <p><strong>Connected to Google Drive</strong> as <code className="rounded bg-paper px-1.5 py-0.5 text-[0.9rem]">{setup.serviceAccount}</code>. Folders this account can see are readable; share any others with it (Viewer) and run the access check.</p>
         ) : (
-          <p><strong>No Google service account yet.</strong> Everything below runs against a stand-in Drive with fake file names, so you can see how the import will behave. To connect the real folders, follow <code>docs/DRIVE_IMPORT.md</code>.</p>
+          setup.canConnect ? (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="m-0"><strong>Google Drive is not connected yet.</strong> Press Connect, sign in as the Google account the binder folders are shared with, allow read-only Drive access, and follow the one-page instructions that come back.</p>
+              <a href="/api/google/connect" className="btn-primary">Connect Google Drive</a>
+            </div>
+          ) : (
+          <p><strong>No Google connection yet.</strong> Everything below runs against a stand-in Drive with fake file names, so you can see how the import will behave. To connect the real folders, follow <code>docs/DRIVE_IMPORT.md</code>: either a service-account key, or a Google sign-in when keys are blocked.</p>
+          )
         )}
       </section>
 
@@ -60,6 +74,7 @@ export function ImportConsole({ setup, manifest, folders: initialFolders, files,
         <ul className="mt-4 divide-y divide-rule-soft">
           {manifest.map((m) => {
             const st = folders?.find((f) => f.key === m.key);
+            if (m.optional && st && !st.readable) return null;   // a planned folder that does not exist yet
             return (
               <li key={m.key} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
                 <div className="min-w-0">
@@ -139,14 +154,42 @@ export function ImportConsole({ setup, manifest, folders: initialFolders, files,
                   <div className="font-semibold">{f.name}{f.sensitivity === "admin_only" && <span className="pill ml-2 bg-ember-tint text-ember">admin-only</span>}{f.duplicate_of && <span className="pill ml-2 bg-slate-tint text-slate">duplicate</span>}</div>
                   <div className="text-[0.85rem] text-ink-soft">{SECTION_LABELS[f.target_section]}{f.target_note && ` · ${f.target_note}`} · {fmtSize(f.size_bytes)}{f.web_view_link && <> · <a href={f.web_view_link} target="_blank" rel="noreferrer">Open in Drive</a></>}</div>
                 </div>
-                <div className="flex gap-2">
-                  <button type="button" disabled={pending} onClick={() => act(() => reviewFile(f.id, "approved"))} className="btn-primary px-4 text-[0.9rem]">Approve</button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <SendTo value={dest[f.id] ?? ""} onChange={(k) => setDest((d) => ({ ...d, [f.id]: k }))} />
+                  <button type="button" disabled={pending} onClick={() => act(() => (dest[f.id] ? sendFileTo(f.id, dest[f.id]) : reviewFile(f.id, "approved")))} className="btn-primary px-4 text-[0.9rem]">{dest[f.id] ? "Send & approve" : "Approve"}</button>
                   <button type="button" disabled={pending} onClick={() => act(() => reviewFile(f.id, "rejected"))} className="btn-secondary px-4 text-[0.9rem]">Reject</button>
                 </div>
               </li>
             ))}
           </ul>
         )}
+      </section>
+
+      {/* Re-file */}
+      <section className="card">
+        <h2 className="text-[1.3rem] font-semibold">Send a filed document somewhere else</h2>
+        <p className="mb-3 text-[0.95rem] text-ink-soft">Type part of a file name, then choose the page it belongs on. Mom’s Books, Photos, iMemories and the Journals also get a shelf entry so the file shows there.</p>
+        <input value={find} onChange={(e) => setFind(e.target.value)} placeholder="Find a file… (e.g. IfoundtheLIGHT)" className="field" aria-label="Find a filed document" />
+        {find.trim().length >= 2 && (() => {
+          const q = find.trim().toLowerCase();
+          const hits = files.filter((f) => f.review_status !== "pending" && `${f.name} ${f.target_note ?? ""}`.toLowerCase().includes(q)).slice(0, 20);
+          return hits.length === 0 ? <p className="mt-2 text-ink-soft">No filed document matches.</p> : (
+            <ul className="mt-2 divide-y divide-rule-soft">
+              {hits.map((f) => (
+                <li key={f.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+                  <div className="min-w-0">
+                    <div className="font-semibold">{f.name}</div>
+                    <div className="text-[0.85rem] text-ink-soft">Now: {SECTION_LABELS[f.target_section]}{f.target_note && ` · ${f.target_note}`}{sent[f.id] && <span className="ml-2 font-semibold text-evergreen">→ sent to {sent[f.id]}</span>}</div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <SendTo value={dest[f.id] ?? ""} onChange={(k) => setDest((d) => ({ ...d, [f.id]: k }))} />
+                    <button type="button" disabled={pending || !dest[f.id]} onClick={() => act(() => sendFileTo(f.id, dest[f.id]), (d) => setSent((x) => ({ ...x, [f.id]: String(d) })))} className="btn-primary px-4 text-[0.9rem]">Send</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          );
+        })()}
       </section>
 
       {/* Runs */}
@@ -164,5 +207,14 @@ export function ImportConsole({ setup, manifest, folders: initialFolders, files,
         </section>
       )}
     </div>
+  );
+}
+
+function SendTo({ value, onChange }: { value: string; onChange: (k: string) => void }) {
+  return (
+    <select value={value} onChange={(e) => onChange(e.target.value)} aria-label="Send to" className="field w-auto py-1.5 text-[0.9rem]">
+      <option value="">Send to…</option>
+      {DESTINATIONS.map((d) => <option key={d.key} value={d.key}>{d.label}</option>)}
+    </select>
   );
 }

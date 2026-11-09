@@ -3,7 +3,7 @@
 // Used for (1) demo mode and (2) generating supabase/seed.sql.
 // Never put real family records in this file or anywhere in the repo.
 // =============================================================================
-import type { Journal,
+import type { IncomeSource, AssetPhoto, SafeItem, CollectionItem, Journal,
   Bill, CalendarEvent, ContactGroup, FinalWish, LabResult, LegalDocument, Loan,
   NotificationCampaign, NotificationList, Person, RianaUpdate, SharedAlbum, UrgentQuestion,
   AuditEntry,
@@ -197,6 +197,27 @@ export const rianaUpdates: RianaUpdate[] = [
 export const journals: Journal[] = [
   { id: uid("jrn", 1), title: "[Sample] Diana's blog, 2009–2015", url: "https://docs.google.com/document/d/SAMPLEfake0000001/edit", author: "diana", kind: "google_doc", period: "2009–2015", note: "Sample: every post gathered into one document.", added_by_name: "Karmel", source: "app", created_at: day(-30, 12) },
   { id: uid("jrn", 2), title: "[Sample] Rich's mission journal", url: "https://drive.google.com/drive/folders/SAMPLEfake0000002", author: "rich", kind: "drive_folder", period: "1966–1968", note: "Sample: scanned pages in a Drive folder.", added_by_name: "Heather", source: "app", created_at: day(-10, 12) },
+];
+
+export const assetPhotos: AssetPhoto[] = [];
+
+export const incomeSources: IncomeSource[] = [
+  { id: uid("inc", 1), name: "[Sample] VA disability compensation", owner: "rich", amount_monthly: 4100, kind: "va", taxable: false, survivor_note: "Stops at Rich's death; a surviving spouse may qualify for DIC.", note: null, source: "app" },
+  { id: uid("inc", 2), name: "[Sample] Social Security", owner: "both", amount_monthly: 2900, kind: "social_security", taxable: true, survivor_note: "The survivor keeps the larger of the two benefits.", note: null, source: "app" },
+  { id: uid("inc", 3), name: "[Sample] Rental payments (StarLar)", owner: "both", amount_monthly: 4230, kind: "rental", taxable: true, survivor_note: "Continues per the StarLar amortization schedule.", note: null, source: "app" },
+];
+
+export const safeItems: SafeItem[] = [
+  { id: uid("safe", 1), safe_name: "Home safe", category: "document", name: "[Sample] Signed 2021 wills and healthcare directives", detail: "Originals in a manila envelope. Copies are in Drive.", confirmed_on: day(-30), added_by_name: "Karmel", source: "app", created_at: day(-30, 12) },
+  { id: uid("safe", 2), safe_name: "Home safe", category: "cash", name: "[Sample] Cash envelopes", detail: "Labeled envelopes; amounts not recorded here.", confirmed_on: day(-30), added_by_name: "Karmel", source: "app", created_at: day(-30, 12) },
+  { id: uid("safe", 3), safe_name: "Home safe", category: "keys", name: "[Sample] Spare keys: rentals and the '56 Chevy", detail: null, confirmed_on: null, added_by_name: "Heather", source: "app", created_at: day(-10, 12) },
+];
+
+export const collections: CollectionItem[] = [
+  { id: uid("col", 1), category: "book", title: "[Sample] Our Family Story, vol. 1", owner: "diana", url: null, location: "Living room bookcase, second shelf", period: "1950–1985", note: "Sample: the hardbound family history Diana wrote.", added_by_name: "Karmel", source: "app", created_at: day(-40, 12) },
+  { id: uid("col", 2), category: "photos", title: "[Sample] Wedding and early years albums", owner: "both", url: null, location: "Hall closet, top shelf (three albums)", period: "1962–1970", note: null, added_by_name: "Heather", source: "app", created_at: day(-35, 12) },
+  { id: uid("col", 3), category: "imemories", title: "[Sample] iMemories transfer, batch 1", owner: "diana", url: "https://example.com/imemories/SAMPLEfake", location: null, period: "1970s–1990s home movies", note: "Sample: 14 VHS tapes digitized.", added_by_name: "Karmel", source: "app", created_at: day(-15, 12) },
+  { id: uid("col", 4), category: "digital_history", title: "[Sample] Family history archive (Drive)", owner: "both", url: "https://drive.google.com/drive/folders/SAMPLEfake0000003", location: null, period: null, note: "Sample: scanned documents and genealogy files.", added_by_name: "Karmel", source: "app", created_at: day(-5, 12) },
 ];
 
 export const sharedAlbums: SharedAlbum[] = [

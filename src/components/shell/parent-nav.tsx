@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, Dove, Home, People, Question, Book } from "@/components/icons";
+import { Calendar, Dove, Home, People, Question, Book, Search } from "@/components/icons";
 
 const ITEMS = [
   { href: "/", label: "Home", icon: Home },
@@ -12,6 +12,9 @@ const ITEMS = [
   { href: "/contacts", label: "People", icon: People },
   { href: "/history", label: "Memories", icon: Book },
   { href: "/journals", label: "Journals", icon: Book },
+  { href: "/collections/books", label: "Books", icon: Book },
+  { href: "/collections/photos", label: "Photos", icon: Book },
+  { href: "/collections/imemories", label: "Movies", icon: Book },
 ];
 
 export function ParentNav() {
@@ -36,6 +39,13 @@ export function ParentNav() {
             </li>
           );
         })}
+        <li className="shrink-0">
+          <Link href="/search" aria-current={pathname.startsWith("/search") ? "page" : undefined}
+            className={`flex min-h-[52px] items-center gap-2 rounded-full px-4 font-semibold no-underline sm:px-5 ${pathname.startsWith("/search") ? "bg-parchment text-evergreen" : "text-paper hover:bg-evergreen-mid/40"}`}>
+            <Search size={22} />
+            <span>Search</span>
+          </Link>
+        </li>
       </ul>
     </nav>
   );

@@ -4,10 +4,12 @@ import { Empty, PageHeader } from "@/components/ui";
 import { fmtDate, subjectName } from "@/lib/format";
 import { Book } from "@/components/icons";
 import { AddJournalButton, RemoveJournalButton } from "./journals-client";
+import { DriveCover } from "@/components/drive-cover";
+import { driveFileId } from "@/lib/links";
 
 export const metadata = { title: "Journals" };
 
-const KIND: Record<string, string> = { blog: "Blog", google_doc: "Google Doc", drive_folder: "Drive folder", scan: "Scanned pages", other: "Link" };
+const KIND: Record<string, string> = { blog: "Blog", google_doc: "Google Doc", drive_folder: "Drive folder", scan: "Book / scanned pages", other: "Link" };
 
 export default async function JournalsPage() {
   const v = await requireSection("family_history");
@@ -34,7 +36,8 @@ export default async function JournalsPage() {
               <ul className="divide-y divide-rule-soft">
                 {list.map((j) => (
                   <li key={j.id} className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
-                    <div className="min-w-0">
+                    {driveFileId(j.url) && <DriveCover fileId={driveFileId(j.url)!} alt={`Cover of ${j.title}`} width={parent ? 132 : 108} />}
+                    <div className="min-w-0 flex-1">
                       <div className={`font-semibold ${parent ? "text-[1.3rem]" : "text-[1.1rem]"}`}>{j.title}</div>
                       <div className="text-[0.95rem] text-ink-soft">{KIND[j.kind]}{j.period && ` · ${j.period}`}</div>
                       {j.note && <div className="text-[0.95rem] text-ink-soft">{j.note}</div>}

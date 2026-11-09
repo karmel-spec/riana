@@ -24,7 +24,7 @@ export default async function PasswordsPage() {
         intro={parent ? "All of your passwords are kept in the family's 1Password vault. This page explains how to get in and who can help." : "How the family's shared 1Password vault works: who has access, how to get it, and where to look when you need a login. The vault holds the passwords; the binder only ever points to them."} />
 
       <div className="mb-6 flex items-start gap-3 rounded-2xl border border-rule bg-paper-warm px-5 py-4">
-        <Lock className="mt-0.5 shrink-0 text-evergreen" />
+        <img src="/logos/1password.svg" alt="1Password" className="mt-0.5 h-8 w-8 shrink-0" /> {/* eslint-disable-line @next/next/no-img-element */}
         <p className="text-[0.95rem] text-ink-soft"><strong className="text-ink">No passwords are stored in the binder.</strong> Never type a password, Secret Key or recovery code into this app, a question, a note or a Riana update. If one is needed, it belongs in 1Password.</p>
       </div>
 

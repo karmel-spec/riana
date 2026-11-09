@@ -42,7 +42,7 @@ export default async function LoansPage() {
     <>
       <PageHeader eyebrow={parent ? undefined : "Sections 7 & 11"} title={parent ? "Money lent and owed" : "Loans ledger"}
         intro={parent ? "What you've lent to the kids and to StarLar, and what's owed on the rentals." : "Every loan owed to or by the estate: parties, terms, payments, computed balance, and the document behind it. Undecided questions (gift or loan? advance on inheritance?) feed the Estate Plan."}
-        actions={canEdit ? <LoanEditor properties={properties.map((p) => ({ id: p.id, name: p.name }))} documents={legal.map((d) => ({ id: d.id, title: d.title }))} files={imported.map((f) => ({ id: f.id, name: f.name }))} /> : undefined} />
+        actions={<>{!parent && <Link href="/starlar" className="btn-secondary">StarLar page →</Link>}{canEdit && <LoanEditor properties={properties.map((p) => ({ id: p.id, name: p.name }))} documents={legal.map((d) => ({ id: d.id, title: d.title }))} files={imported.map((f) => ({ id: f.id, name: f.name }))} />}</>} />
 
       {!parent && (
         <section className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -76,6 +76,15 @@ export default async function LoansPage() {
               {owedBy.map((x) => <LoanCard key={x.loan.id} {...x} canEdit={canEdit} parent={parent} properties={properties.map((p) => ({ id: p.id, name: p.name }))} documents={legal.map((d) => ({ id: d.id, title: d.title }))} files={imported.map((f) => ({ id: f.id, name: f.name }))} />)}
             </div>
           )}
+        </section>
+      )}
+      {!parent && (
+        <section className="card mt-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="text-[1.2rem] font-semibold">The StarLar plan</h2>
+            <Link href="/starlar" className="shrink-0 font-semibold text-evergreen">Open the StarLar page →</Link>
+          </div>
+          <p className="mt-1 text-ink-soft">The Tumwater rentals, the notes Mike and Karmel pay on them, each note’s amortization schedule and the transfer-on-death plan now live on their own page under Property. The StarLar loans above are the same notes; edit their terms here and the StarLar page recomputes.</p>
         </section>
       )}
     </>
