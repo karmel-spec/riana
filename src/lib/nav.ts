@@ -34,7 +34,6 @@ export const NAV: NavItem[] = [
   { href: "/safe", label: "The Safe", section: "accounts", icon: I.Lock, built: true, group: "Money" },
   { href: "/legal", label: "Legal & Estate", section: "legal", icon: I.Scroll, built: true, group: "Legal" },
   { href: "/estate", label: "Estate Plan", section: "legal", icon: I.Scroll, built: true, group: "Legal" },
-  { href: "/glossary", label: "Glossary", section: null, icon: I.Book, built: true, group: "Legal" },
   { href: "/wishes", label: "Final Wishes", section: "final_wishes", icon: I.Dove, built: true, group: "Final Wishes" },
   { href: "/funeral", label: "Funeral", section: "final_wishes", icon: I.Dove, built: true, group: "Final Wishes" },
   { href: "/burial", label: "Burial", section: "final_wishes", icon: I.Dove, built: true, group: "Final Wishes" },
@@ -50,6 +49,8 @@ export const NAV: NavItem[] = [
   { href: "/collections/interviews", label: "Interviews", section: "family_history", icon: I.Mic, built: true, group: "Memories" },
   { href: "/collections/ancestors", label: "Ancestors", section: "family_history", icon: I.People, built: true, group: "Memories" },
   { href: "/sources/widow-book", label: "The Widow Book", section: "admin", icon: I.Book, built: true, group: "Sources" },
+  // Kept last, on its own: a reference page, not a section of the binder.
+  { href: "/glossary", label: "Glossary", section: null, icon: I.Book, built: true },
 ];
 
 export const ADMIN_NAV: NavItem[] = [
