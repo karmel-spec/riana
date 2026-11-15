@@ -46,6 +46,11 @@ export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
         </div>
       )}
 
+      <div className="mb-6 flex flex-col gap-6">
+        <AgentRiana riana={findRiana(people)} pending={riana.length} canReview={canRead(v, "admin")} vaultHref={canRead(v, "digital_accounts") ? "/passwords" : undefined} pageHref="/riana" />
+        <AskRianaPanel viewer={v} admin />
+      </div>
+
       <section aria-label="At a glance" className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {canRead(v, "bills") && <Stat label="Bills due this month" value={dueThisMonth.length} note={`${dueThisMonth.filter((b) => b.autopay).length} on autopay`} href="/bills" />}
         {canRead(v, "bills") && <Stat label="Failed payments" value={failed.length} tone={failed.length ? "ember" : "evergreen"} note={failed[0] ? `${failed[0].payee} · ${fmtMoney(failed[0].amount)}` : "All clear"} href="/bills" />}
@@ -109,10 +114,6 @@ export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
             </ul>
           )}
         </SectionCard>
-
-        <AgentRiana riana={findRiana(people)} pending={riana.length} canReview={canRead(v, "admin")} vaultHref={canRead(v, "digital_accounts") ? "/passwords" : undefined} />
-
-        <AskRianaPanel viewer={v} admin />
 
         {canRead(v, "legal") && (
           <SectionCard title="Estate documents" link={{ href: "/legal", label: "Status board" }}>
