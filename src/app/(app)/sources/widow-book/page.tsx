@@ -29,7 +29,11 @@ const SECTIONS: { key: string; blurb: string; color: string }[] = [
 
 export default async function WidowBookPage() {
   const v = await requireSuperAdmin();
-  const files = await data.getWidowBook(v);
+  const all = await data.getWidowBook(v);
+  // A book's photo album is kept as an admin-only record, never in the code: the share link opens for anyone who has it.
+  const SOURCE_ALBUM = /^\[Widow Book · Source album (\d{4})\]\s*/;
+  const albums = new Map(all.flatMap((f) => { const m = SOURCE_ALBUM.exec(f.target_note ?? ""); return m && f.web_view_link ? [[m[1], { url: f.web_view_link, note: (f.target_note ?? "").replace(SOURCE_ALBUM, "") }] as const] : []; }));
+  const files = all.filter((f) => !SOURCE_ALBUM.test(f.target_note ?? ""));
   await data.logView(v, "admin", "widow-book");
   const parse = (f: (typeof files)[number]) => {
     const tag = /Widow Book\s*[·:]\s*([^\]·]+)/.exec(f.target_note ?? "");
@@ -54,15 +58,18 @@ export default async function WidowBookPage() {
       <section aria-label="Sources" className="mb-6">
         <ul className="grid gap-3 md:grid-cols-2">
           {BOOKS.map((b) => {
+            const album = b.album ?? albums.get(b.year)?.url ?? null;
+            const albumNote = albums.get(b.year)?.note;
             const count = files.filter((f) => (b.key === "widow_book_2026") === (f.drive_folder_key === "widow_book_2026")).length;
             return (
               <li key={b.key} className="card flex flex-col gap-2 p-4">
                 <div className="flex items-baseline justify-between gap-3"><h3 className="font-serif text-[1.25rem] font-semibold">{b.title}</h3><span className="text-[0.9rem] text-ink-soft">{count} {count === 1 ? "page" : "pages"} filed</span></div>
                 <p className="text-ink-soft">{b.about}</p>
+                {albumNote && <p className="text-[0.9rem] text-ink-soft">{albumNote}</p>}
                 <div className="mt-auto flex flex-wrap gap-2 pt-1">
-                  {b.album && <a href={b.album} target="_blank" rel="noreferrer" className="btn-primary px-4">Photo album ↗</a>}
+                  {album && <a href={album} target="_blank" rel="noreferrer" className="btn-primary px-4">Photo album ↗</a>}
                   {b.drive ? <a href={b.drive} target="_blank" rel="noreferrer" className="btn-secondary px-4">Drive folder ↗</a> : <span className="text-[0.9rem] text-ink-soft">No Drive folder linked yet.</span>}
-                  {!b.album && <span className="self-center text-[0.9rem] text-ink-soft">No photo album linked yet.</span>}
+                  {!album && <span className="self-center text-[0.9rem] text-ink-soft">No photo album linked yet.</span>}
                 </div>
               </li>
             );
