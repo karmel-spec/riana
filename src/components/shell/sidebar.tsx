@@ -83,7 +83,6 @@ export function Sidebar({ items, adminItems, viewerName, viewerBlurb, demo, canT
         <Link href="/" className="block font-serif text-[1.45rem] font-bold leading-tight text-paper no-underline">
           Rich &amp; Diana<br />Greene
         </Link>
-        <div className="mt-1 text-[0.85rem] text-mist">Family binder · Lake Havasu City</div>
       </div>
       {canToggleView && <div className="mb-3 px-7"><ViewToggle current="full" /></div>}
       <form
