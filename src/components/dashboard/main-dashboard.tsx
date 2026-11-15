@@ -5,10 +5,11 @@ import * as data from "@/lib/data";
 import { fmtTime, greeting, monthDay, relative, subjectName, todayLong, fmtMoney, fmtDate } from "@/lib/format";
 import { DateChip, Empty, LegalStatusPill, SectionCard, SourceTag, Stat } from "@/components/ui";
 import { LabChart } from "./lab-chart";
-import { Mic, Sparkle } from "@/components/icons";
+import { Mic } from "@/components/icons";
 import { ShareUpdateButton } from "./share-update";
 import { DismissQuestion } from "./dismiss-question";
 import { isHealthQuestion } from "@/lib/questions";
+import { AgentRiana, findRiana } from "./agent-riana";
 import { MONTH_NAMES, inDays, todayIn, upcomingBirthdays } from "@/lib/people/birthdays";
 
 export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
@@ -110,6 +111,8 @@ export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
           )}
         </SectionCard>
 
+        <AgentRiana riana={findRiana(people)} pending={riana.length} canReview={canRead(v, "admin")} />
+
         {canRead(v, "legal") && (
           <SectionCard title="Estate documents" link={{ href: "/legal", label: "Status board" }}>
             <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -147,15 +150,6 @@ export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
         </section>
       )}
 
-      {riana.length > 0 && (
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rule bg-paper-warm px-5 py-4">
-          <div className="flex items-center gap-3">
-            <Sparkle className="text-plum" />
-            <div><strong>{riana.length} update{riana.length > 1 ? "s" : ""} via Riana</strong> <span className="text-ink-soft">waiting for your approval — {riana.map((r) => r.kind.replace("_", " ")).join(" and ")}.</span></div>
-          </div>
-          <Link href="/admin/riana" className="font-bold text-evergreen">Review</Link>
-        </div>
-      )}
     </>
   );
 }
