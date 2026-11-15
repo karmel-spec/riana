@@ -11,12 +11,12 @@ import { Slideshow } from "../slideshow";
 import { UploadFile } from "@/components/upload-file";
 import { PHOTO_TAG, photoGroups } from "@/lib/files/slideshow";
 
-const TABS: Record<string, { title: string; parentTitle: string; intro: string; parentIntro: string; categories: CollectionCategory[]; defaultCategory: CollectionCategory }> = {
+const TABS: Record<string, { title: string; parentTitle: string; intro: string; parentIntro: string; categories: CollectionCategory[]; defaultCategory: CollectionCategory; soon?: string }> = {
   books: { title: "Mom’s books", parentTitle: "Your books", intro: "The books Mom wrote, compiled or treasured, and where each one is kept.", parentIntro: "Your books, and where each one is.", categories: ["book"], defaultCategory: "book" },
   photos: { title: "Photos", parentTitle: "Photos", intro: "Albums, boxes and shared photo collections, physical or online, and where each one lives.", parentIntro: "The photo albums and where they are. Tap a link to open it.", categories: ["photos"], defaultCategory: "photos" },
-  "love-letters": { title: "Love letters", parentTitle: "Your love letters", intro: "The letters Rich and Diana wrote each other, and the ones worth keeping from family and friends: where each is kept, and a link if it has been scanned.", parentIntro: "Your love letters, and where they are.", categories: ["love_letter"], defaultCategory: "love_letter" },
-  interviews: { title: "Interviews", parentTitle: "Your interviews", intro: "Recorded conversations with Rich and Diana: life-story interviews, voice memos and videos, with a link to listen or watch and a note on what each one covers.", parentIntro: "Recordings of you telling your stories. Tap a link to listen.", categories: ["interview"], defaultCategory: "interview" },
-  imemories: { title: "iMemories & digital history", parentTitle: "Home movies", intro: "Home movies and photos digitized through iMemories, plus the digital family history archive: scanned documents and genealogy files kept online.", parentIntro: "The home movies and the family archive. Tap a link to open it.", categories: ["imemories", "digital_history", "other"], defaultCategory: "imemories" },
+  "love-letters": { title: "Love letters", parentTitle: "Your love letters", intro: "The letters Rich and Diana wrote each other, and the ones worth keeping from family and friends: where each is kept, and a link if it has been scanned.", parentIntro: "Your love letters, and where they are.", categories: ["love_letter"], defaultCategory: "love_letter", soon: "The letters are still being gathered and scanned. They will appear here as each one is added." },
+  interviews: { title: "Interviews", parentTitle: "Your interviews", intro: "Recorded conversations with Rich and Diana: life-story interviews, voice memos and videos, with a link to listen or watch and a note on what each one covers.", parentIntro: "Recordings of you telling your stories. Tap a link to listen.", categories: ["interview"], defaultCategory: "interview", soon: "The recorded interviews are still to come. Each one will appear here with a link to listen or watch." },
+  imemories: { title: "iMemories & digital history", parentTitle: "Home movies", intro: "Home movies and photos digitized through iMemories, plus the digital family history archive: scanned documents and genealogy files kept online.", parentIntro: "The home movies and the family archive. Tap a link to open it.", categories: ["imemories", "digital_history", "other"], defaultCategory: "imemories", soon: "The home movies are still being digitized through iMemories. Links to watch them will appear here when they are ready." },
   ancestors: { title: "Ancestors", parentTitle: "Your parents and grandparents", intro: "Papers and keepsakes from the generations before Rich and Diana: wills, certificates, letters and photos, kept under the person they belonged to.", parentIntro: "Things kept from your parents and grandparents.", categories: ["ancestor"], defaultCategory: "ancestor" },
 };
 
@@ -57,6 +57,13 @@ export default async function CollectionsPage({ params }: { params: Promise<{ ta
         intro={parent ? t.parentIntro : t.intro}
         actions={canEdit ? <AddCollectionButton defaultCategory={t.defaultCategory} people={people} /> : undefined} />
 
+      {t.soon && (
+        <div role="note" className={`mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-brass-deep/40 bg-brass-tint px-5 py-4 ${parent ? "text-[1.15rem]" : ""}`}>
+          <span className="pill bg-brass text-ink">Coming soon</span>
+          <span>{t.soon}</span>
+        </div>
+      )}
+
       {tab === "photos" && (
         <section aria-labelledby="slideshow" className="card mb-6 flex flex-col gap-3">
           <h2 id="slideshow" className={`font-semibold ${parent ? "text-[1.6rem]" : "text-[1.35rem]"}`}>Slideshow</h2>
@@ -85,7 +92,7 @@ export default async function CollectionsPage({ params }: { params: Promise<{ ta
           </CollapsibleCard>
       )}
 
-      {items.length === 0 ? <Empty>{tab === "ancestors" ? "Nothing filed here yet. Add an item and name the person it belonged to; each person gets their own folder." : "Nothing recorded yet."}</Empty> : (
+      {items.length === 0 ? (t.soon ? null : <Empty>{tab === "ancestors" ? "Nothing filed here yet. Add an item and name the person it belonged to; each person gets their own folder." : "Nothing recorded yet."}</Empty>) : (
         <div className="flex flex-col gap-6">
           {sections.map((g) => {
             const { list, icon: Icon } = g;
