@@ -109,7 +109,7 @@ export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
           )}
         </SectionCard>
 
-        <AgentRiana riana={findRiana(people)} pending={riana.length} canReview={canRead(v, "admin")} />
+        <AgentRiana riana={findRiana(people)} pending={riana.length} canReview={canRead(v, "admin")} vaultHref={canRead(v, "digital_accounts") ? "/passwords" : undefined} />
 
         {canRead(v, "legal") && (
           <SectionCard title="Estate documents" link={{ href: "/legal", label: "Status board" }}>

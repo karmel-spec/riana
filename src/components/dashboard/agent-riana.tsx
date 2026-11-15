@@ -8,9 +8,9 @@ export const findRiana = (people: Person[]) => people.find((p) => p.full_name.tr
 
 /**
  * "Agent Riana" on the home page: who she is and how to reach her.
- * `big` is the Brief view. `pending` and `canReview` add the admin's review link.
+ * `big` is the Brief view. `pending` and `canReview` add the admin's review link. `vaultHref` links "password vault" to the Passwords page for people who may open it.
  */
-export function AgentRiana({ riana, big = false, pending = 0, canReview = false }: { riana: Person | null; big?: boolean; pending?: number; canReview?: boolean }) {
+export function AgentRiana({ riana, big = false, pending = 0, canReview = false, vaultHref }: { riana: Person | null; big?: boolean; pending?: number; canReview?: boolean; vaultHref?: string }) {
   const sms = riana?.phone ? riana.phone.replace(/[^\d+]/g, "") : null;
   return (
     <section aria-labelledby="agent-riana" className={`card flex flex-col gap-3 ${big ? "mb-6" : ""}`}>
@@ -37,7 +37,7 @@ export function AgentRiana({ riana, big = false, pending = 0, canReview = false 
           Riana’s email address isn’t saved yet. Add a contact named “{RIANA_CONTACT}” with her email on the <Link href="/contacts" className="font-semibold text-evergreen">Contacts</Link> page and it will show here.
         </p>
       )}
-      <p className="text-[0.9rem] text-ink-soft">Please don’t send passwords, Social Security numbers or full account numbers. Those stay in the password vault.</p>
+      <p className="text-[0.9rem] text-ink-soft">Please don’t send passwords, Social Security numbers or full account numbers. Those stay in the {vaultHref ? <Link href={vaultHref} className="font-semibold text-evergreen underline">password vault</Link> : "password vault"}.</p>
       {canReview && (
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-rule-soft pt-3">
           <span>{pending > 0 ? <><strong>{pending} update{pending === 1 ? "" : "s"} from Riana</strong> waiting for your approval.</> : "No updates from Riana are waiting."}</span>
