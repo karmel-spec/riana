@@ -8,6 +8,7 @@ import { DocSyncPanel } from "./doc-sync-panel";
 import { PayloadView } from "./payload-view";
 import { driveSetup } from "@/lib/drive/service";
 import { listDocSources } from "@/lib/riana/doc-sync";
+import { AskRianaPanel } from "@/components/dashboard/ask-riana-panel";
 
 export const metadata = { title: "Updates from Riana" };
 
@@ -25,11 +26,12 @@ export default async function RianaPage() {
           {pending.map((u) => (
             <li key={u.id} className="card flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <span className="pill bg-plum-tint text-plum">{u.kind.replace("_", " ")}</span>
+                <span className="pill bg-plum-tint text-plum">{u.kind === "teach" ? "Teach Riana" : u.kind.replace("_", " ")}</span>
                 <div className="mt-1"><PayloadView summary={u.summary} kind={u.kind} payload={u.payload} /></div>
                 {u.kind === "contact" && u.payload && <div className="text-[0.95rem] text-ink-soft">{[u.payload.relationship, u.payload.phone, u.payload.email, [u.payload.city, u.payload.region].filter(Boolean).join(", ")].filter(Boolean).join(" · ")}{u.payload.is_professional ? " · professional" : ""}{u.payload.notify_first ? " · tell first" : ""} → approving adds them to People (unconfirmed, via Riana)</div>}
                 {u.kind === "album" && u.payload && <div className="text-[0.95rem] text-ink-soft">{String(u.payload.url ?? "")} → approving saves the link under Family History</div>}
                 {u.kind === "note" && u.payload && <div className="text-[0.95rem] text-ink-soft"><p className="whitespace-pre-line text-ink">{String(u.payload.text ?? "")}</p>{u.payload.from ? `From ${u.payload.from}` : ""}{u.payload.section ? ` · about ${sectionLabel(String(u.payload.section))}` : ""} → approving marks it seen; make any binder change by hand</div>}
+                {u.kind === "teach" && u.payload && <div className="text-[0.95rem] text-ink-soft"><p className="whitespace-pre-line text-ink">{String(u.payload.text ?? "")}</p>{u.payload.from ? `From ${u.payload.from}` : ""}{u.payload.on_behalf_of ? ` for ${u.payload.on_behalf_of}` : ""}{u.payload.question_public_id ? ` · chat message Q-${u.payload.question_public_id}` : ""} → approving marks it seen; make any binder change by hand</div>}
                 <div className="text-[0.9rem] text-ink-soft">Received {fmtDate(u.received_at)} at {fmtTime(u.received_at)}{u.external_ref?.startsWith("gdoc:") ? " · from the Binder doc" : ""}</div>
               </div>
               <ReviewButtons id={u.id} />
@@ -37,6 +39,7 @@ export default async function RianaPage() {
           ))}
         </ul>
       )}
+      <div className="mt-8"><AskRianaPanel viewer={v} admin /></div>
       <DocSyncPanel setup={setup} sources={docs} />
       <section className="card mt-8">
         <h2 className="text-[1.2rem] font-semibold">Propose Who-to-Notify additions</h2>
@@ -71,6 +74,7 @@ export default async function RianaPage() {
           <li><strong>Phase 1 — Drive sync (ready).</strong> The app reads the Greene Family Binder Google Doc (above) and proposes each new line here. The Legal Docs folder and the other shared folders are handled by <strong>Drive import</strong>, which files documents for review.</li>
           <li><strong>Phase 2 — Inbound endpoint (ready).</strong> Riana, a Grok or Claude assistant, or you pasting their output, posts structured updates to <code>/api/riana/inbound</code> with a key. Each one is logged and waits here for approval. Keys are minted and revoked by a super admin; see <code>docs/RIANA_INBOUND.md</code>.</li>
           <li><strong>Phase 3 — Outbound export (ready).</strong> <code>GET /api/riana/export</code> returns the latest data for the sections a key has been granted, so Riana&rsquo;s Monday update uses what is actually in the binder. Every export is in the audit log.</li>
+          <li><strong>Phase 4 — Ask Riana chat (web).</strong> Rich, Diana and the two of you type to Riana on the home page. Each message is stored, a webhook wakes her routine, and she posts her answer to <code>/api/riana/questions/&lt;id&gt;/answer</code> with the same key. Answers only show in the chat; a &ldquo;tell Riana something new&rdquo; note also waits in the inbox above. Texting her number comes next. See <code>docs/ASK_RIANA.md</code>.</li>
         </ol>
       </section>
     </>

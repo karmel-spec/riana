@@ -3,6 +3,7 @@ import { getViewer, canRead } from "@/lib/session";
 import * as data from "@/lib/data";
 import { PageHeader, SectionCard } from "@/components/ui";
 import { AgentRiana, findRiana } from "@/components/dashboard/agent-riana";
+import { AskRianaPanel } from "@/components/dashboard/ask-riana-panel";
 
 export const metadata = { title: "Agent Riana" };
 
@@ -20,6 +21,8 @@ export default async function AgentRianaPage() {
 
       <AgentRiana riana={findRiana(people)} big={parent} pending={pending.length} canReview={admin && !parent}
         vaultHref={canRead(v, "digital_accounts") ? "/passwords" : undefined} />
+
+      <div className={parent ? "" : "mt-6"}><AskRianaPanel viewer={v} big={parent} admin={!parent} /></div>
 
       <div className={`grid gap-6 lg:grid-cols-2 ${parent ? "text-[1.1rem]" : "mt-6"}`}>
         <SectionCard title="What to send her">

@@ -8,6 +8,7 @@ import { ShareUpdateButton } from "./share-update";
 import { DismissQuestion } from "./dismiss-question";
 import { isHealthQuestion } from "@/lib/questions";
 import { AgentRiana, findRiana } from "./agent-riana";
+import { AskRianaPanel } from "./ask-riana-panel";
 import { MONTH_NAMES, inDays, todayIn, upcomingBirthdays } from "@/lib/people/birthdays";
 
 export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
@@ -45,8 +46,9 @@ export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
         </div>
       )}
 
-      <div className="mb-6">
+      <div className="mb-6 flex flex-col gap-6">
         <AgentRiana riana={findRiana(people)} pending={riana.length} canReview={canRead(v, "admin")} vaultHref={canRead(v, "digital_accounts") ? "/passwords" : undefined} pageHref="/riana" />
+        <AskRianaPanel viewer={v} admin />
       </div>
 
       <section aria-label="At a glance" className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">

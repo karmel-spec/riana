@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Calendar, Close, Dove, Home, Menu, People, Question, Book, Search, Tag } from "@/components/icons";
+import { Calendar, Close, Dove, Home, Menu, People, Question, Book, Search, Sparkle, Tag } from "@/components/icons";
 
 const ITEMS = [
   { href: "/", label: "Home", icon: Home, tab: true },
   { href: "/contacts", label: "Contacts", icon: People, tab: true },
   { href: "/calendar", label: "Calendar", icon: Calendar, tab: true },
   { href: "/collections/photos", label: "Photos", icon: Tag, tab: true },
+  { href: "/riana", label: "Riana", icon: Sparkle },
   { href: "/questions", label: "Questions", icon: Question },
   { href: "/wishes", label: "Our Wishes", icon: Dove },
   { href: "/history", label: "Memories", icon: Book },
@@ -29,7 +30,7 @@ export function ParentNav() {
   const [moreOn, setMoreOn] = useState<string | null>(null);
   const more = moreOn === pathname;
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
-  const rest = ITEMS.filter((i) => !i.tab);
+  const rest = ITEMS.filter((i) => !("tab" in i));
   const tabCls = (on: boolean) => `flex min-h-[64px] flex-1 flex-col items-center justify-center gap-0.5 text-[0.8rem] no-underline ${on ? "font-bold text-evergreen" : "font-semibold text-ink-soft"}`;
 
   return (
@@ -49,7 +50,7 @@ export function ParentNav() {
 
       <nav aria-label="Main" className="fixed bottom-0 left-0 right-0 z-30 w-full max-w-[100vw] border-t border-rule bg-paper md:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
         <ul className="mx-auto flex max-w-[560px]">
-          {ITEMS.filter((i) => i.tab).map(({ href, label, icon: Icon }) => (
+          {ITEMS.filter((i) => "tab" in i).map(({ href, label, icon: Icon }) => (
             <li key={href} className="flex flex-1">
               <Link href={href} aria-current={isActive(href) && !more ? "page" : undefined} className={tabCls(isActive(href) && !more)}>
                 <Icon size={26} /><span>{label}</span>

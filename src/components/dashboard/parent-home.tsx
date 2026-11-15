@@ -3,6 +3,7 @@ import { canRead, type Viewer } from "@/lib/session";
 import * as data from "@/lib/data";
 import { isHealthQuestion } from "@/lib/questions";
 import { AgentRiana, findRiana } from "./agent-riana";
+import { AskRianaPanel } from "./ask-riana-panel";
 import { fmtDateLong, fmtTime, greeting, subjectName } from "@/lib/format";
 import { Calendar, Dove, Mic, People, Question, Book, ChevronRight } from "@/components/icons";
 
@@ -57,6 +58,7 @@ export async function ParentHome({ viewer: v }: { viewer: Viewer }) {
       )}
 
       <AgentRiana riana={findRiana(people)} big vaultHref={canRead(v, "digital_accounts") ? "/passwords" : undefined} />
+      <AskRianaPanel viewer={v} big />
 
       <section aria-label="Things you can do" className="grid gap-4 sm:grid-cols-2">
         <Tile href="/questions" icon={<Question size={30} />} title="Answer a question" text="Short questions from the kids, one at a time." />
