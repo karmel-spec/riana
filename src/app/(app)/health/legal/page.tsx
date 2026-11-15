@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { scanFor } from "@/lib/legal/scans";
 import { requireSection, canRead, canWrite } from "@/lib/session";
 import * as data from "@/lib/data";
 import { CollapsibleCard, Empty, LegalStatusPill, PageHeader } from "@/components/ui";
@@ -49,7 +50,7 @@ export default async function MedicalLegalPage() {
                 </div>
                 <ul className="grid gap-4 md:grid-cols-2">
                   {list.map((d) => {
-                    const scan = pool.find((f) => new RegExp(d.title.split(/[:(]/)[0].trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i").test(`${f.name} ${f.target_note ?? ""}`));
+                    const scan = scanFor(d, pool);
                     return (
                       <li key={d.id} className="card">
                         <div className="flex items-start justify-between gap-2">

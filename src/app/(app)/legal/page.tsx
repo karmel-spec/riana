@@ -3,13 +3,16 @@ import * as data from "@/lib/data";
 import { PageHeader, LegalStatusPill, Stat } from "@/components/ui";
 import { JourneyMap } from "./journey-map";
 import type { LegalStatus } from "@/lib/types";
+import { scanMap } from "@/lib/legal/scans";
 
 export const metadata = { title: "Legal & Estate" };
 
 
 export default async function LegalPage() {
   const v = await requireSection("legal");
-  const docs = await data.getLegalDocuments(v);
+  const [docs, filed, widow] = await Promise.all([data.getLegalDocuments(v), data.getFiledDocuments(v), data.getWidowBook(v)]);
+  // Each document's digital copy, matched by title among the filed scans the viewer may open.
+  const scans = scanMap(docs, [...filed, ...widow.filter((w) => !filed.some((f) => f.id === w.id))]);
   await data.logView(v, "legal", "legal_documents");
   const parent = v.brief;
 
@@ -21,7 +24,7 @@ export default async function LegalPage() {
           {docs.filter((d) => d.status !== "superseded").map((d) => (
             <li key={d.id} className="card flex flex-wrap items-center justify-between gap-3">
               <div>
-                <div className="text-[1.3rem] font-semibold">{d.title}</div>
+                <div className="text-[1.3rem] font-semibold">{scans[d.id] ? <a href={`/files/${scans[d.id]}`} target="_blank" rel="noreferrer" className="text-evergreen underline underline-offset-2">{d.title} ↗</a> : d.title}</div>
                 {d.original_location && <div className="text-ink-soft">Original: {d.original_location}</div>}
               </div>
               <LegalStatusPill status={d.status} />
@@ -49,7 +52,7 @@ export default async function LegalPage() {
         <Stat label="With an open issue" value={blocked} tone={blocked ? "ember" : "evergreen"} />
       </section>
 
-      <JourneyMap docs={docs} canEdit={canWrite(v, "legal")} />
+      <JourneyMap docs={docs} canEdit={canWrite(v, "legal")} scans={scans} />
     </>
   );
 }

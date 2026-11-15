@@ -5,6 +5,8 @@ import type { LegalDocument } from "@/lib/types";
 import { updateLegalDocument } from "@/app/actions/records";
 import { fmtDate, subjectName } from "@/lib/format";
 import { Empty, SourceTag } from "@/components/ui";
+import { UploadFile } from "@/components/upload-file";
+import { LEGAL_COPY_TAG } from "@/lib/legal/scans";
 
 const STEPS = ["not_started", "drafted", "signed", "recorded"] as const;
 const STEP_LABEL: Record<(typeof STEPS)[number], string> = { not_started: "Started", drafted: "Drafted", signed: "Signed", recorded: "Recorded" };
@@ -53,7 +55,7 @@ function Track({ d }: { d: LegalDocument }) {
   );
 }
 
-function Row({ d, canEdit }: { d: LegalDocument; canEdit: boolean }) {
+function Row({ d, canEdit, scanId }: { d: LegalDocument; canEdit: boolean; scanId?: string }) {
   const [editing, setEditing] = useState(false);
   const [more, setMore] = useState(false);
   const [state, action, pending] = useActionState(updateLegalDocument, null);
@@ -63,8 +65,12 @@ function Row({ d, canEdit }: { d: LegalDocument; canEdit: boolean }) {
     <li className="rounded-2xl border border-rule bg-paper px-4 py-3">
       <div className="grid gap-4 md:grid-cols-[1.2fr_1.6fr_1fr] md:items-center">
         <div className="min-w-0">
-          <div className="font-semibold leading-snug">{d.title}</div>
-          <div className="mt-0.5 text-[0.85rem] text-ink-soft">{subjectName(d.principal)}{d.prepared_by && ` · ${d.prepared_by}`}{d.original_location ? ` · original: ${d.original_location}` : ["signed", "recorded"].includes(d.status) ? " · original: location unknown" : ""} <SourceTag source={d.source} /></div>
+          <div className="font-semibold leading-snug">
+            {scanId
+              ? <a href={`/files/${scanId}`} target="_blank" rel="noreferrer" title="Open the digital copy in a new tab" className="text-evergreen underline decoration-evergreen/40 underline-offset-2">{d.title} ↗</a>
+              : d.title}
+          </div>
+          <div className="mt-0.5 text-[0.85rem] text-ink-soft">{subjectName(d.principal)}{d.prepared_by && ` · ${d.prepared_by}`}{d.original_location ? ` · original: ${d.original_location}` : ["signed", "recorded"].includes(d.status) ? " · original: location unknown" : ""} <SourceTag source={d.source} />{!scanId && <span className="italic"> · no digital copy filed yet</span>}</div>
         </div>
         <Track d={d} />
         <div className="flex items-start justify-between gap-2 text-[0.9rem]">
@@ -85,13 +91,18 @@ function Row({ d, canEdit }: { d: LegalDocument; canEdit: boolean }) {
           <div className="flex gap-2 md:col-span-2"><button className="btn-primary px-4" disabled={pending}>{pending ? "Saving…" : "Save"}</button><button type="button" onClick={() => setEditing(false)} className="btn-secondary px-4">Cancel</button></div>
         </form>
       )}
+      {editing && canEdit && (
+        <div className="mt-3 border-t border-rule-soft pt-3">
+          <UploadFile section="legal" label={scanId ? "Replace the digital copy" : "Add the digital copy"} defaultNote={`${LEGAL_COPY_TAG} ${d.title}`} back="/legal" />
+        </div>
+      )}
     </li>
   );
 }
 
 const TABS = [["all", "All"], ["both", "Rich & Diana together"], ["rich", "Rich"], ["diana", "Diana"], ["blocked", "Open issue"]] as const;
 
-export function JourneyMap({ docs, canEdit }: { docs: LegalDocument[]; canEdit: boolean }) {
+export function JourneyMap({ docs, canEdit, scans }: { docs: LegalDocument[]; canEdit: boolean; scans: Record<string, string> }) {
   const [tab, setTab] = useState<(typeof TABS)[number][0]>("all");
   const live = useMemo(() => docs.filter((d) => d.status !== "superseded"), [docs]);
   const count = (t: string) => t === "all" ? live.length : t === "blocked" ? live.filter((d) => !!d.open_issue).length : live.filter((d) => d.principal === t).length;
@@ -106,8 +117,8 @@ export function JourneyMap({ docs, canEdit }: { docs: LegalDocument[]; canEdit: 
         ))}
       </div>
       <div className="mb-2 hidden grid-cols-[1.2fr_1.6fr_1fr] gap-4 px-4 text-[0.72rem] font-bold uppercase tracking-wide text-ink-soft md:grid"><span>Document</span><span>Track</span><span>Next step</span></div>
-      {sorted.length === 0 ? <Empty>Nothing here.</Empty> : <ul className="flex flex-col gap-2">{sorted.map((d) => <Row key={d.id} d={d} canEdit={canEdit} />)}</ul>}
-      <p className="mt-3 text-[0.85rem] text-ink-soft">Recorded applies only to deeds; it is greyed out for everything else. Documents with an open issue sort to the top.</p>
+      {sorted.length === 0 ? <Empty>Nothing here.</Empty> : <ul className="flex flex-col gap-2">{sorted.map((d) => <Row key={d.id} d={d} canEdit={canEdit} scanId={scans[d.id]} />)}</ul>}
+      <p className="mt-3 text-[0.85rem] text-ink-soft">Recorded applies only to deeds; it is greyed out for everything else. Documents with an open issue sort to the top. A green title opens that document’s digital copy in a new tab; to add a missing copy, press Update on its row.</p>
     </>
   );
 }
