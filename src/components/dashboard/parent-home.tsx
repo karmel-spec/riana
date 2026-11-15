@@ -1,7 +1,8 @@
 import Link from "next/link";
-import type { Viewer } from "@/lib/session";
+import { canRead, type Viewer } from "@/lib/session";
 import * as data from "@/lib/data";
 import { isHealthQuestion } from "@/lib/questions";
+import { AgentRiana, findRiana } from "./agent-riana";
 import { fmtDateLong, fmtTime, greeting, subjectName } from "@/lib/format";
 import { Calendar, Dove, Mic, People, Question, Book, ChevronRight } from "@/components/icons";
 
@@ -11,7 +12,7 @@ import { Calendar, Dove, Mic, People, Question, Book, ChevronRight } from "@/com
  * bills, failed payments or document counts.
  */
 export async function ParentHome({ viewer: v }: { viewer: Viewer }) {
-  const [events, questions] = await Promise.all([data.getUpcomingEvents(v, 60), data.getQuestions(v)]);
+  const [events, questions, people] = await Promise.all([data.getUpcomingEvents(v, 60), data.getQuestions(v), data.getPeople(v)]);
   const mine = events;  // shared calendar: both of their dates
   const next = mine[0];
   const forMe = questions.filter((q) => !isHealthQuestion(q) && !["answered", "closed"].includes(q.status) && (q.asked_of === v.isSubject || q.asked_of === "both"));
@@ -54,6 +55,8 @@ export async function ParentHome({ viewer: v }: { viewer: Viewer }) {
           {forMe.length > 3 && <Link href="/questions" className="mt-3 inline-block font-semibold text-evergreen">All {forMe.length} questions</Link>}
         </section>
       )}
+
+      <AgentRiana riana={findRiana(people)} big vaultHref={canRead(v, "digital_accounts") ? "/passwords" : undefined} />
 
       <section aria-label="Things you can do" className="grid gap-4 sm:grid-cols-2">
         <Tile href="/questions" icon={<Question size={30} />} title="Answer a question" text="Short questions from the kids, one at a time." />
