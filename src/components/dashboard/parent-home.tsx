@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Viewer } from "@/lib/session";
 import * as data from "@/lib/data";
+import { isHealthQuestion } from "@/lib/questions";
 import { fmtDateLong, fmtTime, greeting, subjectName } from "@/lib/format";
 import { Calendar, Dove, Mic, People, Question, Book, ChevronRight } from "@/components/icons";
 
@@ -13,7 +14,7 @@ export async function ParentHome({ viewer: v }: { viewer: Viewer }) {
   const [events, questions] = await Promise.all([data.getUpcomingEvents(v, 60), data.getQuestions(v)]);
   const mine = events;  // shared calendar: both of their dates
   const next = mine[0];
-  const forMe = questions.filter((q) => !["answered", "closed"].includes(q.status) && (q.asked_of === v.isSubject || q.asked_of === "both"));
+  const forMe = questions.filter((q) => !isHealthQuestion(q) && !["answered", "closed"].includes(q.status) && (q.asked_of === v.isSubject || q.asked_of === "both"));
 
   return (
     <>

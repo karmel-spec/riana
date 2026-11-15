@@ -54,7 +54,7 @@ export async function searchBinder(v: Viewer, query: string): Promise<SearchHit[
       data.getSafeItems(v), data.getSharedAlbums(v), data.getIncomeSources(v), data.getVaClaims(v), data.getTaxRecords(v),
     ]);
 
-  questions.forEach((x) => add({ href: `/questions#${x.id}`, group: "Urgent Questions", title: x.question, detail: `${x.status.replace("_", " ")}${x.owner_name ? ` · ${x.owner_name}` : ""}`, text: [x.question, x.answer, x.owner_name] }));
+  questions.forEach((x) => add({ href: `/questions#${x.id}`, group: "Questions", title: x.question, detail: `${x.status.replace("_", " ")}${x.owner_name ? ` · ${x.owner_name}` : ""}`, text: [x.question, x.answer, x.owner_name] }));
   events.forEach((x) => add({ href: "/calendar", group: "Calendar", title: x.title, detail: `${x.starts_at.slice(0, 10)}${x.location ? ` · ${x.location}` : ""}`, text: [x.title, x.location, x.driver, x.notes] }));
   legal.forEach((x) => add({ href: "/legal", group: "Legal & Estate", title: x.title, detail: x.status.replace("_", " "), text: [x.title, x.doc_type, x.prepared_by, x.original_location, x.open_issue, x.notes] }));
   bills.forEach((x) => add({ href: "/bills", group: "Bills", title: x.payee, detail: `${x.category ?? ""}${x.frequency ? ` · ${x.frequency}` : ""}`, text: [x.payee, x.category, x.notes] }));

@@ -38,7 +38,7 @@ const EFFECT: Record<string, string> = {
   document: "Approving files this document on the right Health page (it joins the Medical Notes Timeline) with its Drive link, labeled via Riana.",
   lab_result: "Approving adds this lab result to the patient's Health page, labeled via Riana.",
   bill: "Approving adds this bill to the Bills page (a correction updates the matching bill instead), labeled via Riana. Account numbers are shortened to their last four digits.",
-  urgent_question: "Approving adds this to Urgent Questions as an open question from Riana.",
+  urgent_question: "Approving adds this to Questions as an open question from Riana.",
   appointment: "Approving puts this on the shared calendar, labeled via Riana.",
 };
 

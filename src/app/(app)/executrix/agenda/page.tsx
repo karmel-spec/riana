@@ -29,7 +29,7 @@ export default async function AgendaPage() {
           <div className={`${parent ? "text-[1.15rem]" : ""} font-semibold`}>{i.text}{i.status === "discussed" && <span className="pill ml-2 bg-brass-tint text-brass-deep">discussed</span>}</div>
           {i.detail && <div className="mt-0.5 whitespace-pre-line text-[0.95rem] text-ink-soft">{i.detail}</div>}
           {f && <div className="mt-1 text-[0.9rem]"><a href={`/files/${f.id}`} target="_blank" rel="noreferrer" className="font-semibold text-evergreen">Open {f.name.replace(/\.[a-z0-9]+$/i, "")} ↗</a>{f.target_note && <span className="text-ink-soft"> · {f.target_note.replace(/^\[[^\]]*\]\s*/, "")}</span>}</div>}
-          {i.question_id && <div className="text-[0.85rem] text-ink-soft">Also on <Link href="/questions">Urgent Questions</Link></div>}
+          {i.question_id && <div className="text-[0.85rem] text-ink-soft">Also on <Link href="/questions">Questions</Link></div>}
           {i.outcome && <div className="mt-1 text-[0.95rem] text-evergreen">Decided: {i.outcome}</div>}
           {!parent && <div className="text-[0.8rem] text-ink-soft">Added {fmtDate(i.created_at, { year: "numeric" })}{i.added_by_name && ` by ${i.added_by_name}`}</div>}
         </div>

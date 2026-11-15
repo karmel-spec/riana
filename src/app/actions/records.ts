@@ -48,7 +48,7 @@ export async function answerQuestion(_p: Result | null, form: FormData): Promise
       .update({ answer, status, answered_by, answered_at: new Date().toISOString() }).eq("id", id);
     if (error) return { ok: false, error: "Could not save the answer." };
   }
-  revalidatePath("/questions"); revalidatePath("/");
+  revalidatePath("/questions"); revalidatePath("/health/diana"); revalidatePath("/health/rich"); revalidatePath("/");
   return { ok: true };
 }
 
@@ -81,7 +81,7 @@ export async function addQuestion(_p: Result | null, form: FormData): Promise<Re
       .insert({ question: d.question, topic, asked_of: d.asked_of, owner_name: d.owner_name || v.name, priority: d.priority });
     if (error) return { ok: false, error: "Could not add the question." };
   }
-  revalidatePath("/questions"); revalidatePath("/");
+  revalidatePath("/questions"); revalidatePath("/health/diana"); revalidatePath("/health/rich"); revalidatePath("/");
   return { ok: true };
 }
 
@@ -116,7 +116,7 @@ export async function setQuestionStatus(id: string, status: QuestionStatus): Pro
     const { error } = await supabase.from("urgent_questions").update({ status }).eq("id", id);
     if (error) return { ok: false, error: "Could not update." };
   }
-  revalidatePath("/questions"); revalidatePath("/");
+  revalidatePath("/questions"); revalidatePath("/health/diana"); revalidatePath("/health/rich"); revalidatePath("/");
   return { ok: true };
 }
 
