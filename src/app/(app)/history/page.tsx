@@ -6,18 +6,18 @@ import { Empty, PageHeader, SectionCard } from "@/components/ui";
 import { fmtDate } from "@/lib/format";
 import { Mic } from "@/components/icons";
 import { VideoPlayer } from "@/components/media/player";
-import { AddAlbumButton, MediaEditor, SyncMediaButton } from "./media-client";
+import { MediaEditor, SyncMediaButton } from "./media-client";
 
 export const metadata = { title: "Family History" };
 
 export default async function HistoryPage() {
   const v = await requireSection("family_history");
   await ensureDemoMedia(v);
-  const [media, playlists, albums] = await Promise.all([data.getMediaItems(v), data.getPlaylists(v), data.getSharedAlbums(v)]);
+  const [media, playlists] = await Promise.all([data.getMediaItems(v), data.getPlaylists(v)]);
   const byYear = new Map<string, typeof media>();
   for (const m of media.filter((x) => x.kind === "photo" && x.review_status === "approved")) { const y = m.taken_on ? m.taken_on.slice(0, 4) : "Undated"; byYear.set(y, [...(byYear.get(y) ?? []), m]); }
   const years = [...byYear.entries()].sort((a, b) => (a[0] === "Undated" ? 1 : b[0] === "Undated" ? -1 : a[0].localeCompare(b[0])));
-  const parent = v.role === "parent";
+  const parent = v.brief;
   const canEdit = canWrite(v, "family_history");
   const videos = media.filter((m) => m.kind === "video_story" && m.review_status === "approved");
   const photos = media.filter((m) => m.kind === "photo" && m.review_status === "approved");
@@ -29,6 +29,14 @@ export default async function HistoryPage() {
       <PageHeader eyebrow={parent ? undefined : "Section 16 · Family history"} title={parent ? "Memories" : "Family history archive"}
         intro={parent ? "Videos, songs and photos from the family. Tap one to watch or listen." : "Videos, audio, photos and stories, streamed from the shared Drive folders. Journals, the timeline and record-a-memory arrive in the next phase."}
         actions={<>{sing && <Link href="/history/singalong" className="btn-primary">🎵 Rich’s Sing-Along</Link>}{v.role === "super_admin" && <><Link href="/history/tribute" className="btn-secondary">Tribute pages</Link><SyncMediaButton /></>}</>} />
+
+      <section className="on-dark mb-6 flex flex-wrap items-center gap-6 rounded-3xl bg-evergreen-mid p-7 text-paper">
+        <div className="flex h-[88px] w-[88px] shrink-0 items-center justify-center rounded-full border-[6px] border-mist bg-paper text-ember"><Mic size={40} /></div>
+        <div className="min-w-[240px] flex-1">
+          <h2 className="text-[1.5rem] font-semibold leading-tight text-paper">Record a memory</h2>
+          <p className="mt-1 text-mist">Recording from the iPad, with transcripts, is the next phase of the archive. The library already has room for transcripts and captions on every item.</p>
+        </div>
+      </section>
 
       <section className="mb-6">
         <h2 className="mb-3 text-[1.4rem] font-semibold">Videos ({videos.length})</h2>
@@ -87,29 +95,7 @@ export default async function HistoryPage() {
           )}
         </SectionCard>
 
-        <SectionCard title={`Shared albums (${albums.length})`}>
-          <p className="mb-3 text-[0.95rem] text-ink-soft">{parent ? "Albums the family has shared. Tap one to open it." : "Links to albums that live in Google Photos. The app keeps the link as a reference; the photos stay where they are."}</p>
-          {albums.length === 0 ? <Empty>No album links saved yet.</Empty> : (
-            <ul className="divide-y divide-rule-soft">
-              {albums.map((a) => (
-                <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0 last:pb-0">
-                  <div><div className={`font-semibold ${parent ? "text-[1.2rem]" : ""}`}>{a.title}</div>{a.note && <div className="text-[0.9rem] text-ink-soft">{a.note}</div>}{!parent && <div className="text-[0.8rem] text-ink-soft">{a.provider === "google_photos" ? "Google Photos" : a.provider === "icloud" ? "iCloud" : "Link"} · added {fmtDate(a.created_at, { year: "numeric" })}{a.added_by_name && ` by ${a.added_by_name}`}</div>}</div>
-                  <a href={a.url} target="_blank" rel="noreferrer" className="btn-secondary px-4 text-[0.95rem]">Open album ↗</a>
-                </li>
-              ))}
-            </ul>
-          )}
-          {canEdit && !parent && <div className="mt-3"><AddAlbumButton /></div>}
-        </SectionCard>
       </div>
-
-      <section className="on-dark mt-6 flex flex-wrap items-center gap-6 rounded-3xl bg-evergreen-mid p-7 text-paper">
-        <div className="flex h-[88px] w-[88px] shrink-0 items-center justify-center rounded-full border-[6px] border-mist bg-paper text-ember"><Mic size={40} /></div>
-        <div className="min-w-[240px] flex-1">
-          <h2 className="text-[1.5rem] font-semibold leading-tight text-paper">Record a memory</h2>
-          <p className="mt-1 text-mist">Recording from the iPad, with transcripts, is the next phase of the archive. The library already has room for transcripts and captions on every item.</p>
-        </div>
-      </section>
     </>
   );
 }

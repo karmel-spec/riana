@@ -22,6 +22,8 @@ The binder reads documents from Google Drive through its own **service account**
    | Taxes | Karmel (admin-only in the app) |
    | Legal Docs | Karmel |
    | 2022 Widow Book | Karmel (admin-only in the app) |
+   | Riana Drive Backup | Karmel (admin-only in the app) |
+   | Diana Greene (journals), Rich Greene (journals) | Karmel |
 
    Sharing the root folder covers its subfolders automatically.
 
@@ -54,3 +56,16 @@ Google Photos has no API that lets an app read a whole library, so photos reach 
 2. **Shared album links.** In Google Photos, open an album → Share → *Create link*, then paste it under **Family History → Shared albums → Add album link**. The app stores the link as a reference only; the photos stay in the album.
 
 Both go through the usual review: imported files wait in **Admin → Drive import** until approved, then **Family History → Sync media** adds them to the archive.
+
+
+## If service-account keys are blocked
+
+Google now enforces `iam.disableServiceAccountKeyCreation` on many new projects, so step 1 can end with "Service account key creation is disabled". The app then reads Drive **as a person** instead, through a one-time Google sign-in:
+
+1. In the same Google Cloud project: **APIs & Services → OAuth consent screen**. Audience *External*, app name "Greene Family Binder", your email as support and developer contact. Save. Under **Audience → Test users** add the Google account the binder folders are shared with (`the-family-google-account@gmail.com`). The app can stay in "Testing"; only test users can connect, which is the point.
+2. **APIs & Services → Credentials → Create credentials → OAuth client ID**. Type *Web application*, name "binder-import-web". Authorized redirect URIs: `https://richanddianagreene.netlify.app/api/google/callback` and `http://localhost:3000/api/google/callback`. Create. Copy the client ID and client secret.
+3. In Netlify (and `.env.local` for the preview) set `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET`. Deploy.
+4. In the app: **Admin → Drive import → Connect Google Drive**. Sign in as that account, allow *See and download all your Google Drive files* (read-only). The page that comes back shows the refresh token once with the two `netlify env:set` commands; run them, add the same two lines to `.env.local`, deploy.
+5. Press **Check access now**. Every folder that account can open is readable; nothing needs sharing with a robot address.
+
+To disconnect, remove the token from Netlify and revoke the app at myaccount.google.com → Security → Third-party access.

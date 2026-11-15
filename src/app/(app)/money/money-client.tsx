@@ -48,12 +48,12 @@ export function BillTable({ bills, canEdit, parent }: { bills: Bill[]; canEdit: 
   );
 }
 
-export function MoneyForms({ canAddAccount }: { canAddAccount: boolean }) {
+export function MoneyForms({ canAddAccount, only }: { canAddAccount: boolean; only?: "bill" | "account" }) {
   const [open, setOpen] = useState<"bill" | "account" | null>(null);
   return (
     <>
-      <button type="button" onClick={() => setOpen("bill")} className="btn-primary">+ Add a bill</button>
-      {canAddAccount && <button type="button" onClick={() => setOpen("account")} className="btn-secondary">+ Add an account</button>}
+      {only !== "account" && <button type="button" onClick={() => setOpen("bill")} className="btn-primary">+ Add a bill</button>}
+      {only !== "bill" && canAddAccount && <button type="button" onClick={() => setOpen("account")} className={only === "account" ? "btn-primary" : "btn-secondary"}>+ Add an account</button>}
       {open === "bill" && <BillDialog close={() => setOpen(null)} />}
       {open === "account" && <AccountDialog close={() => setOpen(null)} />}
     </>

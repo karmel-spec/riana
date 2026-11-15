@@ -42,3 +42,9 @@ next-env.d.ts
 
 # keep the example env file
 !.env.example
+
+# Local Netlify folder
+.netlify
+
+# Design mockups filled with real family details stay local
+design/*-options.html

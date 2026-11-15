@@ -15,6 +15,11 @@ export type ManifestFolder = {
   name: string;
   driveFolderId: string | null;    // null = a subfolder found by name under its parent
   parentKey?: string;
+  /** A folder that may not exist yet (a planned export): not listed or counted as unreadable while missing. */
+  optional?: boolean;
+  /** Read the folder's subfolders too (a binder digitized tab by tab); `subfolderNote` tags each file with its subfolder name. */
+  recurse?: boolean;
+  subfolderNote?: (subfolder: string, path: string) => string;
   sensitivity: Sensitivity;
   defaultTarget: Section;
   defaultNote?: string;
@@ -44,13 +49,22 @@ export const FOLDERS: ManifestFolder[] = [
   { key: "va", name: "VA & CHAMPVA", driveFolderId: "1wsEaDmDNhR2qoR726-xo0xFoymvGHnqj", sensitivity: "normal", defaultTarget: "health_rich", defaultNote: "VA benefits" },
   { key: "taxes", name: "Taxes", driveFolderId: "1ptf78Ps6_GYOhV9wAxPM1IDiADZXh6Wn", sensitivity: "admin_only", defaultTarget: "taxes", notes: "Contains SSNs and bank details: masked on display, super admins only" },
   { key: "legal", name: "Legal Docs", driveFolderId: "1C7nytouvRz1C2Lv52QJUi1y0rSeoN3D_", sensitivity: "normal", defaultTarget: "legal" },
+  { key: "widow_book_2026", name: "2026 Widow Book", driveFolderId: "1RUHXi75ahd_2_wM4vKTW1jb92ddxfPvB", sensitivity: "admin_only", defaultTarget: "legal", defaultNote: "[Widow Book · 2026] ", recurse: true, subfolderNote: (sub, path) => `[Widow Book · ${sub}] ${path}`, notes: "Rich's 2026 binder being digitized folder by folder; each file lands on the Widow Book page under a 2026 tab until it is re-tagged to its binder tab" },
   { key: "widow_book", name: "2022 Widow Book", driveFolderId: "19vZ3XcQhF2e1WjzuAJRf-Ghh6nQdOEEq", sensitivity: "admin_only", defaultTarget: "legal", notes: "Four sensitive files: whole folder admin-only until an admin releases individual files" },
-  { key: "photos_takeout", name: "Photos (Takeout)", driveFolderId: null, parentKey: "root", sensitivity: "normal", defaultTarget: "family_history", defaultNote: "Photos → timeline", notes: "Created by the recurring Google Takeout export (item 9)" },
+  { key: "journals_diana", name: "Diana Greene (journals)", driveFolderId: "1Ft3LC45lZ7nsxp7AUajBbGgPyqf0dnXF", sensitivity: "normal", defaultTarget: "family_history", defaultNote: "Journals → Diana" },
+  { key: "journals_rich", name: "Rich Greene (journals)", driveFolderId: "10PilPvLEtxZhM5upnvG2MQaIyNMCc8c_", sensitivity: "normal", defaultTarget: "family_history", defaultNote: "Journals → Rich" },
+  { key: "funeral_burial", name: "Funeral & Burial", driveFolderId: "18mO2zXJn_t7ziYUFkorMh6oY89VmGMDu", sensitivity: "normal", defaultTarget: "final_wishes", defaultNote: "Final wishes → Funeral & burial (sort)", notes: "Karmel's burial folder; files sort onto the Funeral or Burial page by their names" },
+  { key: "starlar", name: "StarLar", driveFolderId: "15Rc_ur3hvWlpd0SxVpRf5Em7vt8-kaK4", sensitivity: "normal", defaultTarget: "properties", defaultNote: "StarLar → rentals", notes: "The paper StarLar file: amortization printouts, easement, orientation manual, statements. Pages with codes are admin-only." },
+  { key: "riana_backup", name: "Riana Drive Backup", driveFolderId: "1EaGRLSfcLRRd2tuLRp8u8oyxjJuprYmQ", sensitivity: "admin_only", defaultTarget: "admin", notes: "Riana's own backup files: admin-only, each file released by an admin after review" },
+  { key: "photos_takeout", name: "Photos (Takeout)", driveFolderId: null, parentKey: "root", optional: true, sensitivity: "normal", defaultTarget: "family_history", defaultNote: "Photos → timeline", notes: "Created by the recurring Google Takeout export (item 9); hidden until that folder exists" },
 ];
 
 const H = "family_history" as const;
 
 export const RULES: ManifestRule[] = [
+  // --- Funeral & Burial folder: sorted onto the two pages by name -------------
+  { id: "burial", folders: ["funeral_burial", "widow_funeral"], match: /cemetery|cemetary|plot|grave|headstone|endowment|burial|interment|odd fellows|lake haven|liner/i, target: "final_wishes", note: "Final wishes → Burial" },
+  { id: "funeral", folders: ["funeral_burial", "widow_funeral"], match: /funeral|service|program|obituary|viewing|visitation|hymn|eulogy/i, target: "final_wishes", note: "Final wishes → Funeral" },
   // --- Rich's Drive files (prior brief) --------------------------------------
   { id: "rich-hymn", folders: ["rich_history", "root"], match: /^(He Hymn|HE - Google Docs|SHE)\.(docx|pdf)$/i, target: H, note: "History archive", media: "document" },
   { id: "rich-song", folders: ["rich_history", "root", "diana_history", "singalong"], match: /^You are the only one\.mp3$/i, target: H, note: "Media → Rich's Sing-Along", media: "audio", dedupe: true },
@@ -79,6 +93,7 @@ export const RULES: ManifestRule[] = [
   { id: "tax-return", folders: ["taxes"], match: /^\d{4} Greene Federal Tax Return\.pdf$/i, target: "taxes", note: "Taxes → returns by year", media: "pdf", sensitivity: "admin_only" },
   { id: "tax-other", folders: ["taxes"], match: /./, target: "taxes", note: "Taxes", media: "pdf", sensitivity: "admin_only" },
   { id: "legal-any", folders: ["legal"], match: /./, target: "legal", note: "Legal & Estate → documents", media: "pdf" },
+  { id: "widow-book-2026", folders: ["widow_book_2026"], match: /./, target: "legal", note: "[Widow Book · 2026] filed from the 2026 binder", media: "document", sensitivity: "admin_only" },
   { id: "widow-book", folders: ["widow_book"], match: /./, target: "legal", note: "2022 Widow Book (admin-only)", media: "document", sensitivity: "admin_only" },
   { id: "va-any", folders: ["va"], match: /./, target: "health_rich", note: "VA benefits", media: "pdf" },
   { id: "photo-sidecar", folders: ["photos_takeout"], match: /\.json$/i, target: H, note: "Takeout metadata sidecar: read for the photo's date, not imported", media: "other", sensitivity: "excluded" },

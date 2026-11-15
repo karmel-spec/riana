@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const v = await getViewer();
-  const parent = v.role === "parent";
+  const parent = v.brief;
   // Keyed on the demo identity so switching roles re-renders the frame.
   const key = v.demo ? ((await cookies()).get(DEMO_COOKIE)?.value ?? "") : v.id;
   return (

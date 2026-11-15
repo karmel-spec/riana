@@ -151,6 +151,58 @@ export type FinalWish = {
 };
 
 /** A link to an album that lives elsewhere (Google Photos share link). Saved as a reference only. */
+export type Journal = {
+  id: string;
+  title: string;
+  url: string;
+  author: Subject;
+  kind: "blog" | "google_doc" | "drive_folder" | "scan" | "other";
+  period: string | null;
+  note: string | null;
+  added_by_name: string | null;
+  source: Source;
+  created_at: string;
+};
+
+export type CollectionCategory = "book" | "photos" | "imemories" | "digital_history" | "love_letter" | "interview" | "other";
+export type CollectionItem = {
+  id: string;
+  category: CollectionCategory;
+  title: string;
+  owner: Subject;
+  url: string | null;
+  location: string | null;
+  period: string | null;
+  note: string | null;
+  added_by_name: string | null;
+  source: Source;
+  created_at: string;
+};
+
+export type AssetPhoto = {
+  id: string;
+  asset_kind: "property" | "vehicle";
+  asset_id: string;
+  url: string;
+  caption: string | null;
+  taken_on: string | null;
+  added_by_name: string | null;
+  source: Source;
+  created_at: string;
+};
+
+export type SafeItem = {
+  id: string;
+  safe_name: string;
+  category: "document" | "cash" | "keys" | "jewelry" | "media" | "other";
+  name: string;
+  detail: string | null;
+  confirmed_on: string | null;
+  added_by_name: string | null;
+  source: Source;
+  created_at: string;
+};
+
 export type SharedAlbum = {
   id: string;
   title: string;
@@ -240,6 +292,8 @@ export type Provider = {
   portal_name: string | null;
   is_va: boolean;
   notes: string | null;
+  /** false = former provider (kept for history). Missing on databases without the column. */
+  is_current?: boolean;
 };
 
 export type Medication = {
@@ -316,6 +370,9 @@ export type Account = {
   beneficiary_notes: string | null;
   notes: string | null;
   source: Source;
+  /** Last-known balance (credit cards: amount owed). Missing until the financial-statement migration is applied. */
+  balance?: number | null;
+  balance_as_of?: string | null;
 };
 
 export type Property = {
@@ -328,6 +385,21 @@ export type Property = {
   manager_person_id: string | null;
   hoa_name: string | null;
   notes: string | null;
+  source: Source;
+  estimated_value?: number | null;
+  valuation_on?: string | null;
+  valuation_source?: string | null;
+};
+
+export type IncomeSource = {
+  id: string;
+  name: string;
+  owner: Subject;
+  amount_monthly: number | null;
+  kind: "pension" | "social_security" | "va" | "rental" | "annuity" | "loan_repayment" | "other";
+  taxable: boolean | null;
+  survivor_note: string | null;
+  note: string | null;
   source: Source;
 };
 
@@ -510,4 +582,19 @@ export type TributeBlock = {
   text: string | null;
   media_item_id: string | null;
   media_item_ids: string[];
+};
+
+/** An item for the next estate-planning meeting with Rich and Diana: a question, a document to review, or a note. */
+export type AgendaItem = {
+  id: string;
+  kind: "question" | "document" | "note";
+  text: string;
+  detail: string | null;
+  file_id: string | null;
+  question_id: string | null;
+  status: "open" | "discussed" | "resolved";
+  outcome: string | null;
+  sort_order: number;
+  added_by_name: string | null;
+  created_at: string;
 };

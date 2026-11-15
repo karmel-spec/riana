@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getViewer, canWrite } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { demoStore } from "@/lib/data";
+import { applyRianaUpdate } from "@/lib/riana/apply";
 import type { LegalStatus, QuestionStatus, Section, Subject, Person } from "@/lib/types";
 
 type Result<T = undefined> = { ok: true; data?: T } | { ok: false; error: string };
@@ -80,6 +81,26 @@ export async function addQuestion(_p: Result | null, form: FormData): Promise<Re
     if (error) return { ok: false, error: "Could not add the question." };
   }
   revalidatePath("/questions"); revalidatePath("/");
+  return { ok: true };
+}
+
+const ShareUpdate = z.object({ text: z.string().trim().min(3, "Write a little more.").max(2000), section: z.string().optional() });
+
+/** "Add an update" on the dashboard: queues a note in the Riana inbox for a super admin to review. */
+export async function shareUpdate(_p: Result | null, form: FormData): Promise<Result> {
+  const v = await getViewer();
+  const parsed = ShareUpdate.safeParse(Object.fromEntries(form));
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  const { text, section } = parsed.data;
+  const summary = text.length > 100 ? `${text.slice(0, 100)}…` : text;
+  if (v.demo) {
+    demoStore().riana.unshift({ id: crypto.randomUUID(), kind: "note", summary, received_at: new Date().toISOString(), review_status: "pending", payload: { section: section || null, text, from: v.name } });
+  } else {
+    const supabase = await createClient();
+    const { error } = await supabase.rpc("share_update", { p_section: section || "", p_text: text });
+    if (error) return { ok: false, error: error.message.includes("share_update") ? "The database is missing the share_update migration." : `Could not send: ${error.message}` };
+  }
+  revalidatePath("/admin/riana"); revalidatePath("/");
   return { ok: true };
 }
 
@@ -206,6 +227,64 @@ export async function addPerson(_p: Result | null, form: FormData): Promise<Resu
   return { ok: true };
 }
 
+const EditPerson = NewPerson.omit({ group_id: true }).extend({ id: z.string().uuid(), new_group: z.string().trim().max(60).optional() });
+
+export async function updatePerson(_p: Result | null, form: FormData): Promise<Result> {
+  const v = await need("contacts");
+  const parsed = EditPerson.safeParse(Object.fromEntries(form));
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  const d = parsed.data;
+  const groupIds = form.getAll("group_ids").map(String).filter((g) => z.string().uuid().safeParse(g).success);
+  const row = {
+    full_name: d.full_name, relationship: d.relationship || null, connected_to: d.connected_to,
+    phone: d.phone || null, email: d.email || null, city: d.city || null,
+    preferred_method: (d.preferred_method || null) as "phone" | "text" | "email" | "mail" | "in_person" | null,
+    notes: d.notes || null,
+  };
+  if (v.demo) {
+    const p = demoStore().people.find((x) => x.id === d.id);
+    if (!p) return { ok: false, error: "Person not found." };
+    Object.assign(p, row);
+    if (d.new_group) { const g = { id: crypto.randomUUID(), name: d.new_group, kind: "other" as const, description: null }; demoStore().groups.push(g); groupIds.push(g.id); }
+    p.group_ids = groupIds;
+    bump(v, "contacts", `Updated contact ${d.full_name}`, "people");
+  } else {
+    const supabase = await createClient();
+    const { error } = await supabase.from("people").update(row).eq("id", d.id);
+    if (error) return { ok: false, error: "Could not save the changes." };
+    if (d.new_group) {
+      const { data: g, error: ge } = await supabase.from("contact_groups").upsert({ name: d.new_group, kind: "other" }, { onConflict: "name" }).select("id").single();
+      if (ge) return { ok: false, error: "Saved, but could not create the tag." };
+      groupIds.push(g.id);
+    }
+    await supabase.from("person_groups").delete().eq("person_id", d.id);
+    if (groupIds.length) {
+      const { error: pe } = await supabase.from("person_groups").insert(groupIds.map((group_id) => ({ person_id: d.id, group_id })));
+      if (pe) return { ok: false, error: "Saved, but could not update the tags." };
+    }
+  }
+  revalidatePath("/contacts");
+  return { ok: true };
+}
+
+export async function deletePerson(id: string): Promise<Result> {
+  const v = await need("contacts");
+  if (!z.string().uuid().safeParse(id).success) return { ok: false, error: "Bad id." };
+  if (v.demo) {
+    const s = demoStore(); const i = s.people.findIndex((p) => p.id === id);
+    if (i < 0) return { ok: false, error: "Person not found." };
+    const [p] = s.people.splice(i, 1);
+    bump(v, "contacts", `Removed contact ${p.full_name}`, "people");
+  } else {
+    const supabase = await createClient();
+    await supabase.from("person_groups").delete().eq("person_id", id);
+    const { error } = await supabase.from("people").delete().eq("id", id);
+    if (error) return { ok: false, error: "Could not remove this person. They may be on a notification list." };
+  }
+  revalidatePath("/contacts");
+  return { ok: true };
+}
+
 // --- Notification workflow ------------------------------------------------------
 export async function setRecipientStatus(campaignId: string, personId: string, status: "not_sent" | "sent" | "replied" | "attending" | "not_attending"): Promise<Result> {
   const v = await need("notify");
@@ -247,15 +326,25 @@ export async function reviewRianaUpdate(id: string, decision: "approved" | "reje
   } else {
     const supabase = await createClient();
     if (decision === "approved") {
-      const { error } = await supabase.rpc("riana_apply", { p_update_id: id });
-      if (error) return { ok: false, error: error.message.includes("riana_apply") ? "The database is missing migration 16." : `Could not apply: ${error.message}` };
+      const { data: u } = await supabase.from("riana_updates").select("id, kind, summary, payload, review_status").eq("id", id).maybeSingle();
+      if (!u || u.review_status !== "pending") return { ok: false, error: "Already reviewed." };
+      if (u.kind === "contact" || u.kind === "album") {
+        const { error } = await supabase.rpc("riana_apply", { p_update_id: id });
+        if (error) return { ok: false, error: error.message.includes("riana_apply") ? "The database is missing migration 16." : `Could not apply: ${error.message}` };
+      } else {
+        const r = await applyRianaUpdate(supabase, u);
+        if (!r.ok) return r;
+        const { error } = await supabase.from("riana_updates")
+          .update({ review_status: "approved", reviewed_by: v.id, reviewed_at: new Date().toISOString(), applied_table: r.applied?.table ?? null, applied_id: r.applied?.id ?? null }).eq("id", id);
+        if (error) return { ok: false, error: "Filed, but could not mark the update reviewed." };
+      }
     } else {
       const { error } = await supabase.from("riana_updates")
         .update({ review_status: decision, reviewed_by: v.id, reviewed_at: new Date().toISOString() }).eq("id", id);
       if (error) return { ok: false, error: "Could not save the decision." };
     }
   }
-  revalidatePath("/admin/riana"); revalidatePath("/"); revalidatePath("/contacts"); revalidatePath("/history");
+  for (const path of ["/admin/riana", "/", "/contacts", "/history", "/bills", "/questions", "/calendar", "/health/rich", "/health/diana"]) revalidatePath(path);
   return { ok: true };
 }
 

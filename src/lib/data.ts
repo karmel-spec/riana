@@ -3,9 +3,9 @@ import { createClient } from "./supabase/server";
 import { canRead, type Viewer } from "./session";
 import { SENSITIVE } from "./permissions";
 import * as fx from "./demo/fixtures";
-import type {
+import type { AgendaItem,
   Account, AuditEntry, Bill, CalendarEvent, ContactGroup, FinalWish, HealthCondition, LabResult, LegalDocument, Loan,
-  DigitalAccount, EstatePlanVersion, LoanPayment, MediaItem, Playlist, TributeBlock, TributePage, Vehicle, VehicleImprovement, EstateProvision, HouseholdItem, InsurancePolicy, Medication, PlanConflict, TaxSourceItem, NotificationCampaign, NotificationList, Person, Property, Provider, RianaKey, RianaUpdate, Section, SharedAlbum, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
+  DigitalAccount, EstatePlanVersion, LoanPayment, MediaItem, Playlist, TributeBlock, TributePage, Vehicle, VehicleImprovement, EstateProvision, HouseholdItem, InsurancePolicy, Medication, PlanConflict, TaxSourceItem, NotificationCampaign, NotificationList, Person, Property, Provider, RianaKey, RianaUpdate, Section, SharedAlbum, Journal, CollectionItem, SafeItem, AssetPhoto, IncomeSource, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
 } from "./types";
 
 // -----------------------------------------------------------------------------
@@ -25,10 +25,10 @@ type Store = {
   groups: ContactGroup[]; people: Person[]; lists: NotificationList[];
   campaigns: NotificationCampaign[]; bills: Bill[]; labs: LabResult[];
   wishes: FinalWish[]; loans: Loan[]; riana: RianaUpdate[]; audit: AuditEntry[];
-  albums: SharedAlbum[];
+  albums: SharedAlbum[]; journals: Journal[]; collections: CollectionItem[]; safeItems: SafeItem[]; assetPhotos: AssetPhoto[]; incomeSources: IncomeSource[];
 };
 // Bump when Store gains a key, so a dev server that kept the old object rebuilds it.
-const STORE_VERSION = 11;
+const STORE_VERSION = 16;
 const g = globalThis as unknown as { __greeneDemo?: Store; __greeneDemoV?: number };
 export function demoStore(): Store {
   if (g.__greeneDemoV !== STORE_VERSION) { g.__greeneDemo = undefined; g.__greeneDemoV = STORE_VERSION; }
@@ -45,7 +45,7 @@ export function demoStore(): Store {
     groups: fx.contactGroups, people: fx.people, lists: fx.notificationLists,
     campaigns: fx.notificationCampaigns, bills: fx.bills, labs: fx.labResults,
     wishes: fx.finalWishes, loans: fx.loans, riana: fx.rianaUpdates, audit: fx.auditEntries,
-    albums: fx.sharedAlbums,
+    albums: fx.sharedAlbums, journals: fx.journals, collections: fx.collections, safeItems: fx.safeItems, assetPhotos: fx.assetPhotos, incomeSources: fx.incomeSources,
   });
   return g.__greeneDemo;
 }
@@ -426,6 +426,95 @@ export async function getTributeBlocks(v: Viewer, pageId: string): Promise<Tribu
   return data as TributeBlock[];
 }
 
+export type HealthFile = { id: string; name: string; web_view_link: string | null; target_note: string | null; taken_at: string | null; media_kind: string; review_status: string };
+/** Scanned records from the Drive import for one patient (the health records index). */
+export async function getHealthFiles(v: Viewer, patient: "rich" | "diana"): Promise<HealthFile[]> {
+  const section: Section = `health_${patient}`;
+  if (!canRead(v, section)) return [];
+  if (v.demo) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("imported_files").select("id, name, web_view_link, target_note, taken_at, media_kind, review_status")
+    .eq("target_section", section).neq("review_status", "rejected").order("taken_at", { ascending: false });
+  if (error) return [];
+  return data as HealthFile[];
+}
+
+/** Documents filed for the funeral and burial pages: anything targeted at Final Wishes, plus the cemetery/funeral Drive folders. */
+export async function getFinalWishFiles(v: Viewer): Promise<HealthFile[]> {
+  if (!canRead(v, "final_wishes")) return [];
+  if (v.demo) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("imported_files").select("id, name, web_view_link, target_note, taken_at, media_kind, review_status")
+    .or("target_section.eq.final_wishes,drive_folder_key.eq.widow_funeral,drive_folder_key.eq.funeral_burial").neq("review_status", "rejected").order("name");
+  if (error) return [];
+  return data as HealthFile[];
+}
+
+/** Every filed document the viewer may see (approved only), for pages that match documents to records by name. */
+export async function getFiledDocuments(v: Viewer): Promise<HealthFile[]> {
+  if (v.demo) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("imported_files").select("id, name, web_view_link, target_note, taken_at, media_kind, review_status")
+    .eq("review_status", "approved").order("taken_at", { ascending: false, nullsFirst: false }).limit(2000);
+  if (error) return [];
+  return data as HealthFile[];
+}
+
+export async function getIncomeSources(v: Viewer): Promise<IncomeSource[]> {
+  if (!canRead(v, "accounts")) return [];
+  if (v.demo) return demoStore().incomeSources;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("income_sources").select("*").order("amount_monthly", { ascending: false });
+  if (error) return [];
+  return data as IncomeSource[];
+}
+
+export async function getAssetPhotos(v: Viewer, kind: "property" | "vehicle"): Promise<AssetPhoto[]> {
+  if (!canRead(v, "properties")) return [];
+  if (v.demo) return demoStore().assetPhotos.filter((p) => p.asset_kind === kind);
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("asset_photos").select("*").eq("asset_kind", kind).order("created_at");
+  if (error) return [];
+  return data as AssetPhoto[];
+}
+
+export type WidowBookFile = { id: string; name: string; web_view_link: string | null; target_note: string | null; taken_at: string | null; media_kind: string; sensitivity?: string; drive_file_id?: string };
+/** Every file pointer tagged with a Widow Book section (super admins only; the binder holds sensitive pages). */
+export async function getWidowBook(v: Viewer): Promise<WidowBookFile[]> {
+  if (v.role !== "super_admin" || v.demo) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("imported_files").select("id, name, web_view_link, target_note, taken_at, media_kind, sensitivity, drive_file_id").ilike("target_note", "%Widow Book%").order("taken_at", { ascending: true, nullsFirst: false });
+  if (error) return [];
+  return data as WidowBookFile[];
+}
+
+export async function getSafeItems(v: Viewer): Promise<SafeItem[]> {
+  if (!canRead(v, "accounts")) return [];
+  if (v.demo) return demoStore().safeItems;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("safe_items").select("*").order("safe_name").order("category").order("name");
+  if (error) return [];
+  return data as SafeItem[];
+}
+
+export async function getCollections(v: Viewer): Promise<CollectionItem[]> {
+  if (!canRead(v, "family_history")) return [];
+  if (v.demo) return demoStore().collections;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("collections").select("*").order("created_at");
+  if (error) return [];
+  return data as CollectionItem[];
+}
+
+export async function getJournals(v: Viewer): Promise<Journal[]> {
+  if (!canRead(v, "family_history")) return [];
+  if (v.demo) return demoStore().journals;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("journals").select("*").order("created_at");
+  if (error) return [];
+  return data as Journal[];
+}
+
 export async function getSharedAlbums(v: Viewer): Promise<SharedAlbum[]> {
   if (!canRead(v, "family_history")) return [];
   if (v.demo) return demoStore().albums;
@@ -433,4 +522,13 @@ export async function getSharedAlbums(v: Viewer): Promise<SharedAlbum[]> {
   const { data, error } = await supabase.from("shared_albums").select("*").order("created_at");
   if (error) fail("shared albums", error);
   return data as SharedAlbum[];
+}
+
+/** Meeting agenda items (legal section). Returns [] when the table has not been created yet. */
+export async function getAgenda(v: Viewer): Promise<AgendaItem[]> {
+  if (!canRead(v, "legal") || v.demo) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("meeting_agenda").select("id, kind, text, detail, file_id, question_id, status, outcome, sort_order, added_by_name, created_at").order("status").order("sort_order").order("created_at");
+  if (error) return [];
+  return data as AgendaItem[];
 }

@@ -1,23 +1,17 @@
 import { requireSection, canWrite } from "@/lib/session";
 import * as data from "@/lib/data";
-import { PageHeader, LegalStatusPill, Empty } from "@/components/ui";
-import { LegalBoard } from "./legal-board";
+import { PageHeader, LegalStatusPill, Stat } from "@/components/ui";
+import { JourneyMap } from "./journey-map";
 import type { LegalStatus } from "@/lib/types";
 
 export const metadata = { title: "Legal & Estate" };
 
-const COLUMNS: { status: LegalStatus; label: string; tint: string; text: string }[] = [
-  { status: "not_started", label: "Not started", tint: "bg-rule-soft/60", text: "text-ink-soft" },
-  { status: "drafted", label: "Drafted", tint: "bg-brass-tint", text: "text-brass-deep" },
-  { status: "signed", label: "Signed", tint: "bg-evergreen-tint", text: "text-evergreen" },
-  { status: "recorded", label: "Recorded", tint: "bg-slate-tint", text: "text-slate" },
-];
 
 export default async function LegalPage() {
   const v = await requireSection("legal");
   const docs = await data.getLegalDocuments(v);
   await data.logView(v, "legal", "legal_documents");
-  const parent = v.role === "parent";
+  const parent = v.brief;
 
   if (parent) {
     return (
@@ -39,42 +33,23 @@ export default async function LegalPage() {
   }
 
   const live = docs.filter((d) => d.status !== "superseded");
-  const missingOriginal = live.filter((d) => ["signed", "recorded"].includes(d.status) && !d.original_location);
-  const needsRecording = live.filter((d) => d.needs_recording && d.status === "signed");
+  const blocked = live.filter((d) => d.open_issue).length;
+  const missingOriginal = live.filter((d) => ["signed", "recorded"].includes(d.status) && !d.original_location).length;
+  const n = (st: LegalStatus) => live.filter((d) => d.status === st).length;
 
   return (
     <>
       <PageHeader eyebrow="Section 11" title="Legal & estate documents"
-        intro="Drafted → signed → recorded. Each card says where the original is kept and what still needs doing." />
+        intro="Each document moves along the same track: started, drafted, signed, recorded. The gold dot is where it is now; the red word is the one thing that moves it forward." />
 
-      {(missingOriginal.length > 0 || needsRecording.length > 0) && (
-        <div className="mb-6 rounded-2xl border border-ember/40 bg-ember-tint px-5 py-4">
-          <strong className="text-ember">Needs attention:</strong>
-          <ul className="mt-1 list-disc pl-5">
-            {missingOriginal.map((d) => <li key={d.id}>{d.title} is signed, but nobody has written down where the original is.</li>)}
-            {needsRecording.map((d) => <li key={d.id}>{d.title} is signed but not yet recorded with the county.</li>)}
-          </ul>
-        </div>
-      )}
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {COLUMNS.map((col) => {
-          const items = live.filter((d) => d.status === col.status);
-          return (
-            <section key={col.status} aria-labelledby={`col-${col.status}`} className={`rounded-2xl p-3 ${col.tint}`}>
-              <h2 id={`col-${col.status}`} className={`mb-3 px-1 font-sans text-[0.85rem] font-bold uppercase tracking-wide ${col.text}`}>{col.label} · {items.length}</h2>
-              {items.length === 0
-                ? <Empty>{col.status === "recorded" ? "Deeds move here once recorded." : "None"}</Empty>
-                : <LegalBoard docs={items} canEdit={canWrite(v, "legal")} />}
-            </section>
-          );
-        })}
-      </div>
-
-      <section className="card mt-6">
-        <h2 className="text-[1.3rem] font-semibold">Document history</h2>
-        <p className="mt-1 text-ink-soft">The 2021 drafts (will, transfer-on-death deeds, easement amendment) are the starting point for the 2026 estate planning. Files themselves are uploaded in phase 2 and kept in private storage; this board tracks their status.</p>
+      <section className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Stat label="Signed or recorded" value={n("signed") + n("recorded")} note={missingOriginal ? `${missingOriginal} original${missingOriginal === 1 ? "" : "s"} unlocated` : "all originals located"} tone="evergreen" />
+        <Stat label="Drafted, unsigned" value={n("drafted")} tone={n("drafted") ? "ember" : "ink"} />
+        <Stat label="Not started" value={n("not_started")} />
+        <Stat label="With an open issue" value={blocked} tone={blocked ? "ember" : "evergreen"} />
       </section>
+
+      <JourneyMap docs={docs} canEdit={canWrite(v, "legal")} />
     </>
   );
 }

@@ -26,7 +26,7 @@ export type PlanEntry = {
   duplicateOf?: string;
 };
 
-export type FolderStatus = { key: string; name: string; driveFolderId: string | null; readable: boolean; error?: string; resolvedFrom?: string };
+export type FolderStatus = { key: string; name: string; driveFolderId: string | null; readable: boolean; error?: string; resolvedFrom?: string; optional?: boolean };
 
 export type SyncReport = {
   mode: "dry_run" | "apply";
@@ -64,7 +64,7 @@ export async function resolveFolders(drive: DriveClient): Promise<{ status: Fold
       }
     }
     if (!id) {
-      status.push({ key: f.key, name: f.name, driveFolderId: null, readable: false, error: f.parentKey ? `Subfolder "${f.name}" not found under ${f.parentKey}` : "No folder id" });
+      status.push({ key: f.key, name: f.name, driveFolderId: null, readable: false, optional: f.optional, error: f.parentKey ? `Subfolder "${f.name}" not found under ${f.parentKey}` : "No folder id" });
       continue;
     }
     const probe = await drive.probeFolder(id);
@@ -88,8 +88,24 @@ export async function planSync(drive: DriveClient, existing: Existing, known: Kn
       continue;
     }
     for (const file of files) {
-      if (file.mimeType === FOLDER_MIME) continue;   // subfolders are only followed when the manifest names them
+      if (file.mimeType === FOLDER_MIME) continue;   // subfolders are only followed when the manifest names them, or when it says recurse
       entries.push(classify(folder, file, existing, seenByContent));
+    }
+    if (folder.recurse) {
+      // A binder digitized tab by tab: each subfolder is a tab, and the tag on every file says which.
+      const walk = async (parentId: string, trail: string[], depth: number) => {
+        if (depth > 3) return;
+        let kids: DriveFile[];
+        try { kids = await drive.list(parentId); } catch { return; }
+        for (const k of kids) {
+          if (k.mimeType === FOLDER_MIME) { await walk(k.id, [...trail, k.name.trim()], depth + 1); continue; }
+          if (trail.length === 0) continue;
+          const e = classify(folder, k, existing, seenByContent);
+          if (folder.subfolderNote) e.note = folder.subfolderNote(trail[0], trail.join(" / "));
+          entries.push(e);
+        }
+      };
+      await walk(id, [], 1);
     }
   }
 

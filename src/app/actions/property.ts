@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+// An empty field means "not given": blank it before coercion, or z.coerce turns "" into 0.
+const blank = (v: unknown) => (v === "" || v === undefined ? undefined : v);
 import { getViewer, canWrite } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { demoStore } from "@/lib/data";
@@ -58,7 +60,7 @@ const PolicyForm = z.object({
   carrier: z.string().trim().min(2, "Which company?").max(200),
   insured: z.enum(["rich", "diana", "both"]),
   policy_last4: z.string().trim().regex(/^[0-9A-Za-z]{4}$/, "Last 4 characters of the policy number only.").optional().or(z.literal("")),
-  premium: z.coerce.number().nonnegative().optional().or(z.literal("")),
+  premium: z.preprocess(blank, z.coerce.number().nonnegative().optional()),
   renews_on: z.string().optional().or(z.literal("")),
   agent_person_id: z.string().uuid().optional().or(z.literal("")),
   notes: Opt(1000),
@@ -71,7 +73,7 @@ export async function savePolicy(_p: Result | null, form: FormData): Promise<Res
     if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
     const { id, ...d } = parsed.data;
     if (/[0-9A-Za-z-]{8,}/.test(d.notes ?? "") && /\d{5,}/.test(d.notes ?? "")) return { ok: false, error: "That looks like a full policy number in the notes. Keep only the last 4." };
-    const row = { kind: d.kind, carrier: d.carrier, insured: d.insured, policy_last4: nul(d.policy_last4), premium: d.premium === "" || d.premium === undefined ? null : d.premium, renews_on: nul(d.renews_on), agent_person_id: nul(d.agent_person_id), notes: nul(d.notes) };
+    const row = { kind: d.kind, carrier: d.carrier, insured: d.insured, policy_last4: nul(d.policy_last4), premium: d.premium ?? null, renews_on: nul(d.renews_on), agent_person_id: nul(d.agent_person_id), notes: nul(d.notes) };
     if (v.demo) {
       const s = demoStore();
       if (id) { const p = s.policies.find((x) => x.id === id); if (!p) return { ok: false, error: "Not found." }; Object.assign(p, row); }

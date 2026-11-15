@@ -18,11 +18,16 @@ export type Viewer = {
   /** Sections that 2-step verification would unlock. */
   locked: Section[];
   demo: boolean;
+  /** Show the simplified "Brief" version of every screen (always on for parents; a toggle for everyone else). */
+  brief: boolean;
 };
 
 export const DEMO_COOKIE = "greene_demo_as";
+export const VIEW_COOKIE = "greene_view";
 
-function demoViewer(key: string | undefined): Viewer {
+async function briefRequested() { return (await cookies()).get(VIEW_COOKIE)?.value === "brief"; }
+
+function demoViewer(key: string | undefined, brief: boolean): Viewer {
   const u = DEMO_USERS.find((d) => d.key === key) ?? DEMO_USERS[0];
   const access = Object.fromEntries(SECTIONS.map((s) => {
     let level: AccessLevel = u.role === "super_admin" ? "write" : ROLE_DEFAULTS[u.role][s] ?? "none";
@@ -30,13 +35,13 @@ function demoViewer(key: string | undefined): Viewer {
     if (u.role === "parent" && s === `health_${u.isSubject}`) level = "write";
     return [s, level];
   })) as Record<Section, AccessLevel>;
-  return { id: `demo-${u.key}`, name: u.name, role: u.role, isSubject: u.isSubject, access, locked: [], demo: true };
+  return { id: `demo-${u.key}`, name: u.name, role: u.role, isSubject: u.isSubject, access, locked: [], demo: true, brief: u.role === "parent" || brief };
 }
 
 /** The signed-in person, or a redirect to /login. Cached per request. */
 export const getViewer = cache(async (): Promise<Viewer> => {
   if (isDemo()) {
-    return demoViewer((await cookies()).get(DEMO_COOKIE)?.value);
+    return demoViewer((await cookies()).get(DEMO_COOKIE)?.value, await briefRequested());
   }
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -55,7 +60,7 @@ export const getViewer = cache(async (): Promise<Viewer> => {
     access[r.section] = r.level;
     if (r.needs_mfa) locked.push(r.section);
   }
-  return { id: profile.id, name: profile.display_name, role: profile.app_role, isSubject: profile.is_subject, access, locked, demo: false };
+  return { id: profile.id, name: profile.display_name, role: profile.app_role, isSubject: profile.is_subject, access, locked, demo: false, brief: profile.app_role === "parent" || await briefRequested() };
 });
 
 export const canRead = (v: Viewer, s: Section) => v.access[s] !== "none";

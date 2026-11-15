@@ -7,7 +7,7 @@ import { DemoSwitcher } from "./demo-switcher";
 import { SampleBanner } from "./sample-banner";
 
 const ROLE_BLURB = {
-  super_admin: "Co-executor · Super Admin",
+  super_admin: "Super Admin",
   parent: "Parent",
   family: "Family member",
   posterity: "Family history & wishes",
@@ -17,7 +17,7 @@ const ROLE_BLURB = {
 /** The main binder frame: evergreen sidebar + parchment content. */
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const v = await getViewer();
-  const strip = (items: typeof NAV) => visibleNav(v, items).map((i) => ({ href: i.href, label: i.label, section: i.section, built: i.built }));
+  const strip = (items: typeof NAV) => visibleNav(v, items).map((i) => ({ href: i.href, label: i.label, section: i.section, built: i.built, group: i.group }));
   const demoKey = v.demo ? ((await cookies()).get(DEMO_COOKIE)?.value ?? "karmel") : "";
 
   return (
@@ -28,6 +28,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         viewerName={v.name}
         viewerBlurb={ROLE_BLURB[v.role]}
         demo={v.demo}
+        canToggleView={v.role !== "parent"}
       >
         {v.demo && <DemoSwitcher current={demoKey} />}
       </Sidebar>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#2f5141"/>
+  <!-- binder cover -->
+  <rect x="136" y="104" width="268" height="304" rx="22" fill="#f4eee2"/>
+  <rect x="112" y="104" width="52" height="304" rx="22" fill="#1e372b"/>
+  <!-- rings -->
+  <g fill="none" stroke="#c9a35a" stroke-width="16" stroke-linecap="round">
+    <path d="M138 168 a20 20 0 1 0 0 .1"/>
+    <path d="M138 256 a20 20 0 1 0 0 .1"/>
+    <path d="M138 344 a20 20 0 1 0 0 .1"/>
+  </g>
+  <!-- monogram -->
+  <text x="290" y="296" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="168" text-anchor="middle" fill="#2f5141">G</text>
+</svg>

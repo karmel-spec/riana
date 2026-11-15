@@ -11,7 +11,9 @@ type Result = { ok: true } | { ok: false; error: string };
 const nul = (s: string | undefined) => (s ? s : null);
 const num = (s: string | number | undefined) => (s === "" || s === undefined ? null : Number(s));
 const Opt = (max: number) => z.string().trim().max(max).optional().or(z.literal(""));
-const Money = z.coerce.number().nonnegative().optional().or(z.literal(""));
+// An empty field means "not given": blank it before coercion, or z.coerce turns "" into 0.
+const blank = (v: unknown) => (v === "" || v === undefined ? undefined : v);
+const Money = z.preprocess(blank, z.coerce.number().nonnegative().optional());
 
 async function need() {
   const v = await getViewer();
@@ -27,13 +29,13 @@ const LoanForm = z.object({
   counterparty: z.string().trim().min(2, "Who is the other party?").max(200),
   lender: Opt(200), purpose: Opt(300),
   principal: Money,
-  rate_pct: z.coerce.number().min(0).max(100).optional().or(z.literal("")),
+  rate_pct: z.preprocess(blank, z.coerce.number().min(0).max(100).optional()),
   status: z.enum(["proposed", "unclassified", "active", "paid_off", "forgiven"]),
   gift_or_loan: z.enum(["gift", "loan", "undecided"]).optional().or(z.literal("")),
   advance_on_inheritance: z.enum(["yes", "no", "undecided"]).optional().or(z.literal("")),
   note_signed: z.string().optional(),
   started_on: z.string().optional().or(z.literal("")),
-  term_months: z.coerce.number().int().min(1).max(600).optional().or(z.literal("")),
+  term_months: z.preprocess(blank, z.coerce.number().int().min(1).max(600).optional()),
   monthly_payment: Money,
   first_payment_on: z.string().optional().or(z.literal("")),
   property_id: z.string().uuid().optional().or(z.literal("")),
@@ -68,7 +70,7 @@ export async function saveLoan(_p: Result | null, form: FormData): Promise<Resul
     } else {
       const supabase = await createClient();
       const { error } = id ? await supabase.from("loans").update(row).eq("id", id) : await supabase.from("loans").insert(row);
-      if (error) return { ok: false, error: "Could not save the loan." };
+      if (error) return { ok: false, error: `Could not save the loan: ${error.message}` };
     }
     revalidatePath("/loans"); revalidatePath("/money"); revalidatePath("/estate"); revalidatePath("/properties");
     return { ok: true };

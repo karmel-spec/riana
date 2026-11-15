@@ -11,7 +11,7 @@ export default async function DigitalPage() {
   const v = await requireSection("digital_accounts");
   const accounts = await data.getDigitalAccounts(v);
   await data.logView(v, "digital_accounts");
-  const parent = v.role === "parent";
+  const parent = v.brief;
   const canEdit = canWrite(v, "digital_accounts") && !parent;
   const mine = parent ? accounts.filter((a) => a.owner === v.isSubject || a.owner === "both") : accounts;
   const found = mine.filter((a) => a.status === "found").length;

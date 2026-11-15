@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getViewer } from "@/lib/session";
 import { SampleBanner } from "./sample-banner";
 import { ParentNav } from "./parent-nav";
+import { ViewToggle } from "./view-toggle";
 
 /**
  * The parent frame. Same colors and type as the main binder, but:
@@ -17,6 +18,8 @@ export async function ParentShell({ children }: { children: React.ReactNode }) {
           <Link href="/" className="font-serif text-[1.3rem] font-bold leading-tight text-paper no-underline sm:text-[1.5rem]">
             The Greene Family Binder
           </Link>
+          <div className="flex items-center gap-4">
+          {v.role !== "parent" && <ViewToggle current="brief" className="on-dark" />}
           <div className="text-right text-[0.85rem] text-mist">
             <div className="font-semibold text-paper">{v.name}</div>
             {!v.demo && (
@@ -25,6 +28,7 @@ export async function ParentShell({ children }: { children: React.ReactNode }) {
                 <form action="/logout" method="post"><button className="min-h-0 underline">Sign out</button></form>
               </div>
             )}
+          </div>
           </div>
         </div>
         <ParentNav />

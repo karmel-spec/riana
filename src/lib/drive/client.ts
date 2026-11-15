@@ -2,18 +2,22 @@ import "server-only";
 import { createSign } from "node:crypto";
 
 /**
- * Minimal Google Drive v3 client for a SERVICE ACCOUNT with the read-only
- * scope. No SDK: a signed JWT exchanged for a short-lived access token, then
- * plain REST calls. The service account sees only folders explicitly shared
- * with it (Viewer), never anyone's personal Drive.
+ * Minimal Google Drive v3 client. Two ways to sign in, both read-only:
+ *  - a SERVICE ACCOUNT (GOOGLE_SERVICE_ACCOUNT_JSON): a robot identity that sees only folders shared with it;
+ *  - a GOOGLE SIGN-IN (GOOGLE_OAUTH_CLIENT_ID / _SECRET / _REFRESH_TOKEN): the app reads Drive as the person who
+ *    pressed "Connect Google Drive" once, so it sees whatever that person can see. Used when the Google Cloud
+ *    project forbids service-account keys.
+ * No SDK: a token from Google, then plain REST calls.
  */
 import { FOLDER_MIME, GDOC_MIME, type DriveClient, type DriveFile } from "./types.ts";
 export type { DriveClient, DriveFile } from "./types.ts";
 export { FOLDER_MIME } from "./types.ts";
 
-const SCOPE = "https://www.googleapis.com/auth/drive.readonly";
+export const SCOPE = "https://www.googleapis.com/auth/drive.readonly";
 
 type SA = { client_email: string; private_key: string; token_uri?: string };
+type OAuth = { client_id: string; client_secret: string; refresh_token: string; account: string };
+export type Creds = { kind: "service_account"; sa: SA } | { kind: "oauth"; oauth: OAuth };
 
 export function serviceAccountFromEnv(): SA | null {
   const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
@@ -28,24 +32,44 @@ export function serviceAccountFromEnv(): SA | null {
   }
 }
 
+/** The OAuth client (id + secret) is enough to start the connect flow; the refresh token completes it. */
+export function oauthClientFromEnv(): { client_id: string; client_secret: string } | null {
+  const client_id = process.env.GOOGLE_OAUTH_CLIENT_ID, client_secret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
+  return client_id && client_secret ? { client_id, client_secret } : null;
+}
+
+export function credsFromEnv(): Creds | null {
+  const sa = serviceAccountFromEnv();
+  if (sa) return { kind: "service_account", sa };
+  const client = oauthClientFromEnv();
+  const refresh_token = process.env.GOOGLE_OAUTH_REFRESH_TOKEN;
+  if (client && refresh_token) return { kind: "oauth", oauth: { ...client, refresh_token, account: process.env.GOOGLE_OAUTH_ACCOUNT ?? "the connected Google account" } };
+  return null;
+}
+
+/** The identity the app reads Drive as, for the import page. */
 export function serviceAccountEmail(): string | null {
-  return serviceAccountFromEnv()?.client_email ?? null;
+  const c = credsFromEnv();
+  return c ? (c.kind === "service_account" ? c.sa.client_email : c.oauth.account) : null;
 }
 
 let cached: { token: string; expires: number } | null = null;
 
-async function accessToken(sa: SA): Promise<string> {
+async function accessToken(c: Creds): Promise<string> {
   if (cached && cached.expires > Date.now() + 60_000) return cached.token;
-  const now = Math.floor(Date.now() / 1000);
-  const b64 = (o: object) => Buffer.from(JSON.stringify(o)).toString("base64url");
-  const unsigned = `${b64({ alg: "RS256", typ: "JWT" })}.${b64({ iss: sa.client_email, scope: SCOPE, aud: sa.token_uri ?? "https://oauth2.googleapis.com/token", iat: now, exp: now + 3600 })}`;
-  const signature = createSign("RSA-SHA256").update(unsigned).sign(sa.private_key).toString("base64url");
-  const res = await fetch(sa.token_uri ?? "https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: `${unsigned}.${signature}` }),
-  });
-  if (!res.ok) throw new Error(`Google token exchange failed (${res.status})`);
+  let body: URLSearchParams; let tokenUri = "https://oauth2.googleapis.com/token";
+  if (c.kind === "oauth") {
+    body = new URLSearchParams({ grant_type: "refresh_token", client_id: c.oauth.client_id, client_secret: c.oauth.client_secret, refresh_token: c.oauth.refresh_token });
+  } else {
+    const sa = c.sa; tokenUri = sa.token_uri ?? tokenUri;
+    const now = Math.floor(Date.now() / 1000);
+    const b64 = (o: object) => Buffer.from(JSON.stringify(o)).toString("base64url");
+    const unsigned = `${b64({ alg: "RS256", typ: "JWT" })}.${b64({ iss: sa.client_email, scope: SCOPE, aud: tokenUri, iat: now, exp: now + 3600 })}`;
+    const signature = createSign("RSA-SHA256").update(unsigned).sign(sa.private_key).toString("base64url");
+    body = new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: `${unsigned}.${signature}` });
+  }
+  const res = await fetch(tokenUri, { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body });
+  if (!res.ok) throw new Error(`Google token exchange failed (${res.status})${c.kind === "oauth" ? ": reconnect Google Drive from the import page" : ""}`);
   const data = (await res.json()) as { access_token: string; expires_in: number };
   cached = { token: data.access_token, expires: Date.now() + data.expires_in * 1000 };
   return cached.token;
@@ -53,9 +77,9 @@ async function accessToken(sa: SA): Promise<string> {
 
 const FIELDS = "id,name,mimeType,size,md5Checksum,modifiedTime,webViewLink,parents,imageMediaMetadata(time)";
 
-export function realDriveClient(sa: SA): DriveClient {
+export function realDriveClient(creds: Creds): DriveClient {
   const api = async (path: string, params: Record<string, string>) => {
-    const token = await accessToken(sa);
+    const token = await accessToken(creds);
     const url = new URL(`https://www.googleapis.com/drive/v3/${path}`);
     for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
     url.searchParams.set("supportsAllDrives", "true");
@@ -78,7 +102,7 @@ export function realDriveClient(sa: SA): DriveClient {
         return { ok: true, name: f.name };
       } catch (e) {
         const msg = (e as Error).message;
-        return { ok: false, error: /404/.test(msg) ? "Not shared with the app's service account (or wrong link)" : msg };
+        return { ok: false, error: /404/.test(msg) ? "Not shared with the app's Google account (or wrong link)" : msg };
       }
     },
     async list(folderId) {
@@ -96,7 +120,7 @@ export function realDriveClient(sa: SA): DriveClient {
       return out;
     },
     async stream(fileId, range) {
-      const token = await accessToken(sa);
+      const token = await accessToken(creds);
       return fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&supportsAllDrives=true`, {
         headers: { authorization: `Bearer ${token}`, ...(range ? { range } : {}) },
       });
@@ -105,7 +129,7 @@ export function realDriveClient(sa: SA): DriveClient {
       return norm(await api(`files/${fileId}`, { fields: FIELDS }));
     },
     async exportText(fileId) {
-      const token = await accessToken(sa);
+      const token = await accessToken(creds);
       const meta = await api(`files/${fileId}`, { fields: "id,mimeType" });
       const url = meta.mimeType === GDOC_MIME
         ? `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=text%2Fplain`
@@ -122,8 +146,8 @@ export function realDriveClient(sa: SA): DriveClient {
   };
 }
 
-/** Real client when a service account is configured, else null. */
+/** Real client when Google credentials are configured, else null. */
 export function driveClient(): DriveClient | null {
-  const sa = serviceAccountFromEnv();
-  return sa ? realDriveClient(sa) : null;
+  const c = credsFromEnv();
+  return c ? realDriveClient(c) : null;
 }

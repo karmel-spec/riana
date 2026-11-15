@@ -11,7 +11,7 @@ import { Calendar, Dove, Mic, People, Question, Book, ChevronRight } from "@/com
  */
 export async function ParentHome({ viewer: v }: { viewer: Viewer }) {
   const [events, questions] = await Promise.all([data.getUpcomingEvents(v, 60), data.getQuestions(v)]);
-  const mine = events.filter((e) => e.about === v.isSubject || e.about === "both" || e.about === "household");
+  const mine = events;  // shared calendar: both of their dates
   const next = mine[0];
   const forMe = questions.filter((q) => !["answered", "closed"].includes(q.status) && (q.asked_of === v.isSubject || q.asked_of === "both"));
 
@@ -20,7 +20,7 @@ export async function ParentHome({ viewer: v }: { viewer: Viewer }) {
       <h1 className="mb-6 text-[2.4rem] font-semibold leading-tight sm:text-[2.8rem]">{greeting()}, {v.name}.</h1>
 
       <section aria-labelledby="next-up" className="on-dark mb-6 rounded-3xl bg-evergreen p-7 text-paper sm:p-9">
-        <div id="next-up" className="eyebrow text-brass">Next on your calendar</div>
+        <div id="next-up" className="eyebrow text-brass">Next on our calendar</div>
         {next ? (
           <>
             <div className="mt-2 font-serif text-[2rem] font-semibold leading-tight sm:text-[2.3rem]">{next.title}</div>
@@ -56,7 +56,7 @@ export async function ParentHome({ viewer: v }: { viewer: Viewer }) {
 
       <section aria-label="Things you can do" className="grid gap-4 sm:grid-cols-2">
         <Tile href="/questions" icon={<Question size={30} />} title="Answer a question" text="Short questions from the kids, one at a time." />
-        <Tile href="/wishes" icon={<Dove size={30} />} title="My wishes" text="Your service, music, and what matters to you." />
+        <Tile href="/wishes" icon={<Dove size={30} />} title="Our wishes" text="Your services, music, and what matters to each of you." />
         <Tile href="/contacts" icon={<People size={30} />} title="People to tell" text="Check the list of friends and family we have." />
         <Tile href="/history" icon={<Book size={30} />} title="Memories" text="Photos, journals and the stories behind them." />
       </section>

@@ -1,47 +1,53 @@
-import Link from "next/link";
 import { requireSection, canWrite, canRead } from "@/lib/session";
 import * as data from "@/lib/data";
 import { Empty, PageHeader, SourceTag } from "@/components/ui";
 import { fmtMoney } from "@/lib/format";
 import { House, Mail, Phone } from "@/components/icons";
 import { PropertyEditor } from "./property-client";
+import { HouseholdSection } from "../household/household-section";
+import { AssetPhotos } from "@/components/asset-photos";
 
-export const metadata = { title: "Properties" };
+export const metadata = { title: "Home" };
 
 const KIND: Record<string, string> = { residence: "Home", rental: "Rental", land: "Land", other: "Other" };
+/** Zillow search for a street address (drops anything in parentheses). */
+const zillow = (address: string) => `https://www.zillow.com/homes/${encodeURIComponent(address.replace(/\s*\([^)]*\)/g, "").trim())}_rb/`;
 
 export default async function PropertiesPage() {
   const v = await requireSection("properties");
-  const [properties, mortgages, bills, people, policies] = await Promise.all([
-    data.getProperties(v), data.getLoans(v, "owed_by_estate"), data.getBills(v), data.getPeople(v), data.getPolicies(v),
+  const [properties, mortgages, bills, people, policies, photos] = await Promise.all([
+    data.getProperties(v), data.getLoans(v, "owed_by_estate"), data.getBills(v), data.getPeople(v), data.getPolicies(v), data.getAssetPhotos(v, "property"),
   ]);
   await data.logView(v, "properties");
-  const parent = v.role === "parent";
+  const parent = v.brief;
   const canEdit = canWrite(v, "properties") && !parent;
   const person = (id: string | null) => people.find((p) => p.id === id) ?? null;
   const managers = people.filter((p) => /manager|property/i.test(p.relationship ?? ""));
 
   return (
     <>
-      <PageHeader eyebrow={parent ? undefined : "Section 6"} title={parent ? "Your home and rentals" : "Properties"}
-        intro={parent ? "The house and the Tumwater rentals, and who looks after them." : "The Lake Havasu home and the StarLar rentals: ownership, mortgages, HOA, property manager, and what happens to each one later."}
-        actions={<><Link href="/properties/vehicles" className="btn-secondary">Vehicles</Link>{canEdit && <PropertyEditor managers={managers.map((p) => ({ id: p.id, name: p.full_name }))} />}</>} />
+      <PageHeader eyebrow={parent ? undefined : "Section 6"} title={parent ? "Your home" : "Home"}
+        intro={parent ? "The house on Aladdin Drive: who looks after it, and the rentals below." : "Everything about the house on Aladdin Drive in Lake Havasu City: ownership, mortgage, HOA, insurance, bills and who helps with it. The StarLar rentals follow below."}
+        actions={<>{canEdit && <PropertyEditor managers={managers.map((p) => ({ id: p.id, name: p.full_name }))} />}</>} />
 
       {properties.length === 0 ? <Empty>No properties recorded yet.</Empty> : (
         <ul className="flex flex-col gap-5">
-          {properties.map((p) => {
+          {[...properties].sort((a, b) => Number(b.kind === "residence") - Number(a.kind === "residence")).map((p, n, all) => {
+            const firstOther = p.kind !== "residence" && (n === 0 || all[n - 1].kind === "residence");
             const mortgage = mortgages.filter((m) => m.property_id === p.id);
             const related = bills.filter((b) => b.property_id === p.id);
             const manager = person(p.manager_person_id);
             const cover = policies.filter((pol) => (p.kind === "rental" && pol.kind === "landlord") || (p.kind === "residence" && pol.kind === "home"));
             return (
-              <li key={p.id} className="card">
+              <li key={p.id} className={firstOther ? "mt-4" : ""}>
+                {firstOther && <h2 className="mb-3 text-[1.3rem] font-semibold">{parent ? "The rentals" : "Other properties: the StarLar rentals"}</h2>}
+                <div className="card">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-evergreen-tint text-evergreen"><House size={26} /></div>
                     <div>
                       <h2 className={`font-semibold leading-tight ${parent ? "text-[1.6rem]" : "text-[1.4rem]"}`}>{p.name}</h2>
-                      <div className="text-ink-soft">{KIND[p.kind]}{p.address && ` · ${p.address}`}</div>
+                      <div className="text-ink-soft">{KIND[p.kind]}{p.address && <> · <a href={zillow(p.address)} target="_blank" rel="noreferrer" className="text-evergreen" title="Open on Zillow">{p.address.replace(/\s*\([^)]*\)/g, "")} ↗</a></>}</div>
                       {!parent && <div className="mt-1 flex flex-wrap gap-2 text-[0.85rem]">{p.held_by && <span className="rounded-md bg-parchment px-2 py-0.5 text-ink-soft">Held by {p.held_by}</span>}{p.hoa_name && <span className="rounded-md bg-parchment px-2 py-0.5 text-ink-soft">HOA: {p.hoa_name}</span>}<SourceTag source={p.source} /></div>}
                     </div>
                   </div>
@@ -94,18 +100,15 @@ export default async function PropertiesPage() {
                   )}
                 </div>
                 {p.notes && <p className="mt-3 text-[0.95rem] text-ink-soft">{p.notes}</p>}
+                <AssetPhotos kind="property" assetId={p.id} photos={photos.filter((x) => x.asset_id === p.id)} canEdit={canEdit} parent={parent} />
+                </div>
               </li>
             );
           })}
         </ul>
       )}
 
-      {!parent && (
-        <section className="card mt-6">
-          <h2 className="text-[1.2rem] font-semibold">The StarLar plan</h2>
-          <p className="mt-1 text-ink-soft">The rentals are intended to pass 50/50 to two of the children through transfer-on-death deeds, outside the will’s six-way split. The deeds are drafted but unsigned and unrecorded; their status lives on the <a href="/legal">Legal board</a>. Documents (deeds, easement amendment, operating agreement) attach to each property in phase 2.</p>
-        </section>
-      )}
+      {canRead(v, "household") && <HouseholdSection viewer={v} />}
     </>
   );
 }

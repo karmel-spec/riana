@@ -6,6 +6,8 @@ import { fmtTime, greeting, monthDay, relative, subjectName, todayLong, fmtMoney
 import { DateChip, Empty, LegalStatusPill, SectionCard, SourceTag, Stat } from "@/components/ui";
 import { LabChart } from "./lab-chart";
 import { Mic, Sparkle } from "@/components/icons";
+import { ShareUpdateButton } from "./share-update";
+import { DismissQuestion } from "./dismiss-question";
 
 export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
   const [questions, events, legal, bills, labs, riana] = await Promise.all([
@@ -26,7 +28,7 @@ export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
           <h1 className="text-[2.2rem] font-semibold leading-tight sm:text-[2.6rem]">{greeting()}, {v.name}</h1>
           <p className="text-ink-soft">{canWrite(v, "urgent_questions") ? "Here is what needs your care this week." : "Here is what is happening in the family."}</p>
         </div>
-        {canWrite(v, "urgent_questions") && <Link href="/questions?new=1" className="btn-primary">+ Add an update</Link>}
+        <ShareUpdateButton />
       </header>
 
       {v.locked.length > 0 && (
@@ -37,8 +39,8 @@ export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
       )}
 
       <section aria-label="At a glance" className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {canRead(v, "bills") && <Stat label="Bills due this month" value={dueThisMonth.length} note={`${dueThisMonth.filter((b) => b.autopay).length} on autopay`} href="/money" />}
-        {canRead(v, "bills") && <Stat label="Failed payments" value={failed.length} tone={failed.length ? "ember" : "evergreen"} note={failed[0] ? `${failed[0].payee} · ${fmtMoney(failed[0].amount)}` : "All clear"} href="/money" />}
+        {canRead(v, "bills") && <Stat label="Bills due this month" value={dueThisMonth.length} note={`${dueThisMonth.filter((b) => b.autopay).length} on autopay`} href="/bills" />}
+        {canRead(v, "bills") && <Stat label="Failed payments" value={failed.length} tone={failed.length ? "ember" : "evergreen"} note={failed[0] ? `${failed[0].payee} · ${fmtMoney(failed[0].amount)}` : "All clear"} href="/bills" />}
         <Stat label="Next appointment" value={next ? fmtDate(next.starts_at) : "—"} note={next ? `${subjectName(next.about)} · ${next.title}` : "Nothing scheduled"} href="/calendar" />
         {canRead(v, "legal") && (
           <Stat label="Estate documents signed" value={<>{signed} <span className="text-[1.1rem] text-ink-soft">of {legal.length}</span></>} href="/legal"
@@ -59,6 +61,7 @@ export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
                       <Link href={`/questions#${q.id}`} className="font-semibold text-ink">{q.question}</Link>
                       <div className="text-[0.9rem] text-ink-soft">
                         Owner: {q.owner_name ?? "—"} · Ask {subjectName(q.asked_of)}{q.due_on ? ` · due ${relative(q.due_on)}` : ""} <SourceTag source={q.source} />
+                        {canWrite(v, "urgent_questions") && <> · <DismissQuestion id={q.id} /></>}
                       </div>
                     </div>
                   </li>

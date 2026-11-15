@@ -40,7 +40,9 @@ export function schedule(t: NoteTerms): ScheduleRow[] {
     const interest = r2(balance * r);
     let principal = r2(payment - interest);
     let pay = payment;
-    if (principal >= balance) { principal = r2(balance); pay = r2(principal + interest); }   // final payment
+    // Final payment: pay off whatever is left, whether the balance ran out or the stated term has (rounding drift
+    // over a long schedule can leave a few dollars after the last scheduled payment; it goes on that payment).
+    if (principal >= balance || (t.termMonths && n === t.termMonths)) { principal = r2(balance); pay = r2(principal + interest); }
     balance = r2(balance - principal);
     rows.push({ n, date: addMonths(t.firstPaymentOn, n - 1), payment: r2(pay), interest, principal, balance });
   }

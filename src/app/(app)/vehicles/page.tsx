@@ -5,19 +5,21 @@ import { listImportedFiles } from "@/lib/drive/service";
 import { Empty, PageHeader } from "@/components/ui";
 import { fmtDate, fmtMoney, subjectName } from "@/lib/format";
 import { ImprovementButton, VehicleEditor } from "./vehicles-client";
+import { AssetPhotos } from "@/components/asset-photos";
+import { VEHICLES_ALBUM_URLS } from "@/lib/links";
 
 export const metadata = { title: "Vehicles" };
 
 export default async function VehiclesPage() {
   const v = await requireSection("properties");
-  const [vehicles, improvements, policies, versions, imported] = await Promise.all([
+  const [vehicles, improvements, policies, versions, imported, photos] = await Promise.all([
     data.getVehicles(v), data.getVehicleImprovements(v), data.getPolicies(v), data.getPlanVersions(v),
-    v.role === "super_admin" ? listImportedFiles(v) : Promise.resolve([]),
+    v.role === "super_admin" ? listImportedFiles(v) : Promise.resolve([]), data.getAssetPhotos(v, "vehicle"),
   ]);
   const current = versions.find((x) => x.status === "current") ?? versions[0];
   const provisions = current ? await data.getProvisions(v, current.id) : [];
   await data.logView(v, "properties", "vehicles");
-  const parent = v.role === "parent";
+  const parent = v.brief;
   const canEdit = canWrite(v, "properties") && !parent;
   const policyOpts = policies.map((p) => ({ id: p.id, name: `${p.kind.replace("_", " ")} · ${p.carrier}` }));
   const provisionOpts = provisions.map((p) => ({ id: p.id, name: p.subject }));
@@ -28,7 +30,19 @@ export default async function VehiclesPage() {
     <>
       <PageHeader eyebrow={parent ? undefined : "Section 6 · Vehicles"} title={parent ? "Your cars" : "Vehicles"}
         intro={parent ? "The cars, what they're worth, and where the titles are." : "Each vehicle with its estimated value (and when and how it was valued), the improvements put into it, the insurance that covers it, where the title is, and what the estate plan says happens to it."}
-        actions={<><Link href="/properties" className="btn-secondary">Back to properties</Link>{canEdit && <VehicleEditor policies={policyOpts} provisions={provisionOpts} files={fileOpts} />}</>} />
+        actions={<>{!parent && VEHICLES_ALBUM_URLS.map((a) => <a key={a.url} href={a.url} target="_blank" rel="noreferrer" className="btn-secondary">{a.label} ↗</a>)}{canEdit && <VehicleEditor policies={policyOpts} provisions={provisionOpts} files={fileOpts} />}</>} />
+
+      {!parent && canRead(v, "insurance") && policies.some((p) => p.kind === "auto" || p.kind === "classic_car") && (
+        <section className="card mb-6">
+          <h2 className="text-[1.2rem] font-semibold">Vehicle insurance</h2>
+          <ul className="mt-2 divide-y divide-rule-soft">
+            {policies.filter((p) => p.kind === "auto" || p.kind === "classic_car").map((p) => (
+              <li key={p.id} className="py-2 first:pt-0 last:pb-0"><div className="font-semibold">{p.kind === "auto" ? "Auto" : "Classic car"} · {p.carrier}{p.policy_last4 && <span className="font-normal text-ink-soft"> · policy ····{p.policy_last4}</span>}</div>{p.notes && <div className="text-[0.95rem] text-ink-soft">{p.notes}</div>}</li>
+            ))}
+          </ul>
+          <p className="mt-2 text-[0.85rem] text-ink-soft">Edit these on the <a href="/insurance">Insurance</a> page; link a policy to a car with the car&apos;s Edit button.</p>
+        </section>
+      )}
 
       {!parent && vehicles.length > 0 && <p className="mb-5 text-ink-soft">Estimated value on file: <strong className="text-ink">{fmtMoney(total)}</strong> across {vehicles.length} vehicles.</p>}
 
@@ -74,6 +88,7 @@ export default async function VehiclesPage() {
                 )}
                 {specs && <p className="mt-3 text-[0.9rem]">Specs: <a href={`/api/files/${specs.id}`} target="_blank" rel="noreferrer">{specs.name}</a></p>}
                 {x.notes && <p className="mt-2 text-[0.95rem] text-ink-soft">{x.notes}</p>}
+                <AssetPhotos kind="vehicle" assetId={x.id} photos={photos.filter((p) => p.asset_id === x.id)} canEdit={canEdit} parent={parent} />
               </li>
             );
           })}

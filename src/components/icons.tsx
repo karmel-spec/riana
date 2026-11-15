@@ -25,6 +25,9 @@ export const Heart = ({ size = 22, ...p }: P) => (
 export const House = ({ size = 22, ...p }: P) => (
   <svg {...base(size)} {...p}><path d="M4 21V9l8-6 8 6v12" /><path d="M9 21v-7h6v7" /></svg>
 );
+export const Car = ({ size = 22, ...p }: P) => (
+  <svg {...base(size)} {...p}><path d="M5 16l1.5-5.5A2 2 0 0 1 8.4 9h7.2a2 2 0 0 1 1.9 1.5L19 16" /><path d="M3 16h18v3H3z" /><path d="M6 19v2" /><path d="M18 19v2" /><path d="M7 16h.01" /><path d="M17 16h.01" /></svg>
+);
 export const Bank = ({ size = 22, ...p }: P) => (
   <svg {...base(size)} {...p}><path d="M3 10l9-6 9 6" /><path d="M5 10v8" /><path d="M9.5 10v8" /><path d="M14.5 10v8" /><path d="M19 10v8" /><path d="M3 20h18" /></svg>
 );
