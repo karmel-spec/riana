@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Worktrees that Claude Code sessions create inside the repo: other checkouts, not this one's source.
+    ".claude/**",
   ]),
 ]);
 
