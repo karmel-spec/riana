@@ -17,7 +17,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         </div>
         <div className="card">
           {sent ? (
-            <p className="text-center">Check your email for a link from the binder. It works for 10 minutes.</p>
+            <div className="flex flex-col gap-3 text-center">
+              <p>{sent === "reset" ? "Check your email for a link from the binder. Open it on this device and you’ll be asked to choose a new password. It works for 10 minutes." : "Check your email for a link from the binder. It works for 10 minutes."}</p>
+              <p className="text-[0.9rem] text-ink-soft">It can take a few minutes and sometimes lands in spam.</p>
+              <a href="/login" className="font-semibold text-evergreen underline">Back to sign in</a>
+            </div>
           ) : (
             <LoginForm />
           )}

@@ -1,10 +1,11 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { isDemo } from "@/lib/env";
+import { RESET_COOKIE } from "@/lib/auth-reset";
 
 const Email = z.string().trim().email().max(200);
 const Password = z.string().min(10, "Use at least 10 characters.").max(200);
@@ -22,6 +23,9 @@ export async function sendMagicLink(_prev: { error: string }, form: FormData): P
   // and never reveals the list; a stranger simply gets the same "check your
   // email" screen and no email.
   const { data: invited } = await supabase.rpc("is_invited", { p_email: email });
+  // "Forgot your password": the same one-time link, but this browser is remembered so the link lands on the new-password page.
+  const forgot = form.get("forgot") === "1";
+  if (forgot) (await cookies()).set(RESET_COOKIE, "1", { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: 60 * 30, path: "/" });
   if (invited) {
     const { error } = await supabase.auth.signInWithOtp({
       email,
@@ -32,7 +36,7 @@ export async function sendMagicLink(_prev: { error: string }, form: FormData): P
       return { error: "We couldn’t send the link right now. Please try again in a minute." };
     }
   }
-  redirect("/login?sent=1");
+  redirect(forgot ? "/login?sent=reset" : "/login?sent=1");
 }
 
 /** Email + password. The password is set by a super admin (People & Access) or by the person on /account/password. */
