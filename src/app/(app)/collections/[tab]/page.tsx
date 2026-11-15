@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { CollapsibleCard, Empty, PageHeader } from "@/components/ui";
 import { AddAlbumButton } from "../../history/media-client";
 import { fmtDate, subjectName } from "@/lib/format";
-import { Book, Heart, Mic, Tag } from "@/components/icons";
+import { Book, Heart, Mic, People, Tag } from "@/components/icons";
 import type { CollectionCategory } from "@/lib/types";
 import { AddCollectionButton, RemoveCollectionButton } from "../collections-client";
 import { Slideshow } from "../slideshow";
@@ -17,6 +17,7 @@ const TABS: Record<string, { title: string; parentTitle: string; intro: string; 
   "love-letters": { title: "Love letters", parentTitle: "Your love letters", intro: "The letters Rich and Diana wrote each other, and the ones worth keeping from family and friends: where each is kept, and a link if it has been scanned.", parentIntro: "Your love letters, and where they are.", categories: ["love_letter"], defaultCategory: "love_letter" },
   interviews: { title: "Interviews", parentTitle: "Your interviews", intro: "Recorded conversations with Rich and Diana: life-story interviews, voice memos and videos, with a link to listen or watch and a note on what each one covers.", parentIntro: "Recordings of you telling your stories. Tap a link to listen.", categories: ["interview"], defaultCategory: "interview" },
   imemories: { title: "iMemories & digital history", parentTitle: "Home movies", intro: "Home movies and photos digitized through iMemories, plus the digital family history archive: scanned documents and genealogy files kept online.", parentIntro: "The home movies and the family archive. Tap a link to open it.", categories: ["imemories", "digital_history", "other"], defaultCategory: "imemories" },
+  ancestors: { title: "Ancestors", parentTitle: "Your parents and grandparents", intro: "Papers and keepsakes from the generations before Rich and Diana: wills, certificates, letters and photos, kept under the person they belonged to.", parentIntro: "Things kept from your parents and grandparents.", categories: ["ancestor"], defaultCategory: "ancestor" },
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ tab: string }> }) {
@@ -43,13 +44,18 @@ export default async function CollectionsPage({ params }: { params: Promise<{ ta
   const photoTags = [...new Set(["Family", ...photoGroups(photos).map((g) => g.name).filter((n) => !n.includes("→") && n !== "Added in the app")])];
   await data.logView(v, "family_history", "collections");
   const parent = v.brief;
+  // The Ancestors page is foldered by person; every other page by kind of item.
+  const people = [...new Set(items.filter((i) => i.category === "ancestor").map((i) => i.person?.trim() || "Not yet named"))].sort();
+  const sections = tab === "ancestors"
+    ? people.map((p) => ({ key: p, title: p, blurb: "", icon: People, list: items.filter((i) => (i.person?.trim() || "Not yet named") === p) }))
+    : GROUPS.filter((g) => t.categories.includes(g.key)).map((g) => ({ key: g.key as string, title: g.title, blurb: g.blurb, icon: g.key === "book" ? Book : g.key === "love_letter" ? Heart : g.key === "interview" ? Mic : Tag, list: items.filter((i) => i.category === g.key) }));
   const canEdit = canWrite(v, "family_history") && !parent;
 
   return (
     <>
       <PageHeader eyebrow={parent ? undefined : "Section 16 · Collections"} title={parent ? t.parentTitle : t.title}
         intro={parent ? t.parentIntro : t.intro}
-        actions={canEdit ? <AddCollectionButton defaultCategory={t.defaultCategory} /> : undefined} />
+        actions={canEdit ? <AddCollectionButton defaultCategory={t.defaultCategory} people={people} /> : undefined} />
 
       {tab === "photos" && (
         <section aria-labelledby="slideshow" className="card mb-6 flex flex-col gap-3">
@@ -79,19 +85,18 @@ export default async function CollectionsPage({ params }: { params: Promise<{ ta
           </CollapsibleCard>
       )}
 
-      {items.length === 0 ? <Empty>Nothing recorded yet.</Empty> : (
+      {items.length === 0 ? <Empty>{tab === "ancestors" ? "Nothing filed here yet. Add an item and name the person it belonged to; each person gets their own folder." : "Nothing recorded yet."}</Empty> : (
         <div className="flex flex-col gap-6">
-          {GROUPS.filter((g) => t.categories.includes(g.key)).map((g) => {
-            const list = items.filter((i) => i.category === g.key);
+          {sections.map((g) => {
+            const { list, icon: Icon } = g;
             if (list.length === 0) return null;
-            const Icon = g.key === "book" ? Book : g.key === "love_letter" ? Heart : g.key === "interview" ? Mic : Tag;
             return (
               <section key={g.key} className="card">
                 <div className="mb-3 flex items-center gap-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-evergreen-tint text-evergreen"><Icon size={22} /></div>
                   <div>
                     <h2 className="text-[1.35rem] font-semibold leading-tight">{g.title}</h2>
-                    {!parent && <div className="text-[0.9rem] text-ink-soft">{g.blurb}</div>}
+                    {!parent && g.blurb && <div className="text-[0.9rem] text-ink-soft">{g.blurb}</div>}
                   </div>
                 </div>
                 <ul className="divide-y divide-rule-soft">
@@ -100,7 +105,7 @@ export default async function CollectionsPage({ params }: { params: Promise<{ ta
                       <div className="min-w-0">
                         <div className={`font-semibold ${parent ? "text-[1.3rem]" : "text-[1.1rem]"}`}>{i.title}</div>
                         <div className="text-[0.95rem] text-ink-soft">{i.owner === "both" ? "Both" : subjectName(i.owner)}{i.period && ` · ${i.period}`}{i.location && ` · ${i.location}`}</div>
-                        {i.note && <div className="text-[0.95rem] text-ink-soft">{i.note}</div>}
+                        {i.note && <div className="whitespace-pre-line text-[0.95rem] text-ink-soft">{i.note}</div>}
                         {!parent && <div className="text-[0.8rem] text-ink-soft">Added {fmtDate(i.created_at, { year: "numeric" })}{i.added_by_name && ` by ${i.added_by_name}`}</div>}
                       </div>
                       <div className="flex items-center gap-2">

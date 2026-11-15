@@ -71,9 +71,9 @@ export async function searchBinder(v: Viewer, query: string): Promise<SearchHit[
   digital.forEach((x) => add({ href: "/digital", group: "Accounts Directory", title: x.service, detail: `${x.category ?? ""}${x.vault_item ? ` · 1Password: ${x.vault_item}` : ""}`, text: [x.service, x.website, x.category, x.purpose, x.vault_item, x.after_death, x.notes] }));
   safe.forEach((x) => add({ href: "/safe", group: "The Safe", title: x.name, detail: `${x.category} · ${x.safe_name}`, text: [x.name, x.detail, x.safe_name] }));
   journals.forEach((x) => add({ href: "/journals", group: "Journals", title: x.title, detail: x.period ?? "", text: [x.title, x.period, x.note] }));
-  const tab = { book: "books", photos: "photos", imemories: "imemories", digital_history: "imemories", love_letter: "love-letters", interview: "interviews", other: "photos" } as const;
-  const groupOf = { book: "Mom’s Books", photos: "Photos", imemories: "iMemories", digital_history: "iMemories", love_letter: "Love Letters", interview: "Interviews", other: "Photos" } as const;
-  collections.forEach((x) => add({ href: `/collections/${tab[x.category]}`, group: groupOf[x.category], title: x.title, detail: x.location ?? x.period ?? "", text: [x.title, x.location, x.period, x.note] }));
+  const tab = { book: "books", photos: "photos", imemories: "imemories", digital_history: "imemories", love_letter: "love-letters", interview: "interviews", ancestor: "ancestors", other: "photos" } as const;
+  const groupOf = { book: "Mom’s Books", photos: "Photos", imemories: "iMemories", digital_history: "iMemories", love_letter: "Love Letters", interview: "Interviews", ancestor: "Ancestors", other: "Photos" } as const;
+  collections.forEach((x) => add({ href: `/collections/${tab[x.category]}`, group: groupOf[x.category], title: x.title, detail: x.location ?? x.period ?? "", text: [x.title, x.person, x.location, x.period, x.note] }));
   albums.forEach((x) => add({ href: "/collections/photos", group: "Photos", title: x.title, detail: "Shared album", text: [x.title, x.note] }));
   vaClaims.forEach((x) => add({ href: "/health/rich", group: "Health · Rich", title: x.title, detail: `VA · ${x.status}`, text: [x.title, x.status, x.next_step, x.summary, x.notes] }));
 

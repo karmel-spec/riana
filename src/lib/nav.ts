@@ -47,6 +47,7 @@ export const NAV: NavItem[] = [
   { href: "/collections/imemories", label: "iMemories", section: "family_history", icon: I.Tag, built: true, group: "Memories" },
   { href: "/collections/love-letters", label: "Love Letters", section: "family_history", icon: I.Heart, built: true, group: "Memories" },
   { href: "/collections/interviews", label: "Interviews", section: "family_history", icon: I.Mic, built: true, group: "Memories" },
+  { href: "/collections/ancestors", label: "Ancestors", section: "family_history", icon: I.People, built: true, group: "Memories" },
   { href: "/sources/widow-book", label: "The Widow Book", section: "admin", icon: I.Book, built: true, group: "Sources" },
 ];
 
