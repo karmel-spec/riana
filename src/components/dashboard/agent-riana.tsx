@@ -9,8 +9,9 @@ export const findRiana = (people: Person[]) => people.find((p) => p.full_name.tr
 /**
  * "Agent Riana" on the home page: who she is and how to reach her.
  * `big` is the Brief view. `pending` and `canReview` add the admin's review link. `vaultHref` links "password vault" to the Passwords page for people who may open it.
+ * `pageHref` adds a link to Riana's own page (left off on that page itself).
  */
-export function AgentRiana({ riana, big = false, pending = 0, canReview = false, vaultHref }: { riana: Person | null; big?: boolean; pending?: number; canReview?: boolean; vaultHref?: string }) {
+export function AgentRiana({ riana, big = false, pending = 0, canReview = false, vaultHref, pageHref }: { riana: Person | null; big?: boolean; pending?: number; canReview?: boolean; vaultHref?: string; pageHref?: string }) {
   const sms = riana?.phone ? riana.phone.replace(/[^\d+]/g, "") : null;
   return (
     <section aria-labelledby="agent-riana" className={`card flex flex-col gap-3 ${big ? "mb-6" : ""}`}>
@@ -20,6 +21,7 @@ export function AgentRiana({ riana, big = false, pending = 0, canReview = false,
           <h2 id="agent-riana" className={`font-semibold leading-tight ${big ? "text-[1.6rem]" : "text-[1.35rem]"}`}>Agent Riana</h2>
           <div className="text-ink-soft">The family’s assistant</div>
         </div>
+        {pageHref && <Link href={pageHref} className="ml-auto shrink-0 font-bold text-evergreen">About Riana</Link>}
       </div>
       <p className={big ? "text-[1.1rem]" : ""}>
         {big
