@@ -12,7 +12,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <div className="w-full max-w-[440px]">
         <div className="mb-6 text-center">
           <div className="eyebrow">Private family site</div>
-          <h1 className="text-[2.2rem] font-semibold leading-tight">The Greene Family Binder</h1>
+          <h1 className="text-[2.2rem] font-semibold leading-tight">Rich &amp; Diana Greene</h1>
           <p className="mt-2 text-ink-soft">Sign in with your password, or have a link emailed to you.</p>
         </div>
         <div className="card">

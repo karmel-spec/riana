@@ -1,15 +1,17 @@
 import { requireSection, canWrite } from "@/lib/session";
 import * as data from "@/lib/data";
+import { isHealthQuestion } from "@/lib/questions";
 import { PageHeader } from "@/components/ui";
 import { QuestionList } from "./question-list";
 import { NewQuestionForm } from "./new-question-form";
 
-export const metadata = { title: "Urgent Questions" };
+export const metadata = { title: "Questions" };
 
 export default async function QuestionsPage({ searchParams }: { searchParams: Promise<{ new?: string }> }) {
   const v = await requireSection("urgent_questions");
   const { new: openNew } = await searchParams;
-  const questions = await data.getQuestions(v);
+  // Health questions live on the Health pages, next to the records they are about.
+  const questions = (await data.getQuestions(v)).filter((q) => !isHealthQuestion(q));
   const parent = v.brief;
   const list = parent
     ? questions.filter((q) => q.asked_of === v.isSubject || q.asked_of === "both")
@@ -21,7 +23,7 @@ export default async function QuestionsPage({ searchParams }: { searchParams: Pr
     <>
       <PageHeader
         eyebrow={parent ? undefined : "Section 1"}
-        title={parent ? "Questions from the family" : "Urgent questions to review"}
+        title={parent ? "Questions from the family" : "Questions to review"}
         intro={parent
           ? "Answer in your own words. There are no wrong answers, and you can change them later."
           : "Each question has an owner who will ask Mom and Dad, and a place to capture their answer."}

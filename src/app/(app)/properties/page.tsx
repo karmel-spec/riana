@@ -58,7 +58,7 @@ export default async function PropertiesPage() {
                   {!parent && (
                     <div className="rounded-xl bg-brass-tint/60 p-4">
                       <div className="eyebrow">What happens to it later</div>
-                      <p className="mt-1">{p.succession_plan ?? <span className="text-ember">Not decided yet — add to Urgent Questions.</span>}</p>
+                      <p className="mt-1">{p.succession_plan ?? <span className="text-ember">Not decided yet — add to Questions.</span>}</p>
                     </div>
                   )}
                   <div className="rounded-xl border border-rule-soft p-4">

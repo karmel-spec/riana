@@ -65,16 +65,16 @@ export function Directory({ people, groups, canEdit, parent, today }: { people: 
         <label className="flex min-w-[220px] flex-1 items-center gap-2 rounded-xl border border-rule bg-paper px-3">
           <Search size={20} className="text-ink-soft" />
           <span className="sr-only">Search people</span>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name, city, note…" className="min-h-[44px] w-full bg-transparent outline-none" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={parent ? "Search by name…" : "Search by name, city, note…"} className={`w-full bg-transparent outline-none ${parent ? "min-h-[52px] text-[1.15rem]" : "min-h-[44px]"}`} />
+        </label>
+        <label className={parent ? "w-full sm:w-auto" : ""}><span className="sr-only">Group</span>
+          <select value={group} onChange={(e) => setGroup(e.target.value)} className={`field ${parent ? "min-h-[52px] text-[1.1rem] sm:w-auto" : "w-auto"}`}>
+            <option value="">{parent ? "Everyone" : "All groups"}</option>
+            {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+          </select>
         </label>
         {!parent && (
           <>
-            <label><span className="sr-only">Group</span>
-              <select value={group} onChange={(e) => setGroup(e.target.value)} className="field w-auto">
-                <option value="">All groups</option>
-                {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-              </select>
-            </label>
             <label><span className="sr-only">Connected to</span>
               <select value={spouse} onChange={(e) => setSpouse(e.target.value)} className="field w-auto">
                 <option value="">Rich & Diana</option><option value="rich">Rich’s people</option><option value="diana">Diana’s people</option>
@@ -87,10 +87,10 @@ export function Directory({ people, groups, canEdit, parent, today }: { people: 
             </label>
           </>
         )}
-        <label className="flex min-h-[44px] items-center gap-2 font-semibold">
+        {(!parent || people.some((p) => !p.confirmed)) && <label className="flex min-h-[44px] items-center gap-2 font-semibold">
           <input type="checkbox" checked={onlyUnconfirmed} onChange={(e) => setOnlyUnconfirmed(e.target.checked)} className="h-5 w-5 accent-evergreen" />
           {parent ? "Only the ones I haven’t checked" : "Unconfirmed only"}
-        </label>
+        </label>}
         {!parent && (
           <>
             <label className="flex min-h-[44px] items-center gap-2 font-semibold">
@@ -107,7 +107,7 @@ export function Directory({ people, groups, canEdit, parent, today }: { people: 
       {shown.length === 0 ? <Empty>Nobody matches.</Empty> : (
         <ul className={`grid gap-3 ${parent ? "" : "md:grid-cols-2"}`}>
           {shown.map((p) => (
-            <li key={p.id} className="card flex flex-col gap-2 !p-4">
+            <li key={p.id} className="card flex min-w-0 flex-col gap-2 !p-4">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
                   <div className={`font-semibold ${parent ? "text-[1.35rem]" : "text-[1.1rem]"}`}>{p.full_name}</div>
@@ -118,9 +118,16 @@ export function Directory({ people, groups, canEdit, parent, today }: { people: 
                   {p.confirmed ? <span className="pill bg-evergreen-tint text-evergreen"><Check size={14} /> Confirmed</span> : <span className="pill bg-brass-tint text-brass-deep">Please check</span>}
                 </div>
               </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-[0.95rem]">
+              {parent && (p.phone || p.email) && (
+                <div className="flex flex-wrap gap-2">
+                  {p.phone && <a href={`tel:${p.phone.replace(/[^\d+]/g, "")}`} className="btn-primary min-h-[52px] min-w-[7rem] flex-1 px-3 text-[1.05rem] no-underline"><Phone size={22} /> Call</a>}
+                  {p.phone && <a href={`sms:${p.phone.replace(/[^\d+]/g, "")}`} className="btn-secondary min-h-[52px] min-w-[5rem] flex-1 px-3 text-[1.05rem] no-underline">Text</a>}
+                  {p.email && <a href={`mailto:${p.email}`} className="btn-secondary min-h-[52px] min-w-[7rem] flex-1 px-3 text-[1.05rem] no-underline"><Mail size={22} /> Email</a>}
+                </div>
+              )}
+              <div className={`flex flex-wrap gap-x-4 gap-y-1 ${parent ? "text-[1.05rem]" : "text-[0.95rem]"}`}>
                 {p.phone && <a href={`tel:${p.phone.replace(/\D/g, "")}`} className="flex items-center gap-1 text-evergreen"><Phone size={16} /> {p.phone}</a>}
-                {p.email && <a href={`mailto:${p.email}`} className="flex items-center gap-1 text-evergreen"><Mail size={16} /> {p.email}</a>}
+                {p.email && <a href={`mailto:${p.email}`} className="flex min-w-0 max-w-full items-center gap-1 text-evergreen"><Mail size={16} className="shrink-0" /> <span className="min-w-0 break-all">{p.email}</span></a>}
                 {p.preferred_method && <span className="text-ink-soft">Prefers: {METHOD[p.preferred_method]}</span>}
               </div>
               {p.birth_month && p.birth_day && <div className="text-[0.95rem]"><span className="font-semibold">Birthday:</span> {birthdayLabel(p, today)}</div>}
@@ -137,7 +144,7 @@ export function Directory({ people, groups, canEdit, parent, today }: { people: 
                   {!p.confirmed && <button type="button" onClick={() => start(() => { confirmPerson(p.id, true); })} className="btn-primary px-4 text-[0.95rem]"><Check size={18} /> {parent ? "Yes, that's right" : "Confirm"}</button>}
                   {p.confirmed && !parent && <button type="button" onClick={() => start(() => { confirmPerson(p.id, false); })} className="btn text-[0.9rem] text-ink-soft">Unconfirm</button>}
                   <button type="button" onClick={() => start(() => { setNotifyFirst(p.id, !p.notify_first); })} className="btn-secondary px-4 text-[0.95rem]">{p.notify_first ? "Not first" : "Tell first"}</button>
-                  {!parent && <EditPersonForm person={p} groups={groups} />}
+                  <EditPersonForm person={p} groups={groups} simple={parent} />
                   {!parent && <button type="button" onClick={() => remove(p)} className="btn text-[0.9rem] text-ember">Remove</button>}
                 </div>
               )}

@@ -9,6 +9,7 @@ import { fmtDate, fmtTime, monthDay, relative } from "@/lib/format";
 import { Phone } from "@/components/icons";
 import { ClaimTimeline, ConditionList, HealthForms, MedicationList, ProviderRowActions } from "./health-client";
 import { HEALTH_RECORDS_INDEX_URL } from "@/lib/links";
+import { QuestionList } from "../../questions/question-list";
 
 const WHO = { diana: "Diana", rich: "Rich" } as const;
 
@@ -23,13 +24,17 @@ export default async function HealthPage({ params }: { params: Promise<{ who: st
   const patient = who;
   const section = `health_${patient}` as const;
   const v = await requireSection(section);
-  const [providers, meds, conditions, visits, labs, events, vaClaims, imported, healthFiles] = await Promise.all([
+  const [providers, meds, conditions, visits, labs, events, vaClaims, imported, healthFiles, allQuestions] = await Promise.all([
     data.getProviders(v, patient), data.getMedications(v, patient), data.getConditions(v, patient),
     data.getVisitNotes(v, patient), data.getAllLabs(v, patient), data.getUpcomingEvents(v, 120),
     patient === "rich" ? data.getVaClaims(v) : Promise.resolve([]),
     v.role === "super_admin" ? listImportedFiles(v) : Promise.resolve([]),
-    data.getHealthFiles(v, patient),
+    data.getHealthFiles(v, patient), data.getQuestions(v),
   ]);
+  // Health questions are kept here, beside the records they are about, instead of on the Questions tab.
+  const healthQs = allQuestions.filter((q) => q.topic === section);
+  const openQs = healthQs.filter((q) => !["answered", "closed"].includes(q.status));
+  const doneQs = healthQs.filter((q) => ["answered", "closed"].includes(q.status));
   await data.logView(v, section);
   const name = WHO[patient];
   const parent = v.brief;
@@ -67,6 +72,12 @@ export default async function HealthPage({ params }: { params: Promise<{ who: st
           : `Structured records for ${name}: every medication (daily or as needed), condition, allergy and sensitivity carries the document or visit it came from and the date.${patient === "rich" ? " The VA claim history is a timeline." : ""}`}
         actions={<><a href="#timeline" className="btn-primary">Medical Notes Timeline ↓</a>{!parent && <a href={HEALTH_RECORDS_INDEX_URL} target="_blank" rel="noreferrer" className="btn-secondary">Health records index ↗</a>}{canEdit && !parent && <HealthForms patient={patient} providers={providerOpts} />}</>}
       />
+      {healthQs.length > 0 && (
+        <div id="questions" className="mb-6 flex flex-col gap-4 rounded-2xl border border-rule bg-paper-warm px-5 py-4">
+          <QuestionList title={`${own ? "Questions for you" : "Health questions"} (${openQs.length} open)`} questions={openQs} collapsed viewer={{ role: v.role, brief: v.brief, canEdit: canWrite(v, "urgent_questions"), name: v.name }} />
+          {doneQs.length > 0 && <QuestionList title={`Answered (${doneQs.length})`} questions={doneQs} collapsed viewer={{ role: v.role, brief: v.brief, canEdit: canWrite(v, "urgent_questions"), name: v.name }} />}
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <CollapsibleCard title="Coverage">

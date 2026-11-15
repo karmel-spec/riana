@@ -133,7 +133,7 @@ export default async function StarLarPage() {
                   {openQs.slice(0, 5).map((q) => <li key={q.id}><Link href="/questions" className="text-ink">{q.question.length > 160 ? q.question.slice(0, 157) + "…" : q.question}</Link>{q.owner_name && <span className="text-ink-soft"> · {q.owner_name}</span>}</li>)}
                 </ul>
               )}
-              {openQs.length > 5 && <p className="mt-2 text-[0.85rem]"><Link href="/questions">{openQs.length - 5} more on Urgent Questions →</Link></p>}
+              {openQs.length > 5 && <p className="mt-2 text-[0.85rem]"><Link href="/questions">{openQs.length - 5} more on Questions →</Link></p>}
             </div>
           </div>
         </section>

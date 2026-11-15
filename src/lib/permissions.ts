@@ -28,7 +28,7 @@ export const ROLE_DEFAULTS: Record<AppRole, Partial<Record<Section, AccessLevel>
 };
 
 export const SECTION_LABELS: Record<Section, string> = {
-  urgent_questions: "Urgent Questions",
+  urgent_questions: "Questions",
   calendar: "Calendar",
   contacts: "Contacts & Who to Notify",
   health_diana: "Health · Diana",

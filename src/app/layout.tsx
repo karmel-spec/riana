@@ -6,10 +6,10 @@ const display = Lora({ subsets: ["latin"], weight: ["500", "600", "700"], variab
 const body = Source_Sans_3({ subsets: ["latin"], weight: ["400", "600", "700"], variable: "--font-body" });
 
 export const metadata: Metadata = {
-  title: { default: "Greene Family Binder", template: "%s · Greene Family Binder" },
+  title: { default: "Rich & Diana Greene", template: "%s · Rich & Diana Greene" },
   description: "A private home for everything the Greene family needs to care for Rich and Diana.",
   robots: { index: false, follow: false },
-  applicationName: "Greene Family Binder",
+  applicationName: "Rich & Diana Greene",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Greene Binder" },
 };
 

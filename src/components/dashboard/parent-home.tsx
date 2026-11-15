@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Viewer } from "@/lib/session";
 import * as data from "@/lib/data";
+import { isHealthQuestion } from "@/lib/questions";
 import { fmtDateLong, fmtTime, greeting, subjectName } from "@/lib/format";
 import { Calendar, Dove, Mic, People, Question, Book, ChevronRight } from "@/components/icons";
 
@@ -13,7 +14,7 @@ export async function ParentHome({ viewer: v }: { viewer: Viewer }) {
   const [events, questions] = await Promise.all([data.getUpcomingEvents(v, 60), data.getQuestions(v)]);
   const mine = events;  // shared calendar: both of their dates
   const next = mine[0];
-  const forMe = questions.filter((q) => !["answered", "closed"].includes(q.status) && (q.asked_of === v.isSubject || q.asked_of === "both"));
+  const forMe = questions.filter((q) => !isHealthQuestion(q) && !["answered", "closed"].includes(q.status) && (q.asked_of === v.isSubject || q.asked_of === "both"));
 
   return (
     <>
@@ -57,7 +58,7 @@ export async function ParentHome({ viewer: v }: { viewer: Viewer }) {
       <section aria-label="Things you can do" className="grid gap-4 sm:grid-cols-2">
         <Tile href="/questions" icon={<Question size={30} />} title="Answer a question" text="Short questions from the kids, one at a time." />
         <Tile href="/wishes" icon={<Dove size={30} />} title="Our wishes" text="Your services, music, and what matters to each of you." />
-        <Tile href="/contacts" icon={<People size={30} />} title="People to tell" text="Check the list of friends and family we have." />
+        <Tile href="/contacts" icon={<People size={30} />} title="Contacts" text="Call, text or update your friends and family." />
         <Tile href="/history" icon={<Book size={30} />} title="Memories" text="Photos, journals and the stories behind them." />
       </section>
 

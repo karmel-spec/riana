@@ -6,14 +6,15 @@ import { updatePerson } from "@/app/actions/records";
 import { Close } from "@/components/icons";
 import { MONTH_NAMES } from "@/lib/people/birthdays";
 
-export function EditPersonForm({ person: p, groups }: { person: Person; groups: ContactGroup[] }) {
+/** `simple` is the Brief view: a big Edit button and a shorter form (tags are kept as they are). */
+export function EditPersonForm({ person: p, groups, simple = false }: { person: Person; groups: ContactGroup[]; simple?: boolean }) {
   const [open, setOpen] = useState(false);
   const [state, action, pending] = useActionState(updatePerson, null);
   const [lastState, setLastState] = useState(state);
   if (state !== lastState) { setLastState(state); if (state?.ok) setOpen(false); }
   const id = (f: string) => `ep-${p.id}-${f}`;
 
-  if (!open) return <button type="button" onClick={() => setOpen(true)} className="btn text-[0.9rem] text-ink-soft">Edit</button>;
+  if (!open) return <button type="button" onClick={() => setOpen(true)} className={simple ? "btn-secondary min-h-[52px] px-5 text-[1.05rem]" : "btn text-[0.9rem] text-ink-soft"}>Edit</button>;
   return (
     <div role="dialog" aria-labelledby={id("title")} className="fixed inset-0 z-40 flex items-end justify-center bg-ink/40 sm:items-center sm:p-6">
       <form action={action} className="card flex max-h-[95dvh] w-full max-w-[560px] flex-col gap-4 overflow-y-auto rounded-b-none sm:rounded-2xl">
@@ -53,10 +54,11 @@ export function EditPersonForm({ person: p, groups }: { person: Person; groups: 
             <label><span className="sr-only">Birthday year</span><input name="birth_year" type="number" inputMode="numeric" min={1850} max={2100} placeholder="Year" defaultValue={p.birth_year ?? ""} className="field" /></label>
           </div>
         </fieldset>
-        <fieldset>
+        {simple && p.group_ids.map((g) => <input key={g} type="hidden" name="group_ids" value={g} />)}
+        <fieldset hidden={simple}>
           <legend className="label">Tags</legend>
           <div className="flex flex-wrap gap-2">
-            {groups.map((g) => (
+            {!simple && groups.map((g) => (
               <label key={g.id} className="flex min-h-[40px] items-center gap-2 rounded-full border border-rule px-3 text-[0.95rem]">
                 <input type="checkbox" name="group_ids" value={g.id} defaultChecked={p.group_ids.includes(g.id)} className="h-4 w-4 accent-evergreen" />{g.name}
               </label>
@@ -67,7 +69,7 @@ export function EditPersonForm({ person: p, groups }: { person: Person; groups: 
         <div><label htmlFor={id("notes")} className="label">Notes</label><textarea id={id("notes")} name="notes" rows={3} defaultValue={p.notes ?? ""} className="field" /></div>
         {state && !state.ok && <p className="text-ember">{state.error}</p>}
         <div className="flex gap-3">
-          <button className="btn-primary" disabled={pending}>{pending ? "Saving…" : "Save"}</button>
+          <button className={`btn-primary ${simple ? "min-h-[52px] px-6 text-[1.1rem]" : ""}`} disabled={pending}>{pending ? "Saving…" : "Save"}</button>
           <button type="button" onClick={() => setOpen(false)} className="btn-secondary">Cancel</button>
         </div>
       </form>

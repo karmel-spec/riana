@@ -480,12 +480,12 @@ export async function getAssetPhotos(v: Viewer, kind: "property" | "vehicle"): P
   return data as AssetPhoto[];
 }
 
-export type WidowBookFile = { id: string; name: string; web_view_link: string | null; target_note: string | null; taken_at: string | null; media_kind: string; sensitivity?: string; drive_file_id?: string };
+export type WidowBookFile = { id: string; name: string; web_view_link: string | null; target_note: string | null; taken_at: string | null; media_kind: string; sensitivity?: string; drive_file_id?: string; drive_folder_key?: string };
 /** Every file pointer tagged with a Widow Book section (super admins only; the binder holds sensitive pages). */
 export async function getWidowBook(v: Viewer): Promise<WidowBookFile[]> {
   if (v.role !== "super_admin" || v.demo) return [];
   const supabase = await createClient();
-  const { data, error } = await supabase.from("imported_files").select("id, name, web_view_link, target_note, taken_at, media_kind, sensitivity, drive_file_id").ilike("target_note", "%Widow Book%").order("taken_at", { ascending: true, nullsFirst: false });
+  const { data, error } = await supabase.from("imported_files").select("id, name, web_view_link, target_note, taken_at, media_kind, sensitivity, drive_file_id, drive_folder_key").ilike("target_note", "%Widow Book%").order("taken_at", { ascending: true, nullsFirst: false });
   if (error) return [];
   return data as WidowBookFile[];
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { LegalStatus, QuestionStatus, Source } from "@/lib/types";
+import { linkify } from "@/lib/text/links";
 
 export function PageHeader({ eyebrow, title, intro, actions }: {
   eyebrow?: string; title: string; intro?: string; actions?: React.ReactNode;
@@ -114,6 +115,17 @@ export function ComingSoon({ title, phase }: { title: string; phase: string }) {
       <div className="card">
         <p className="text-ink-soft">This section’s screens arrive in <strong>{phase}</strong> of the build plan. The database tables and permissions for it already exist.</p>
       </div>
+    </>
+  );
+}
+
+/** A note with any web addresses in it shown as short links that open in a new tab. */
+export function LinkedText({ text }: { text: string }) {
+  return (
+    <>
+      {linkify(text).map((p, i) => "href" in p
+        ? <a key={i} href={p.href} target="_blank" rel="noreferrer" className="whitespace-nowrap font-semibold text-evergreen underline decoration-evergreen/40 underline-offset-2">{p.label} ↗</a>
+        : <span key={i}>{p.text}</span>)}
     </>
   );
 }

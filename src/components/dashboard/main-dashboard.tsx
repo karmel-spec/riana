@@ -8,6 +8,7 @@ import { LabChart } from "./lab-chart";
 import { Mic, Sparkle } from "@/components/icons";
 import { ShareUpdateButton } from "./share-update";
 import { DismissQuestion } from "./dismiss-question";
+import { isHealthQuestion } from "@/lib/questions";
 import { MONTH_NAMES, inDays, todayIn, upcomingBirthdays } from "@/lib/people/birthdays";
 
 export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
@@ -21,7 +22,7 @@ export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
     ...events.map((e) => ({ key: e.id, at: e.starts_at, event: e, birthday: null })),
     ...upcomingBirthdays(people, todayIn(), 14).map((b) => ({ key: `bd-${b.person.id}`, at: `${b.on.y}-${pad(b.on.m)}-${pad(b.on.d)}T00:00:00-07:00`, event: null, birthday: b })),
   ].sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime()).slice(0, 5);
-  const openQs = questions.filter((q) => !["answered", "closed"].includes(q.status));
+  const openQs = questions.filter((q) => !["answered", "closed"].includes(q.status) && !isHealthQuestion(q));
   const failed = bills.filter((b) => b.status === "failed" || b.status === "overdue");
   const dueThisMonth = bills.filter((b) => b.next_due_on && new Date(b.next_due_on).getMonth() === new Date().getMonth());
   const signed = legal.filter((d) => ["signed", "recorded"].includes(d.status)).length;
@@ -53,12 +54,12 @@ export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
           <Stat label="Estate documents signed" value={<>{signed} <span className="text-[1.1rem] text-ink-soft">of {legal.length}</span></>} href="/legal"
             note={<div className="mt-1 h-2 overflow-hidden rounded-full bg-rule-soft"><div className="h-2 bg-evergreen" style={{ width: `${legal.length ? (signed / legal.length) * 100 : 0}%` }} /></div>} />
         )}
-        {!canRead(v, "legal") && <Stat label="Open urgent questions" value={openQs.length} href="/questions" />}
+        {!canRead(v, "legal") && <Stat label="Open questions" value={openQs.length} href="/questions" />}
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {canRead(v, "urgent_questions") && (
-          <SectionCard title="Urgent questions for Mom & Dad" link={{ href: "/questions", label: `All ${questions.length}` }}>
+          <SectionCard title="Questions for Mom & Dad" link={{ href: "/questions", label: `All ${questions.filter((q) => !isHealthQuestion(q)).length}` }}>
             {openQs.length === 0 ? <Empty>Nothing open. Well done.</Empty> : (
               <ul className="divide-y divide-rule-soft">
                 {openQs.slice(0, 4).map((q) => (
