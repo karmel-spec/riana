@@ -51,8 +51,7 @@ export default async function WidowBookPage() {
       <PageHeader eyebrow="Sources · 2022 and 2026 Widow Books" title="The Widow Book"
         intro="Two binders of important papers: the 2022 book, photographed that July, and the 2026 book Rich is assembling now. Both are filed here by their tabs, exactly as labeled. Every page lives in Drive; this page is the digital copy." />
 
-      <section aria-labelledby="wb-sources" className="mb-6">
-        <h2 id="wb-sources" className="eyebrow mb-2">Sources</h2>
+      <section aria-label="Sources" className="mb-6">
         <ul className="grid gap-3 md:grid-cols-2">
           {BOOKS.map((b) => {
             const count = files.filter((f) => (b.key === "widow_book_2026") === (f.drive_folder_key === "widow_book_2026")).length;
