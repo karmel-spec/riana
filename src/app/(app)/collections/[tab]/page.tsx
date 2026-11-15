@@ -7,6 +7,9 @@ import { fmtDate, subjectName } from "@/lib/format";
 import { Book, Heart, Mic, Tag } from "@/components/icons";
 import type { CollectionCategory } from "@/lib/types";
 import { AddCollectionButton, RemoveCollectionButton } from "../collections-client";
+import { Slideshow } from "../slideshow";
+import { UploadFile } from "@/components/upload-file";
+import { PHOTO_TAG, photoGroups } from "@/lib/files/slideshow";
 
 const TABS: Record<string, { title: string; parentTitle: string; intro: string; parentIntro: string; categories: CollectionCategory[]; defaultCategory: CollectionCategory }> = {
   books: { title: "Mom’s books", parentTitle: "Your books", intro: "The books Mom wrote, compiled or treasured, and where each one is kept.", parentIntro: "Your books, and where each one is.", categories: ["book"], defaultCategory: "book" },
@@ -36,7 +39,8 @@ export default async function CollectionsPage({ params }: { params: Promise<{ ta
   const t = TABS[tab]; if (!t) notFound();
   const v = await requireSection("family_history");
   const items = (await data.getCollections(v)).filter((i) => t.categories.includes(i.category));
-  const albums = tab === "photos" ? await data.getSharedAlbums(v) : [];
+  const [albums, photos] = tab === "photos" ? await Promise.all([data.getSharedAlbums(v), data.getSlideshowPhotos(v)]) : [[], []];
+  const photoTags = [...new Set(["Family", ...photoGroups(photos).map((g) => g.name).filter((n) => !n.includes("→") && n !== "Added in the app")])];
   await data.logView(v, "family_history", "collections");
   const parent = v.brief;
   const canEdit = canWrite(v, "family_history") && !parent;
@@ -48,8 +52,19 @@ export default async function CollectionsPage({ params }: { params: Promise<{ ta
         actions={canEdit ? <AddCollectionButton defaultCategory={t.defaultCategory} /> : undefined} />
 
       {tab === "photos" && (
-        <CollapsibleCard title={`Shared albums (${albums.length})`}>
-            <p className="mb-3 text-[0.95rem] text-ink-soft">{parent ? "Albums the family has shared. Tap one to open it." : "Links to albums that live in Google Photos. The app keeps the link as a reference; the photos stay where they are."}</p>
+        <section aria-labelledby="slideshow" className="card mb-6 flex flex-col gap-3">
+          <h2 id="slideshow" className={`font-semibold ${parent ? "text-[1.6rem]" : "text-[1.35rem]"}`}>Slideshow</h2>
+          {photos.length === 0
+            ? <Empty>{canEdit ? "No photos are stored in the binder yet. Add one below and the slideshow appears here." : "No photos are stored in the binder yet."}</Empty>
+            : <><p className="text-ink-soft">{parent ? "Sit back and watch the family photos, one at a time. Tap Close when you are done." : "Plays the photos kept in the binder full screen, one every six seconds. Arrow keys or a swipe change the photo; Esc closes."}</p><Slideshow photos={photos} big={parent} /></>}
+          {canEdit && <UploadFile section="family_history" label="Add a photo to the slideshow" back="/collections/photos"
+            notes={photoTags.map((t) => ({ label: t, value: `${PHOTO_TAG.prefix}${t}${PHOTO_TAG.suffix}` }))} newTab={PHOTO_TAG} />}
+        </section>
+      )}
+
+      {tab === "photos" && (
+        <CollapsibleCard title={`Shared albums (${albums.length})`} className="mb-6">
+            <p className="mb-3 text-[0.95rem] text-ink-soft">{parent ? "Albums the family has shared. Tap one to open it." : "Links to albums that live in Google Photos. The app keeps the link as a reference; the photos stay where they are."} Google Photos albums can’t play in the slideshow, so they open with their link.</p>
             {albums.length === 0 ? <Empty>No album links saved yet.</Empty> : (
               <ul className="divide-y divide-rule-soft">
                 {albums.map((a) => (

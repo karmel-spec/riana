@@ -88,6 +88,10 @@ export type Person = {
   confirmed: boolean;
   notes: string | null;
   group_ids: string[];
+  /** Birthday: month and day together, year optional. Absent until migration 20261115000025 is applied. */
+  birth_month?: number | null;
+  birth_day?: number | null;
+  birth_year?: number | null;
 };
 
 export type NotificationList = {

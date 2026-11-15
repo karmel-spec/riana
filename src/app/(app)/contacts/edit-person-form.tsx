@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import type { ContactGroup, Person } from "@/lib/types";
 import { updatePerson } from "@/app/actions/records";
 import { Close } from "@/components/icons";
+import { MONTH_NAMES } from "@/lib/people/birthdays";
 
 export function EditPersonForm({ person: p, groups }: { person: Person; groups: ContactGroup[] }) {
   const [open, setOpen] = useState(false);
@@ -40,6 +41,18 @@ export function EditPersonForm({ person: p, groups }: { person: Person; groups: 
             </select>
           </div>
         </div>
+        <fieldset>
+          <legend className="label">Birthday <span className="font-normal text-ink-soft">(the year is optional)</span></legend>
+          <div className="grid grid-cols-[1.4fr_1fr_1fr] gap-3">
+            <label><span className="sr-only">Birthday month</span>
+              <select name="birth_month" className="field" defaultValue={p.birth_month ?? ""}>
+                <option value="">Month</option>{MONTH_NAMES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+              </select>
+            </label>
+            <label><span className="sr-only">Birthday day</span><input name="birth_day" type="number" inputMode="numeric" min={1} max={31} placeholder="Day" defaultValue={p.birth_day ?? ""} className="field" /></label>
+            <label><span className="sr-only">Birthday year</span><input name="birth_year" type="number" inputMode="numeric" min={1850} max={2100} placeholder="Year" defaultValue={p.birth_year ?? ""} className="field" /></label>
+          </div>
+        </fieldset>
         <fieldset>
           <legend className="label">Tags</legend>
           <div className="flex flex-wrap gap-2">

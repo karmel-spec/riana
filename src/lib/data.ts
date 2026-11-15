@@ -3,6 +3,8 @@ import { createClient } from "./supabase/server";
 import { canRead, type Viewer } from "./session";
 import { SENSITIVE } from "./permissions";
 import * as fx from "./demo/fixtures";
+import { FOLDERS } from "./drive/manifest";
+import { photoCaption, photoGroup, type SlidePhoto } from "./files/slideshow";
 import type { AgendaItem,
   Account, AuditEntry, Bill, CalendarEvent, ContactGroup, FinalWish, HealthCondition, LabResult, LegalDocument, Loan,
   DigitalAccount, EstatePlanVersion, LoanPayment, MediaItem, Playlist, TributeBlock, TributePage, Vehicle, VehicleImprovement, EstateProvision, HouseholdItem, InsurancePolicy, Medication, PlanConflict, TaxSourceItem, NotificationCampaign, NotificationList, Person, Property, Provider, RianaKey, RianaUpdate, Section, SharedAlbum, Journal, CollectionItem, SafeItem, AssetPhoto, IncomeSource, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
@@ -522,6 +524,23 @@ export async function getSharedAlbums(v: Viewer): Promise<SharedAlbum[]> {
   const { data, error } = await supabase.from("shared_albums").select("*").order("created_at");
   if (error) fail("shared albums", error);
   return data as SharedAlbum[];
+}
+
+/**
+ * Photos the slideshow can play: approved family-history images that have a copy in the app's private storage
+ * (a Drive-only pointer has no picture the browser can show). Each is opened through /files/[id].
+ */
+export async function getSlideshowPhotos(v: Viewer): Promise<SlidePhoto[]> {
+  if (!canRead(v, "family_history") || v.demo) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("imported_files").select("id, drive_folder_key, target_note, taken_at, mime_type, storage_path")
+    .eq("section", "family_history").eq("media_kind", "image").eq("review_status", "approved").not("storage_path", "is", null)
+    .order("taken_at", { ascending: true, nullsFirst: false }).order("name").limit(2000);
+  if (error) return [];
+  const folder = (key: string) => FOLDERS.find((f) => f.key === key)?.name ?? null;
+  return (data as { id: string; drive_folder_key: string; target_note: string | null; taken_at: string | null; mime_type: string | null; storage_path: string }[])
+    .filter((f) => !f.storage_path.startsWith("drive-only"))
+    .map((f) => ({ id: f.id, group: photoGroup(f.target_note, f.drive_folder_key === "web_app_import" ? "Added in the app" : folder(f.drive_folder_key)), caption: photoCaption(f.target_note), taken_at: f.taken_at }));
 }
 
 /** Meeting agenda items (legal section). Returns [] when the table has not been created yet. */
