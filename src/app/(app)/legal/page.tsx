@@ -4,6 +4,7 @@ import { PageHeader, LegalStatusPill, Stat } from "@/components/ui";
 import { JourneyMap } from "./journey-map";
 import type { LegalStatus } from "@/lib/types";
 import { scanMap } from "@/lib/legal/scans";
+import { TZ } from "@/lib/format";
 
 export const metadata = { title: "Legal & Estate" };
 
@@ -52,7 +53,7 @@ export default async function LegalPage() {
         <Stat label="With an open issue" value={blocked} tone={blocked ? "ember" : "evergreen"} />
       </section>
 
-      <JourneyMap docs={docs} canEdit={canWrite(v, "legal")} scans={scans} />
+      <JourneyMap docs={docs} canEdit={canWrite(v, "legal")} scans={scans} today={new Date().toLocaleDateString("en-CA", { timeZone: TZ })} />
     </>
   );
 }

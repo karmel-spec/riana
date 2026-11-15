@@ -128,6 +128,7 @@ const LegalUpdate = z.object({
   open_issue: z.string().trim().max(1000).optional(),
   signed_on: z.string().optional(),
   recorded_on: z.string().optional(),
+  notes: z.string().trim().max(4000).optional(),
 });
 
 export async function updateLegalDocument(_p: Result | null, form: FormData): Promise<Result> {
@@ -141,6 +142,8 @@ export async function updateLegalDocument(_p: Result | null, form: FormData): Pr
     open_issue: rest.open_issue || null,
     signed_on: rest.signed_on || null,
     recorded_on: rest.recorded_on || null,
+    // "What theirs says": only touched when the form carries the field.
+    ...(rest.notes !== undefined ? { notes: rest.notes || null } : {}),
   };
   if (v.demo) {
     const d = demoStore().legal.find((x) => x.id === id);
@@ -152,7 +155,7 @@ export async function updateLegalDocument(_p: Result | null, form: FormData): Pr
     const { error } = await supabase.from("legal_documents").update(patch).eq("id", id);
     if (error) return { ok: false, error: "Could not save." };
   }
-  revalidatePath("/legal"); revalidatePath("/");
+  revalidatePath("/legal"); revalidatePath("/health/legal"); revalidatePath("/");
   return { ok: true };
 }
 
