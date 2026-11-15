@@ -27,7 +27,7 @@ export default async function ExecutrixPage() {
     <>
       <PageHeader eyebrow={parent ? undefined : "Section 11 · Executrix"} title={parent ? "What Heather will do" : "Executrix checklist"}
         intro={parent ? "The steps Heather will take, in order, and the papers each one needs. Where a paper is missing, you can still fix it now." : "What Heather, as executrix, does in the first days, weeks and months, with the binder page or app record behind every step. A red mark means the document is not filed yet, which is the thing to fix while Rich and Diana can still help."}
-        actions={<><Link href="/sources/widow-book" className="btn-secondary">The Widow Book →</Link><Link href="/legal" className="btn-secondary">Legal board →</Link></>} />
+        actions={<><Link href="/sources/widow-book" className="btn-secondary">The Widow Book →</Link><Link href="/legal" className="btn-secondary">Legal board →</Link><Link href="/glossary" className="btn-secondary">Glossary →</Link></>} />
 
       <div className="card mb-6 flex flex-wrap items-center gap-6">
         <div><div className="eyebrow">Readiness</div><div className="font-serif text-[2rem] font-semibold leading-tight text-evergreen">{ready} of {all.length}</div><div className="text-[0.9rem] text-ink-soft">steps have every document filed</div></div>

@@ -34,6 +34,7 @@ export const NAV: NavItem[] = [
   { href: "/safe", label: "The Safe", section: "accounts", icon: I.Lock, built: true, group: "Money" },
   { href: "/legal", label: "Legal & Estate", section: "legal", icon: I.Scroll, built: true, group: "Legal" },
   { href: "/estate", label: "Estate Plan", section: "legal", icon: I.Scroll, built: true, group: "Legal" },
+  { href: "/glossary", label: "Glossary", section: null, icon: I.Book, built: true, group: "Legal" },
   { href: "/wishes", label: "Final Wishes", section: "final_wishes", icon: I.Dove, built: true, group: "Final Wishes" },
   { href: "/funeral", label: "Funeral", section: "final_wishes", icon: I.Dove, built: true, group: "Final Wishes" },
   { href: "/burial", label: "Burial", section: "final_wishes", icon: I.Dove, built: true, group: "Final Wishes" },

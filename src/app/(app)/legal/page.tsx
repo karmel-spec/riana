@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireSection, canWrite } from "@/lib/session";
 import * as data from "@/lib/data";
 import { PageHeader, LegalStatusPill, Stat } from "@/components/ui";
@@ -44,7 +45,8 @@ export default async function LegalPage() {
   return (
     <>
       <PageHeader eyebrow="Section 11" title="Legal & estate documents"
-        intro="Each document moves along the same track: started, drafted, signed, recorded. The gold dot is where it is now; the red word is the one thing that moves it forward." />
+        intro="Each document moves along the same track: started, drafted, signed, recorded. The gold dot is where it is now; the red word is the one thing that moves it forward."
+        actions={<Link href="/glossary" className="btn-secondary">Glossary of terms →</Link>} />
 
       <section className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat label="Signed or recorded" value={n("signed") + n("recorded")} note={missingOriginal ? `${missingOriginal} original${missingOriginal === 1 ? "" : "s"} unlocated` : "all originals located"} tone="evergreen" />

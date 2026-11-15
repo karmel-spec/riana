@@ -99,6 +99,9 @@ const RULES: { title?: RegExp; type?: string; e: Explainer }[] = [
     ["Is the case closed or still open?", "Did it produce any order the family has to follow?"]) },
 ];
 
+/** Every kind of document the binder can explain, A to Z, for the glossary. */
+export const DOCUMENT_KINDS: Explainer[] = RULES.map((r) => r.e).sort((a, b) => a.kind.localeCompare(b.kind));
+
 const FALLBACK = E("Estate document",
   "One of the papers that make up the estate plan.",
   "Each document covers a gap the others leave: who decides, who inherits, and how property actually changes hands.",

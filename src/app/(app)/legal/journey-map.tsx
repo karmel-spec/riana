@@ -95,7 +95,7 @@ function Learn({ d, scanId, today }: { d: LegalDocument; scanId?: string; today:
         <div className={`${h} mt-3`}>Questions to ask about theirs</div>
         <ul className="mt-1 list-disc pl-5">{e.lookFor.map((q) => <li key={q}>{q}</li>)}</ul>
       </section>
-      <p className="text-[0.8rem] text-ink-soft md:col-span-2">The left side is general background, not legal advice. The right side shows only what has been recorded in the binder; the estate attorney has the final word.</p>
+      <p className="text-[0.8rem] text-ink-soft md:col-span-2">The left side is general background, not legal advice; the <a href="/glossary" className="font-semibold text-evergreen underline">glossary</a> explains the terms. The right side shows only what has been recorded in the binder; the estate attorney has the final word.</p>
     </div>
   );
 }
