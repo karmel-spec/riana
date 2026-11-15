@@ -7,7 +7,7 @@ import { FOLDERS } from "./drive/manifest";
 import { photoCaption, photoGroup, type SlidePhoto } from "./files/slideshow";
 import type { AgendaItem,
   Account, AuditEntry, Bill, CalendarEvent, ContactGroup, FinalWish, HealthCondition, LabResult, LegalDocument, Loan,
-  DigitalAccount, EstatePlanVersion, LoanPayment, MediaItem, Playlist, TributeBlock, TributePage, Vehicle, VehicleImprovement, EstateProvision, HouseholdItem, InsurancePolicy, Medication, PlanConflict, TaxSourceItem, NotificationCampaign, NotificationList, Person, Property, Provider, RianaKey, RianaUpdate, Section, SharedAlbum, Journal, CollectionItem, SafeItem, AssetPhoto, IncomeSource, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
+  DigitalAccount, EstatePlanVersion, LoanPayment, MediaItem, Playlist, TributeBlock, TributePage, Vehicle, VehicleImprovement, EstateProvision, HouseholdItem, InsurancePolicy, Medication, PlanConflict, TaxSourceItem, NotificationCampaign, NotificationList, Person, Property, Provider, RianaKey, RianaQuestion, RianaUpdate, Section, SharedAlbum, Journal, CollectionItem, SafeItem, AssetPhoto, IncomeSource, TaxRecord, UrgentQuestion, VaClaim, VisitNote,
 } from "./types";
 
 // -----------------------------------------------------------------------------
@@ -28,9 +28,11 @@ type Store = {
   campaigns: NotificationCampaign[]; bills: Bill[]; labs: LabResult[];
   wishes: FinalWish[]; loans: Loan[]; riana: RianaUpdate[]; audit: AuditEntry[];
   albums: SharedAlbum[]; journals: Journal[]; collections: CollectionItem[]; safeItems: SafeItem[]; assetPhotos: AssetPhoto[]; incomeSources: IncomeSource[];
+  /** Ask Riana thread. asked_by is the demo viewer id, for the hourly limit. */
+  rianaQuestions: (RianaQuestion & { asked_by?: string })[];
 };
 // Bump when Store gains a key, so a dev server that kept the old object rebuilds it.
-const STORE_VERSION = 16;
+const STORE_VERSION = 17;
 const g = globalThis as unknown as { __greeneDemo?: Store; __greeneDemoV?: number };
 export function demoStore(): Store {
   if (g.__greeneDemoV !== STORE_VERSION) { g.__greeneDemo = undefined; g.__greeneDemoV = STORE_VERSION; }
@@ -48,6 +50,7 @@ export function demoStore(): Store {
     campaigns: fx.notificationCampaigns, bills: fx.bills, labs: fx.labResults,
     wishes: fx.finalWishes, loans: fx.loans, riana: fx.rianaUpdates, audit: fx.auditEntries,
     albums: fx.sharedAlbums, journals: fx.journals, collections: fx.collections, safeItems: fx.safeItems, assetPhotos: fx.assetPhotos, incomeSources: fx.incomeSources,
+    rianaQuestions: fx.rianaQuestions,
   });
   return g.__greeneDemo;
 }

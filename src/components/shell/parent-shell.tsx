@@ -3,6 +3,7 @@ import { getViewer } from "@/lib/session";
 import { SampleBanner } from "./sample-banner";
 import { ParentNav } from "./parent-nav";
 import { ViewToggle } from "./view-toggle";
+import { canAskRiana } from "@/lib/riana/questions";
 
 /**
  * The parent frame. Same colors and type as the main binder, but:
@@ -36,7 +37,7 @@ export async function ParentShell({ children }: { children: React.ReactNode }) {
             </div>
           </details>
         </div>
-        <ParentNav />
+        <ParentNav riana={canAskRiana(v)} />
       </header>
       <SampleBanner demo={v.demo} />
       <main id="main" className="mx-auto w-full min-w-0 max-w-[1100px] flex-1 px-4 pb-28 pt-6 sm:px-8 sm:pt-10 md:pb-10">

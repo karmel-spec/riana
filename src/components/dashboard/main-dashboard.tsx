@@ -8,6 +8,7 @@ import { ShareUpdateButton } from "./share-update";
 import { DismissQuestion } from "./dismiss-question";
 import { isHealthQuestion } from "@/lib/questions";
 import { AgentRiana, findRiana } from "./agent-riana";
+import { AskRianaPanel } from "./ask-riana-panel";
 import { MONTH_NAMES, inDays, todayIn, upcomingBirthdays } from "@/lib/people/birthdays";
 
 export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
@@ -110,6 +111,8 @@ export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
         </SectionCard>
 
         <AgentRiana riana={findRiana(people)} pending={riana.length} canReview={canRead(v, "admin")} vaultHref={canRead(v, "digital_accounts") ? "/passwords" : undefined} />
+
+        <AskRianaPanel viewer={v} admin />
 
         {canRead(v, "legal") && (
           <SectionCard title="Estate documents" link={{ href: "/legal", label: "Status board" }}>

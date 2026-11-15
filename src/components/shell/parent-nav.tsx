@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Calendar, Close, Dove, Home, Menu, People, Question, Book, Search, Tag } from "@/components/icons";
+import { Calendar, Close, Dove, Home, Menu, People, Question, Book, Search, Sparkle, Tag } from "@/components/icons";
 
 const ITEMS = [
   { href: "/", label: "Home", icon: Home, tab: true },
   { href: "/contacts", label: "Contacts", icon: People, tab: true },
   { href: "/calendar", label: "Calendar", icon: Calendar, tab: true },
   { href: "/collections/photos", label: "Photos", icon: Tag, tab: true },
+  { href: "/riana", label: "Riana", icon: Sparkle, riana: true },
   { href: "/questions", label: "Questions", icon: Question },
   { href: "/wishes", label: "Our Wishes", icon: Dove },
   { href: "/history", label: "Memories", icon: Book },
@@ -22,21 +23,23 @@ const ITEMS = [
 /**
  * Brief-view navigation. Wide screens: a row of buttons under the title.
  * Phones: four tabs and "More" fixed along the bottom, where a thumb reaches.
+ * `riana` adds the Riana page, for the people who may chat with her.
  */
-export function ParentNav() {
+export function ParentNav({ riana = false }: { riana?: boolean }) {
   const pathname = usePathname();
   // Remembers which page "More" was opened on, so going anywhere closes it.
   const [moreOn, setMoreOn] = useState<string | null>(null);
   const more = moreOn === pathname;
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
-  const rest = ITEMS.filter((i) => !i.tab);
+  const items = ITEMS.filter((i) => riana || !("riana" in i));
+  const rest = items.filter((i) => !("tab" in i));
   const tabCls = (on: boolean) => `flex min-h-[64px] flex-1 flex-col items-center justify-center gap-0.5 text-[0.8rem] no-underline ${on ? "font-bold text-evergreen" : "font-semibold text-ink-soft"}`;
 
   return (
     <>
       <nav aria-label="Main" className="mx-auto hidden w-full max-w-[1100px] px-6 md:block">
         <ul className="flex flex-wrap gap-2 pb-3">
-          {ITEMS.map(({ href, label, icon: Icon }) => (
+          {items.map(({ href, label, icon: Icon }) => (
             <li key={href}>
               <Link href={href} aria-current={isActive(href) ? "page" : undefined}
                 className={`flex min-h-[52px] items-center gap-2 rounded-full px-5 font-semibold no-underline ${isActive(href) ? "bg-parchment text-evergreen" : "text-paper hover:bg-evergreen-mid/40"}`}>
@@ -49,7 +52,7 @@ export function ParentNav() {
 
       <nav aria-label="Main" className="fixed bottom-0 left-0 right-0 z-30 w-full max-w-[100vw] border-t border-rule bg-paper md:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
         <ul className="mx-auto flex max-w-[560px]">
-          {ITEMS.filter((i) => i.tab).map(({ href, label, icon: Icon }) => (
+          {items.filter((i) => "tab" in i).map(({ href, label, icon: Icon }) => (
             <li key={href} className="flex flex-1">
               <Link href={href} aria-current={isActive(href) && !more ? "page" : undefined} className={tabCls(isActive(href) && !more)}>
                 <Icon size={26} /><span>{label}</span>

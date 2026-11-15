@@ -5,7 +5,7 @@
 // =============================================================================
 import type { IncomeSource, AssetPhoto, SafeItem, CollectionItem, Journal,
   Bill, CalendarEvent, ContactGroup, FinalWish, LabResult, LegalDocument, Loan,
-  NotificationCampaign, NotificationList, Person, RianaUpdate, SharedAlbum, UrgentQuestion,
+  NotificationCampaign, NotificationList, Person, RianaQuestion, RianaUpdate, SharedAlbum, UrgentQuestion,
   AuditEntry,
 } from "../types";
 
@@ -191,6 +191,12 @@ export const rianaUpdates: RianaUpdate[] = [
     payload: { full_name: "Sample CPA", relationship: "CPA, Example & Co", connected_to: "both", phone: "(555) 010-0702", is_professional: true, notify_first: false } },
   { id: uid("r", 5), kind: "contact", summary: "Add to Who to Notify: Sample Old Friend (Rich's Navy buddy)", received_at: day(-1, 10, 17), review_status: "pending", external_ref: "binder-notify-03",
     payload: { full_name: "Sample Old Friend", relationship: "Navy buddy", connected_to: "rich", phone: "(555) 010-0801", city: "Sample City", region: "OR", notify_first: true, preferred_method: "phone" } },
+];
+
+/** Ask Riana: a sample of the home-page chat (FAKE). */
+export const rianaQuestions: RianaQuestion[] = [
+  { id: uid("rq", 1), public_id: 1, intent: "question", channel: "web", asker: "diana", on_behalf_of: null, body: "[Sample] When is Rich's next VA appointment?", status: "answered",
+    answer: "[Sample] The calendar shows the VA C&P exam on November 6 at 1:00 PM at the VA clinic. Heather is driving.", created_at: day(-1, 16, 5), answered_at: day(-1, 16, 6) },
 ];
 
 /** Shared album links are references only; the app never copies the photos. FAKE link. */

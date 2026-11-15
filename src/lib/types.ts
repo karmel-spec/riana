@@ -604,3 +604,20 @@ export type AgendaItem = {
   added_by_name: string | null;
   created_at: string;
 };
+
+/** Ask Riana: one family message in the home-page chat and, once she replies, her answer. */
+export type RianaAsker = "rich" | "diana" | "karmel" | "heather";
+export type RianaQuestion = {
+  id: string;
+  /** Short number for people and email subjects (Q-1042). */
+  public_id: number;
+  intent: "question" | "teach";
+  channel: "web" | "sms" | "email";
+  asker: RianaAsker;
+  on_behalf_of: "rich" | "diana" | null;
+  body: string;
+  status: "waiting" | "answered";
+  answer: string | null;
+  created_at: string;
+  answered_at: string | null;
+};
