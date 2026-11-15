@@ -15,6 +15,7 @@ export type NavItem = {
 
 export const NAV: NavItem[] = [
   { href: "/", label: "Dashboard", section: null, icon: I.Home, built: true },
+  { href: "/riana", label: "Agent Riana", section: null, icon: I.Sparkle, built: true },
   { href: "/executrix", label: "Executrix checklist", section: "legal", icon: I.Check, built: true, group: "Executrix" },
   { href: "/executrix/agenda", label: "Meeting Agenda", section: "legal", icon: I.Calendar, built: true, group: "Executrix" },
   { href: "/questions", label: "Questions", section: "urgent_questions", icon: I.Question, built: true, group: "Today" },
