@@ -4,8 +4,6 @@ import { canRead, canWrite } from "@/lib/session";
 import * as data from "@/lib/data";
 import { fmtTime, greeting, monthDay, relative, subjectName, todayLong, fmtMoney, fmtDate } from "@/lib/format";
 import { DateChip, Empty, LegalStatusPill, SectionCard, SourceTag, Stat } from "@/components/ui";
-import { LabChart } from "./lab-chart";
-import { Mic } from "@/components/icons";
 import { ShareUpdateButton } from "./share-update";
 import { DismissQuestion } from "./dismiss-question";
 import { isHealthQuestion } from "@/lib/questions";
@@ -13,9 +11,9 @@ import { AgentRiana, findRiana } from "./agent-riana";
 import { MONTH_NAMES, inDays, todayIn, upcomingBirthdays } from "@/lib/people/birthdays";
 
 export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
-  const [questions, events, legal, bills, labs, riana, people] = await Promise.all([
+  const [questions, events, legal, bills, riana, people] = await Promise.all([
     data.getQuestions(v), data.getUpcomingEvents(v), data.getLegalDocuments(v),
-    data.getBills(v), data.getLabSeries(v, "diana", "A1C"), data.getRianaPending(v), data.getPeople(v),
+    data.getBills(v), data.getRianaPending(v), data.getPeople(v),
   ]);
   // "Coming up" mixes calendar events with contacts' birthdays in the next two weeks, in date order.
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -125,30 +123,7 @@ export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
             </ul>
           </SectionCard>
         )}
-
-        {canRead(v, "health_diana") && (
-          <SectionCard title="Diana · A1C over time" link={{ href: "/health/diana", label: "Health" }}>
-            <LabChart series={labs} title="A1C" />
-          </SectionCard>
-        )}
       </div>
-
-      {canRead(v, "family_history") && (
-        <section className="mt-6 flex flex-wrap items-center gap-7 rounded-3xl bg-ink p-7 text-parchment">
-          <div className="flex aspect-[4/3] w-full max-w-[260px] items-center justify-center rounded-lg border-[6px] border-parchment bg-[#4a4136] text-[0.9rem] text-[#d8ccb4]">
-            Archive photo
-          </div>
-          <div className="flex min-w-[260px] flex-1 flex-col gap-2">
-            <div className="eyebrow text-brass">From the family archive</div>
-            <h2 className="text-[1.7rem] font-semibold leading-tight text-parchment">A memory from the 1970s</h2>
-            <p className="text-[#e3d9c6]">Each week this spot will surface one photo, journal page or recorded story, with the people in it tagged and the story behind it. The archive arrives in phase 6.</p>
-            <div className="mt-1 flex flex-wrap gap-3">
-              <Link href="/history" className="btn border border-brass text-parchment hover:bg-[#3a342c]">Open the timeline</Link>
-              <Link href="/history" className="btn-brass"><Mic size={20} /> Record a memory</Link>
-            </div>
-          </div>
-        </section>
-      )}
 
     </>
   );
