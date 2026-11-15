@@ -14,9 +14,9 @@ export type NavItem = {
 };
 
 export const NAV: NavItem[] = [
+  { href: "/", label: "Dashboard", section: null, icon: I.Home, built: true },
   { href: "/executrix", label: "Executrix checklist", section: "legal", icon: I.Check, built: true, group: "Executrix" },
   { href: "/executrix/agenda", label: "Meeting Agenda", section: "legal", icon: I.Calendar, built: true, group: "Executrix" },
-  { href: "/", label: "Dashboard", section: null, icon: I.Home, built: true },
   { href: "/questions", label: "Urgent Questions", section: "urgent_questions", icon: I.Question, built: true, group: "Today" },
   { href: "/calendar", label: "Calendar", section: "calendar", icon: I.Calendar, built: true, group: "Today" },
   { href: "/health/diana", label: "Health · Diana", section: "health_diana", icon: I.Heart, built: true, group: "Health" },
