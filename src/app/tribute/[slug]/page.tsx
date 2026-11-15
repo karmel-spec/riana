@@ -63,7 +63,7 @@ export default async function TributePublicPage({ params, searchParams }: { para
               {page.service.where && <div className="text-[1.1rem]">{page.service.where}</div>}
               {page.service.address && <div className="text-mist">{page.service.address}</div>}
               {page.service.notes && <div className="mt-2 text-mist">{page.service.notes}</div>}
-              {page.service.livestream_url && <a href={page.service.livestream_url} className="btn-brass mt-4">Watch the livestream</a>}
+              {page.service.livestream_url && <a href={page.service.livestream_url} target="_blank" rel="noreferrer" className="btn-brass mt-4">Watch the livestream</a>}
             </section>
           );
           if (b.kind === "media") {
