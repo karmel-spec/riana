@@ -70,8 +70,7 @@ export default async function WidowBookPage() {
         </ul>
       </section>
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-3">
-          <div className="card p-4"><div className="eyebrow">The paper binder</div><div className="mt-1"><strong>2431 Tyndell Cir SW</strong>, Tumwater. The will is also kept in the safe, per the 2021 Directive.</div></div>
+      <div className="mb-6 grid gap-3 sm:grid-cols-2">
           <div className="card p-4"><div className="eyebrow">Who has copies</div><div className="mt-1"><strong>Heather</strong> (executrix) and <strong>Karmel</strong> (backup). The estate attorney on the Contacts page holds the 2021 wills.</div></div>
           <div className="card p-4"><div className="eyebrow">Filed so far</div><div className="mt-1"><strong>{body.length} pages</strong> across {scanned} tabs. More folders are still being digitized; a new Drive folder becomes a new tab.</div></div>
       </div>
