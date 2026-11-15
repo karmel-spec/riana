@@ -7,30 +7,52 @@ import { photoGroups, type SlidePhoto } from "@/lib/files/slideshow";
 
 const SECONDS = 6;
 
-/** The "Play slideshow" card on the Photos page: pick all photos or one group, then play them full screen. */
-export function Slideshow({ photos, big }: { photos: SlidePhoto[]; big: boolean }) {
+export type SlideAlbum = { id: string; title: string; url: string };
+const BINDER = "__binder__";
+
+/**
+ * The "Play slideshow" card on the Photos page. The picker lists the family's Google Photos albums, which
+ * open in Google Photos (it will not let another app play them), and the photos kept in the binder, which play here.
+ */
+export function Slideshow({ photos, albums, big }: { photos: SlidePhoto[]; albums: SlideAlbum[]; big: boolean }) {
   const groups = useMemo(() => photoGroups(photos), [photos]);
-  const [group, setGroup] = useState("");
+  const [pick, setPick] = useState(albums[0]?.id ?? BINDER);
   const [open, setOpen] = useState(false);
   const close = useCallback(() => setOpen(false), []);
+  const album = albums.find((a) => a.id === pick);
+  const group = pick.startsWith("group:") ? pick.slice(6) : "";
   const list = useMemo(() => (group ? photos.filter((p) => p.group === group) : photos), [photos, group]);
 
-  if (photos.length === 0) return null;
+  if (photos.length === 0 && albums.length === 0) return null;
+  const btn = `btn-primary no-underline ${big ? "min-h-[72px] px-8 text-[1.4rem]" : "min-h-[56px] px-6 text-[1.15rem]"}`;
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <button type="button" onClick={() => setOpen(true)} className={`btn-primary ${big ? "min-h-[72px] px-8 text-[1.4rem]" : "min-h-[56px] px-6 text-[1.15rem]"}`}>
-        <Play size={big ? 30 : 24} /> Play slideshow
-      </button>
-      {groups.length > 1 && (
-        <label className="flex items-center gap-2"><span className="sr-only">Which photos</span>
-          <select value={group} onChange={(e) => setGroup(e.target.value)} className={`field w-auto ${big ? "min-h-[56px] text-[1.15rem]" : ""}`}>
-            <option value="">All photos ({photos.length})</option>
-            {groups.map((g) => <option key={g.name} value={g.name}>{g.name} ({g.count})</option>)}
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="flex min-w-0 items-center gap-2"><span className="sr-only">Which album</span>
+          <select value={pick} onChange={(e) => setPick(e.target.value)} className={`field w-auto max-w-full ${big ? "min-h-[56px] text-[1.15rem]" : ""}`}>
+            {albums.length > 0 && (
+              <optgroup label="Google Photos albums">
+                {albums.map((a) => <option key={a.id} value={a.id}>{a.title}</option>)}
+              </optgroup>
+            )}
+            {photos.length > 0 && (
+              <optgroup label="Kept in the binder">
+                <option value={BINDER}>All binder photos ({photos.length})</option>
+                {groups.length > 1 && groups.map((g) => <option key={g.name} value={`group:${g.name}`}>{g.name} ({g.count})</option>)}
+              </optgroup>
+            )}
           </select>
         </label>
-      )}
-      {groups.length <= 1 && <span className="text-ink-soft">{photos.length} photo{photos.length === 1 ? "" : "s"}</span>}
-      {open && <Player photos={list} big={big} close={close} />}
+        {album
+          ? <a href={album.url} target="_blank" rel="noreferrer" className={btn}><Play size={big ? 30 : 24} /> Open album ↗</a>
+          : <button type="button" onClick={() => setOpen(true)} className={btn}><Play size={big ? 30 : 24} /> Play slideshow</button>}
+      </div>
+      <p className={`text-ink-soft ${big ? "" : "text-[0.95rem]"}`}>
+        {album
+          ? "This album opens in Google Photos in a new tab. To play it there, open its menu and choose Slideshow."
+          : "These play right here, full screen, one photo every six seconds."}
+      </p>
+      {open && !album && <Player photos={list} big={big} close={close} />}
     </div>
   );
 }

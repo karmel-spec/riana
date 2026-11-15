@@ -41,6 +41,10 @@ export default async function CollectionsPage({ params }: { params: Promise<{ ta
   const v = await requireSection("family_history");
   const items = (await data.getCollections(v)).filter((i) => t.categories.includes(i.category));
   const [albums, photos] = tab === "photos" ? await Promise.all([data.getSharedAlbums(v), data.getSlideshowPhotos(v)]) : [[], []];
+  // The slideshow picker offers the family albums by name; Widow Book albums are papers, not pictures to play.
+  const slideAlbums = albums.filter((a) => !/widow\s*book/i.test(`${a.title} ${a.note ?? ""}`))
+    .sort((a, b) => Number(/^Shared album/i.test(a.title)) - Number(/^Shared album/i.test(b.title)))
+    .map((a) => ({ id: a.id, title: a.title, url: a.url }));
   const photoTags = [...new Set(["Family", ...photoGroups(photos).map((g) => g.name).filter((n) => !n.includes("→") && n !== "Added in the app")])];
   await data.logView(v, "family_history", "collections");
   const parent = v.brief;
@@ -67,9 +71,9 @@ export default async function CollectionsPage({ params }: { params: Promise<{ ta
       {tab === "photos" && (
         <section aria-labelledby="slideshow" className="card mb-6 flex flex-col gap-3">
           <h2 id="slideshow" className={`font-semibold ${parent ? "text-[1.6rem]" : "text-[1.35rem]"}`}>Slideshow</h2>
-          {photos.length === 0
+          {photos.length === 0 && slideAlbums.length === 0
             ? <Empty>{canEdit ? "No photos are stored in the binder yet. Add one below and the slideshow appears here." : "No photos are stored in the binder yet."}</Empty>
-            : <><p className="text-ink-soft">{parent ? "Sit back and watch the family photos, one at a time. Tap Close when you are done." : "Plays the photos kept in the binder full screen, one every six seconds. Arrow keys or a swipe change the photo; Esc closes."}</p><Slideshow photos={photos} big={parent} /></>}
+            : <Slideshow photos={photos} albums={slideAlbums} big={parent} />}
           {canEdit && <UploadFile section="family_history" label="Add a photo to the slideshow" back="/collections/photos"
             notes={photoTags.map((t) => ({ label: t, value: `${PHOTO_TAG.prefix}${t}${PHOTO_TAG.suffix}` }))} newTab={PHOTO_TAG} />}
         </section>
