@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "The Greene Family Binder",
-    short_name: "Greene Binder",
+    name: "Rich & Diana Greene",
+    short_name: "Rich & Diana",
     description: "A private home for everything the Greene family needs to care for Rich and Diana.",
     start_url: "/",
     display: "standalone",

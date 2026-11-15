@@ -81,9 +81,9 @@ export function Sidebar({ items, adminItems, viewerName, viewerBlurb, demo, canT
     <nav aria-label="Binder sections" className="on-dark flex h-full flex-col gap-1 overflow-y-auto bg-evergreen py-7 text-paper">
       <div className="mb-4 px-7">
         <Link href="/" className="block font-serif text-[1.45rem] font-bold leading-tight text-paper no-underline">
-          The Greene<br />Family Binder
+          Rich &amp; Diana<br />Greene
         </Link>
-        <div className="mt-1 text-[0.85rem] text-mist">Rich &amp; Diana · Lake Havasu City</div>
+        <div className="mt-1 text-[0.85rem] text-mist">Family binder · Lake Havasu City</div>
       </div>
       {canToggleView && <div className="mb-3 px-7"><ViewToggle current="full" /></div>}
       <form
@@ -161,7 +161,7 @@ export function Sidebar({ items, adminItems, viewerName, viewerBlurb, demo, canT
         >
           {open ? <Close /> : <Menu />}
         </button>
-        <Link href="/" className="font-serif text-[1.15rem] font-bold text-paper no-underline">The Greene Family Binder</Link>
+        <Link href="/" className="font-serif text-[1.15rem] font-bold text-paper no-underline">Rich &amp; Diana Greene</Link>
         <div className="w-11" />
       </header>
       {open && (

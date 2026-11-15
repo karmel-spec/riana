@@ -107,7 +107,7 @@ export function Directory({ people, groups, canEdit, parent, today }: { people: 
       {shown.length === 0 ? <Empty>Nobody matches.</Empty> : (
         <ul className={`grid gap-3 ${parent ? "" : "md:grid-cols-2"}`}>
           {shown.map((p) => (
-            <li key={p.id} className="card flex flex-col gap-2 !p-4">
+            <li key={p.id} className="card flex min-w-0 flex-col gap-2 !p-4">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
                   <div className={`font-semibold ${parent ? "text-[1.35rem]" : "text-[1.1rem]"}`}>{p.full_name}</div>
@@ -120,14 +120,14 @@ export function Directory({ people, groups, canEdit, parent, today }: { people: 
               </div>
               {parent && (p.phone || p.email) && (
                 <div className="flex flex-wrap gap-2">
-                  {p.phone && <a href={`tel:${p.phone.replace(/[^\d+]/g, "")}`} className="btn-primary min-h-[52px] flex-1 px-4 text-[1.1rem] no-underline"><Phone size={22} /> Call</a>}
-                  {p.phone && <a href={`sms:${p.phone.replace(/[^\d+]/g, "")}`} className="btn-secondary min-h-[52px] flex-1 px-4 text-[1.1rem] no-underline">Text</a>}
-                  {p.email && <a href={`mailto:${p.email}`} className="btn-secondary min-h-[52px] flex-1 px-4 text-[1.1rem] no-underline"><Mail size={22} /> Email</a>}
+                  {p.phone && <a href={`tel:${p.phone.replace(/[^\d+]/g, "")}`} className="btn-primary min-h-[52px] min-w-[7rem] flex-1 px-3 text-[1.05rem] no-underline"><Phone size={22} /> Call</a>}
+                  {p.phone && <a href={`sms:${p.phone.replace(/[^\d+]/g, "")}`} className="btn-secondary min-h-[52px] min-w-[5rem] flex-1 px-3 text-[1.05rem] no-underline">Text</a>}
+                  {p.email && <a href={`mailto:${p.email}`} className="btn-secondary min-h-[52px] min-w-[7rem] flex-1 px-3 text-[1.05rem] no-underline"><Mail size={22} /> Email</a>}
                 </div>
               )}
               <div className={`flex flex-wrap gap-x-4 gap-y-1 ${parent ? "text-[1.05rem]" : "text-[0.95rem]"}`}>
                 {p.phone && <a href={`tel:${p.phone.replace(/\D/g, "")}`} className="flex items-center gap-1 text-evergreen"><Phone size={16} /> {p.phone}</a>}
-                {p.email && <a href={`mailto:${p.email}`} className="flex items-center gap-1 text-evergreen"><Mail size={16} /> {p.email}</a>}
+                {p.email && <a href={`mailto:${p.email}`} className="flex min-w-0 max-w-full items-center gap-1 text-evergreen"><Mail size={16} className="shrink-0" /> <span className="min-w-0 break-all">{p.email}</span></a>}
                 {p.preferred_method && <span className="text-ink-soft">Prefers: {METHOD[p.preferred_method]}</span>}
               </div>
               {p.birth_month && p.birth_day && <div className="text-[0.95rem]"><span className="font-semibold">Birthday:</span> {birthdayLabel(p, today)}</div>}

@@ -1,6 +1,6 @@
 import { requireSection } from "@/lib/session";
 import * as data from "@/lib/data";
-import { DateChip, Empty, PageHeader, SourceTag } from "@/components/ui";
+import { DateChip, Empty, PageHeader, SourceTag, LinkedText } from "@/components/ui";
 import { fmtDateLong, fmtTime, monthDay, relative, subjectName } from "@/lib/format";
 
 export const metadata = { title: "Calendar" };
@@ -47,7 +47,7 @@ export default async function CalendarPage() {
                         <SourceTag source={e.source} />
                       </div>
                     )}
-                    {e.notes && <p className="mt-1 text-[0.95rem] text-ink-soft">{e.notes}</p>}
+                    {e.notes && <p className="mt-1 break-words text-[0.95rem] text-ink-soft"><LinkedText text={e.notes} /></p>}
                   </div>
                 </li>
               );
