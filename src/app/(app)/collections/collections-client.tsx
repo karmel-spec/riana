@@ -20,7 +20,7 @@ export function AddCollectionButton({ defaultCategory = "book", people = [] }: {
         <Field id="co-owner" label="Whose">
           <select id="co-owner" name="owner" className="field" defaultValue="diana"><option value="diana">Mom{category === "ancestor" ? "’s side" : ""}</option><option value="rich">Dad{category === "ancestor" ? "’s side" : ""}</option><option value="both">Both</option></select>
         </Field>
-        {category === "ancestor" && <Field id="co-person" label="Whose it was (full name)" span><input id="co-person" name="person" required list="co-people" className="field" placeholder="David Henry Greene" /><datalist id="co-people">{people.map((p) => <option key={p} value={p} />)}</datalist></Field>}
+        {category === "ancestor" && <Field id="co-person" label="Whose it was (full name)" span><input id="co-person" name="person" required list="co-people" className="field" placeholder="First, middle and last name" /><datalist id="co-people">{people.map((p) => <option key={p} value={p} />)}</datalist></Field>}
         <Field id="co-title" label="Name" span><input id="co-title" name="title" required className="field" placeholder="Our Family Story, vol. 1" /></Field>
         <Field id="co-url" label="Link (if online)" span><input id="co-url" name="url" type="url" inputMode="url" className="field" placeholder="https://…" /></Field>
         <Field id="co-loc" label="Where it is kept" span><input id="co-loc" name="location" className="field" placeholder="Living room bookcase, second shelf" /></Field>

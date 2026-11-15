@@ -178,7 +178,7 @@ export type CollectionItem = {
   location: string | null;
   period: string | null;
   note: string | null;
-  /** Ancestors page: whose keepsake this is ("David Henry Greene"). Absent until migration 20261115000026 is applied. */
+  /** Ancestors page: whose keepsake this is, by full name. Absent until migration 20261115000026 is applied. */
   person?: string | null;
   added_by_name: string | null;
   source: Source;
