@@ -13,16 +13,17 @@ export default async function ContactsPage() {
   const [people, groups, lists] = await Promise.all([data.getPeople(v), data.getGroups(v), data.getNotificationLists(v)]);
   await data.logView(v, "contacts", "people");
   const parent = v.brief;
-  const mine = parent ? people.filter((p) => p.connected_to === v.isSubject || p.connected_to === "both") : people;
+  // Rich and Diana each see their own people plus the shared ones; anyone else looking at the Brief view sees everyone.
+  const mine = parent && v.isSubject ? people.filter((p) => p.connected_to === v.isSubject || p.connected_to === "both") : people;
   const unconfirmed = mine.filter((p) => !p.confirmed).length;
 
   return (
     <>
       <PageHeader
         eyebrow={parent ? undefined : "Sections 3 & 16"}
-        title={parent ? "People in your life" : "Contacts & who to notify"}
+        title={parent ? "Your contacts" : "Contacts & who to notify"}
         intro={parent
-          ? `Is this list right? Tap “Yes, that's right” on each person, or tell us who's missing.${unconfirmed ? ` ${unconfirmed} still to check.` : ""}`
+          ? `Tap Call or Text to reach someone. Tap Edit to fix a number or address, or add someone who is missing.${unconfirmed ? ` ${unconfirmed} still to check.` : ""}`
           : "Family, friends, church, clubs, neighbors, veterans and professionals, grouped so the right people hear the right news."}
         actions={
           <>

@@ -6,10 +6,10 @@ import { Calendar, Dove, Home, People, Question, Book, Search } from "@/componen
 
 const ITEMS = [
   { href: "/", label: "Home", icon: Home },
+  { href: "/contacts", label: "Contacts", icon: People },
   { href: "/calendar", label: "Our Calendar", icon: Calendar },
   { href: "/questions", label: "Questions", icon: Question },
   { href: "/wishes", label: "Our Wishes", icon: Dove },
-  { href: "/contacts", label: "People", icon: People },
   { href: "/history", label: "Memories", icon: Book },
   { href: "/journals", label: "Journals", icon: Book },
   { href: "/collections/books", label: "Books", icon: Book },
