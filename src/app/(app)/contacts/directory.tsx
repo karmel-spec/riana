@@ -7,17 +7,18 @@ import { fmtDate, subjectName } from "@/lib/format";
 import { Check, Mail, Phone, Search } from "@/components/icons";
 import { Empty } from "@/components/ui";
 import { EditPersonForm } from "./edit-person-form";
+import { birthdayLabel, byNextBirthday, inDays, upcomingBirthdays, MONTH_NAMES, type Ymd } from "@/lib/people/birthdays";
 
 const METHOD: Record<string, string> = { phone: "Call", text: "Text", email: "Email", mail: "Letter", in_person: "In person" };
 
-export function Directory({ people, groups, canEdit, parent }: { people: Person[]; groups: ContactGroup[]; canEdit: boolean; parent: boolean }) {
+export function Directory({ people, groups, canEdit, parent, today }: { people: Person[]; groups: ContactGroup[]; canEdit: boolean; parent: boolean; today: Ymd }) {
   const [q, setQ] = useState("");
   const [group, setGroup] = useState("");
   const [spouse, setSpouse] = useState("");
   const [onlyUnconfirmed, setOnlyUnconfirmed] = useState(false);
   const [onlyFirst, setOnlyFirst] = useState(false);
   const [onlyMissing, setOnlyMissing] = useState(false);
-  const [sort, setSort] = useState<"name" | "name_desc" | "unconfirmed" | "first" | "closeness">("name");
+  const [sort, setSort] = useState<"name" | "name_desc" | "unconfirmed" | "first" | "closeness" | "birthday">("name");
   const [, start] = useTransition();
   const remove = (p: Person) => { if (window.confirm(`Remove ${p.full_name} from the contacts? This can't be undone.`)) start(() => { deletePerson(p.id); }); };
 
@@ -38,13 +39,28 @@ export function Directory({ people, groups, canEdit, parent }: { people: Person[
     if (sort === "unconfirmed") return Number(a.confirmed) - Number(b.confirmed) || name;
     if (sort === "first") return Number(b.notify_first) - Number(a.notify_first) || name;
     if (sort === "closeness") return (b.closeness ?? 0) - (a.closeness ?? 0) || name;
+    if (sort === "birthday") return byNextBirthday(a, b, today) || name;
     return name;
-  }), [people, q, group, spouse, onlyUnconfirmed, onlyFirst, onlyMissing, sort]);
+  }), [people, q, group, spouse, onlyUnconfirmed, onlyFirst, onlyMissing, sort, today]);
+  const soon = useMemo(() => upcomingBirthdays(people, today, 30), [people, today]);
 
   const groupName = (id: string) => groups.find((g) => g.id === id)?.name ?? "";
 
   return (
     <>
+      {soon.length > 0 && (
+        <section aria-labelledby="bd-soon" className="mb-5 rounded-2xl border border-rule bg-paper-warm px-5 py-4">
+          <h2 id="bd-soon" className={`font-semibold ${parent ? "text-[1.4rem]" : "text-[1.15rem]"}`}>Upcoming birthdays <span className="text-[0.9rem] font-normal text-ink-soft">next 30 days</span></h2>
+          <ul className="mt-2 flex flex-wrap gap-2">
+            {soon.map(({ person: p, on, days, turns }) => (
+              <li key={p.id} className={`rounded-xl border px-3 py-2 ${days === 0 ? "border-brass-deep/50 bg-brass-tint" : "border-rule-soft bg-paper"} ${parent ? "text-[1.15rem]" : ""}`}>
+                <span className="font-semibold">{p.full_name}</span>
+                <span className="text-ink-soft"> · {MONTH_NAMES[on.m - 1].slice(0, 3)} {on.d} · {inDays(days)}{turns ? ` · turns ${turns}` : ""}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <div className="mb-5 flex flex-wrap items-center gap-3">
         <label className="flex min-w-[220px] flex-1 items-center gap-2 rounded-xl border border-rule bg-paper px-3">
           <Search size={20} className="text-ink-soft" />
@@ -66,7 +82,7 @@ export function Directory({ people, groups, canEdit, parent }: { people: Person[
             </label>
             <label><span className="sr-only">Sort</span>
               <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} className="field w-auto">
-                <option value="name">Sort: name A–Z</option><option value="name_desc">Sort: name Z–A</option><option value="unconfirmed">Sort: unconfirmed first</option><option value="first">Sort: tell first</option><option value="closeness">Sort: closest first</option>
+                <option value="name">Sort: name A–Z</option><option value="name_desc">Sort: name Z–A</option><option value="unconfirmed">Sort: unconfirmed first</option><option value="first">Sort: tell first</option><option value="closeness">Sort: closest first</option><option value="birthday">Sort: by birthday</option>
               </select>
             </label>
           </>
@@ -107,6 +123,7 @@ export function Directory({ people, groups, canEdit, parent }: { people: Person[
                 {p.email && <a href={`mailto:${p.email}`} className="flex items-center gap-1 text-evergreen"><Mail size={16} /> {p.email}</a>}
                 {p.preferred_method && <span className="text-ink-soft">Prefers: {METHOD[p.preferred_method]}</span>}
               </div>
+              {p.birth_month && p.birth_day && <div className="text-[0.95rem]"><span className="font-semibold">Birthday:</span> {birthdayLabel(p, today)}</div>}
               {!parent && (
                 <div className="flex flex-wrap gap-1 text-[0.8rem]">
                   {p.group_ids.map((g) => <span key={g} className="rounded-md bg-parchment px-2 py-0.5 text-ink-soft">{groupName(g)}</span>)}

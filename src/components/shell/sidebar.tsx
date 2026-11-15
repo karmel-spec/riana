@@ -53,7 +53,9 @@ export function Sidebar({ items, adminItems, viewerName, viewerBlurb, demo, canT
   const close = () => setOpen(false);
 
   // Only the group headers show by default; a group opens when clicked or when it holds the current page.
-  const all = [...items, ...adminItems.map((i) => ({ ...i, group: "Admin" }))];
+  // The Glossary is a reference page: it sits at the very bottom, below Admin.
+  const isLast = (i: { href: string }) => i.href === "/glossary";
+  const all = [...items.filter((i) => !isLast(i)), ...adminItems.map((i) => ({ ...i, group: "Admin" })), ...items.filter(isLast)];
   // Blocks in the order the nav lists them: a bare link, or a collapsible group.
   type Block = { kind: "link"; item: (typeof all)[number] } | { kind: "group"; name: string; items: typeof all };
   const blocks = all.reduce<Block[]>((acc, i) => {

@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import { sendMagicLink, signInWithPassword } from "@/app/actions/auth";
 
 export function LoginForm() {
-  const [mode, setMode] = useState<"password" | "link">("password");
+  const [mode, setMode] = useState<"password" | "link" | "forgot">("password");
   const [linkState, linkAction, linkPending] = useActionState(sendMagicLink, { error: "" });
   const [pwState, pwAction, pwPending] = useActionState(signInWithPassword, { error: "" });
 
@@ -27,7 +27,20 @@ export function LoginForm() {
           </div>
           {pwState.error && <p className="rounded-xl bg-ember-tint px-4 py-3 text-ember">{pwState.error}</p>}
           <button className="btn-primary" disabled={pwPending}>{pwPending ? "Signing in…" : "Sign in"}</button>
+          <button type="button" onClick={() => setMode("forgot")} className="min-h-[44px] self-center font-semibold text-evergreen underline">Forgot your password?</button>
           <p className="text-center text-[0.9rem] text-ink-soft">Karmel or Heather set your first password. You can change it inside the binder.</p>
+        </form>
+      ) : mode === "forgot" ? (
+        <form action={linkAction} className="flex flex-col gap-4">
+          <input type="hidden" name="forgot" value="1" />
+          <p>Enter your email and we’ll send you a link. Open it on this device and you can choose a new password.</p>
+          <div>
+            <label htmlFor="email-forgot" className="label">Your email</label>
+            <input id="email-forgot" name="email" type="email" required autoComplete="email" inputMode="email" className="field" placeholder="you@example.com" />
+          </div>
+          {linkState.error && <p className="rounded-xl bg-ember-tint px-4 py-3 text-ember">{linkState.error}</p>}
+          <button className="btn-primary" disabled={linkPending}>{linkPending ? "Sending…" : "Email me a reset link"}</button>
+          <button type="button" onClick={() => setMode("password")} className="min-h-[44px] self-center font-semibold text-evergreen underline">Back to sign in</button>
         </form>
       ) : (
         <form action={linkAction} className="flex flex-col gap-4">

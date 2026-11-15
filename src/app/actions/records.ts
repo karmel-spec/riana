@@ -6,6 +6,7 @@ import { getViewer, canWrite } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 import { demoStore } from "@/lib/data";
 import { applyRianaUpdate } from "@/lib/riana/apply";
+import { birthdayError } from "@/lib/people/birthdays";
 import type { LegalStatus, QuestionStatus, Section, Subject, Person } from "@/lib/types";
 
 type Result<T = undefined> = { ok: true; data?: T } | { ok: false; error: string };
@@ -127,6 +128,7 @@ const LegalUpdate = z.object({
   open_issue: z.string().trim().max(1000).optional(),
   signed_on: z.string().optional(),
   recorded_on: z.string().optional(),
+  notes: z.string().trim().max(4000).optional(),
 });
 
 export async function updateLegalDocument(_p: Result | null, form: FormData): Promise<Result> {
@@ -140,6 +142,8 @@ export async function updateLegalDocument(_p: Result | null, form: FormData): Pr
     open_issue: rest.open_issue || null,
     signed_on: rest.signed_on || null,
     recorded_on: rest.recorded_on || null,
+    // "What theirs says": only touched when the form carries the field.
+    ...(rest.notes !== undefined ? { notes: rest.notes || null } : {}),
   };
   if (v.demo) {
     const d = demoStore().legal.find((x) => x.id === id);
@@ -151,7 +155,7 @@ export async function updateLegalDocument(_p: Result | null, form: FormData): Pr
     const { error } = await supabase.from("legal_documents").update(patch).eq("id", id);
     if (error) return { ok: false, error: "Could not save." };
   }
-  revalidatePath("/legal"); revalidatePath("/");
+  revalidatePath("/legal"); revalidatePath("/health/legal"); revalidatePath("/");
   return { ok: true };
 }
 
@@ -227,7 +231,13 @@ export async function addPerson(_p: Result | null, form: FormData): Promise<Resu
   return { ok: true };
 }
 
-const EditPerson = NewPerson.omit({ group_id: true }).extend({ id: z.string().uuid(), new_group: z.string().trim().max(60).optional() });
+const blankOrInt = (min: number, max: number, what: string) =>
+  z.string().trim().optional().transform((s) => (s ? Number(s) : null))
+    .refine((n) => n === null || (Number.isInteger(n) && n >= min && n <= max), `Please check the birthday ${what}.`);
+const EditPerson = NewPerson.omit({ group_id: true }).extend({
+  id: z.string().uuid(), new_group: z.string().trim().max(60).optional(),
+  birth_month: blankOrInt(1, 12, "month"), birth_day: blankOrInt(1, 31, "day"), birth_year: blankOrInt(1850, 2100, "year"),
+});
 
 export async function updatePerson(_p: Result | null, form: FormData): Promise<Result> {
   const v = await need("contacts");
@@ -235,12 +245,16 @@ export async function updatePerson(_p: Result | null, form: FormData): Promise<R
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
   const d = parsed.data;
   const groupIds = form.getAll("group_ids").map(String).filter((g) => z.string().uuid().safeParse(g).success);
-  const row = {
+  const badBirthday = birthdayError(d.birth_month, d.birth_day, d.birth_year);
+  if (badBirthday) return { ok: false, error: badBirthday };
+  const birthday = { birth_month: d.birth_month, birth_day: d.birth_day, birth_year: d.birth_year };
+  const base = {
     full_name: d.full_name, relationship: d.relationship || null, connected_to: d.connected_to,
     phone: d.phone || null, email: d.email || null, city: d.city || null,
     preferred_method: (d.preferred_method || null) as "phone" | "text" | "email" | "mail" | "in_person" | null,
     notes: d.notes || null,
   };
+  const row = { ...base, ...birthday };
   if (v.demo) {
     const p = demoStore().people.find((x) => x.id === d.id);
     if (!p) return { ok: false, error: "Person not found." };
@@ -250,7 +264,12 @@ export async function updatePerson(_p: Result | null, form: FormData): Promise<R
     bump(v, "contacts", `Updated contact ${d.full_name}`, "people");
   } else {
     const supabase = await createClient();
-    const { error } = await supabase.from("people").update(row).eq("id", d.id);
+    let { error } = await supabase.from("people").update(row).eq("id", d.id);
+    // Until the birthday migration is applied the columns don't exist: still save everything else.
+    if (error?.message.includes("birth_")) {
+      if (d.birth_month) return { ok: false, error: "The database is missing the birthday migration (20261115000025_people_birthday)." };
+      ({ error } = await supabase.from("people").update(base).eq("id", d.id));
+    }
     if (error) return { ok: false, error: "Could not save the changes." };
     if (d.new_group) {
       const { data: g, error: ge } = await supabase.from("contact_groups").upsert({ name: d.new_group, kind: "other" }, { onConflict: "name" }).select("id").single();

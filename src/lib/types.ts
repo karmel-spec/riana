@@ -88,6 +88,10 @@ export type Person = {
   confirmed: boolean;
   notes: string | null;
   group_ids: string[];
+  /** Birthday: month and day together, year optional. Absent until migration 20261115000025 is applied. */
+  birth_month?: number | null;
+  birth_day?: number | null;
+  birth_year?: number | null;
 };
 
 export type NotificationList = {
@@ -164,7 +168,7 @@ export type Journal = {
   created_at: string;
 };
 
-export type CollectionCategory = "book" | "photos" | "imemories" | "digital_history" | "love_letter" | "interview" | "other";
+export type CollectionCategory = "book" | "photos" | "imemories" | "digital_history" | "love_letter" | "interview" | "ancestor" | "other";
 export type CollectionItem = {
   id: string;
   category: CollectionCategory;
@@ -174,6 +178,8 @@ export type CollectionItem = {
   location: string | null;
   period: string | null;
   note: string | null;
+  /** Ancestors page: whose keepsake this is, by full name. Absent until migration 20261115000026 is applied. */
+  person?: string | null;
   added_by_name: string | null;
   source: Source;
   created_at: string;

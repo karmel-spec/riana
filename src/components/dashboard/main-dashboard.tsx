@@ -8,12 +8,19 @@ import { LabChart } from "./lab-chart";
 import { Mic, Sparkle } from "@/components/icons";
 import { ShareUpdateButton } from "./share-update";
 import { DismissQuestion } from "./dismiss-question";
+import { MONTH_NAMES, inDays, todayIn, upcomingBirthdays } from "@/lib/people/birthdays";
 
 export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
-  const [questions, events, legal, bills, labs, riana] = await Promise.all([
+  const [questions, events, legal, bills, labs, riana, people] = await Promise.all([
     data.getQuestions(v), data.getUpcomingEvents(v), data.getLegalDocuments(v),
-    data.getBills(v), data.getLabSeries(v, "diana", "A1C"), data.getRianaPending(v),
+    data.getBills(v), data.getLabSeries(v, "diana", "A1C"), data.getRianaPending(v), data.getPeople(v),
   ]);
+  // "Coming up" mixes calendar events with contacts' birthdays in the next two weeks, in date order.
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const comingUp = [
+    ...events.map((e) => ({ key: e.id, at: e.starts_at, event: e, birthday: null })),
+    ...upcomingBirthdays(people, todayIn(), 14).map((b) => ({ key: `bd-${b.person.id}`, at: `${b.on.y}-${pad(b.on.m)}-${pad(b.on.d)}T00:00:00-07:00`, event: null, birthday: b })),
+  ].sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime()).slice(0, 5);
   const openQs = questions.filter((q) => !["answered", "closed"].includes(q.status));
   const failed = bills.filter((b) => b.status === "failed" || b.status === "overdue");
   const dueThisMonth = bills.filter((b) => b.next_due_on && new Date(b.next_due_on).getMonth() === new Date().getMonth());
@@ -72,12 +79,22 @@ export async function MainDashboard({ viewer: v }: { viewer: Viewer }) {
         )}
 
         <SectionCard title="Coming up" link={{ href: "/calendar", label: "Calendar" }}>
-          {events.length === 0 ? <Empty>Nothing in the next six weeks.</Empty> : (
+          {comingUp.length === 0 ? <Empty>Nothing in the next six weeks.</Empty> : (
             <ul className="flex flex-col gap-3">
-              {events.slice(0, 4).map((e) => {
+              {comingUp.map(({ key, event: e, birthday: b }) => {
+                if (b) return (
+                  <li key={key} className="flex items-center gap-4">
+                    <DateChip month={MONTH_NAMES[b.on.m - 1].slice(0, 3).toUpperCase()} day={String(b.on.d)} />
+                    <div className="min-w-0">
+                      <div className="font-semibold">{b.person.full_name}’s birthday</div>
+                      <div className="text-[0.9rem] text-ink-soft">{inDays(b.days).replace(/^./, (c) => c.toUpperCase())}{b.turns ? ` · turns ${b.turns}` : ""} · <Link href="/contacts" className="font-semibold text-evergreen">Contacts</Link></div>
+                    </div>
+                  </li>
+                );
+                if (!e) return null;
                 const { month, day } = monthDay(e.starts_at);
                 return (
-                  <li key={e.id} className="flex items-center gap-4">
+                  <li key={key} className="flex items-center gap-4">
                     <DateChip month={month} day={day} />
                     <div className="min-w-0">
                       <div className="font-semibold">{subjectName(e.about)} · {e.title}</div>

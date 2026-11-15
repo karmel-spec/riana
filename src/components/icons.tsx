@@ -94,3 +94,12 @@ export const Tag = ({ size = 22, ...p }: P) => (
 export const Receipt = ({ size = 22, ...p }: P) => (
   <svg {...base(size)} {...p}><path d="M5 3h14v18l-2.5-1.5L14 21l-2-1.5L10 21l-2.5-1.5L5 21z" /><path d="M9 8h6" /><path d="M9 12h6" /></svg>
 );
+export const Play = ({ size = 22, ...p }: P) => (
+  <svg {...base(size)} {...p}><path d="M7 4.5v15l12-7.5z" fill="currentColor" /></svg>
+);
+export const Pause = ({ size = 22, ...p }: P) => (
+  <svg {...base(size)} {...p}><path d="M8 5v14M16 5v14" strokeWidth={3} /></svg>
+);
+export const ChevronLeft = ({ size = 22, ...p }: P) => (
+  <svg {...base(size)} {...p}><path d="M15 6l-6 6 6 6" /></svg>
+);

@@ -4,6 +4,7 @@ import * as data from "@/lib/data";
 import { PageHeader } from "@/components/ui";
 import { Directory } from "./directory";
 import { AddPersonForm } from "./add-person-form";
+import { todayIn } from "@/lib/people/birthdays";
 
 export const metadata = { title: "Contacts & Who to Notify" };
 
@@ -30,7 +31,7 @@ export default async function ContactsPage() {
           </>
         }
       />
-      <Directory people={mine} groups={groups} canEdit={canWrite(v, "contacts")} parent={parent} />
+      <Directory people={mine} groups={groups} canEdit={canWrite(v, "contacts")} parent={parent} today={todayIn()} />
     </>
   );
 }
